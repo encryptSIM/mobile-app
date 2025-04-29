@@ -4,19 +4,29 @@
     "slug": "encrypt-sim",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/splash/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/splash/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0A0F1C"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "splash": {
+        "image": "./assets/splash/logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#0A0F1C"
+      }
     },
     "android": {
+      "splash": {
+        "image": "./assets/splash/logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#0A0F1C"
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
