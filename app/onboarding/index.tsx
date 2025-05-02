@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,9 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -18,7 +20,7 @@ const slides = [
     key: "1",
     title: "Unbreakable Security",
     description: "eSIM + dVPN.\nNo trackers, no logs.",
-    image: require("../assets/splash/logo.png"),
+    image: require("../../assets/splash/logo.png"),
     buttonText: "Next",
   },
   {
@@ -26,7 +28,7 @@ const slides = [
     title: "Speed Meets Freedom",
     description:
       "Global 5G in 138+ countries, fast servers.\nSentinel dVPN boosts speed with privacy.",
-    image: require("../assets/splash/logo.png"),
+    image: require("../../assets/splash/logo.png"),
     buttonText: "Next",
   },
   {
@@ -34,22 +36,44 @@ const slides = [
     title: "Your Web3 Gateway",
     description:
       "No KYC, crypto-ready, from $1.95 or $99/yr.\nInstant eSIM + dVPN for secure global use.",
-    image: require("../assets/splash/logo.png"),
+    image: require("../../assets/splash/logo.png"),
     buttonText: "Get Started",
   },
 ];
 
 export default function Onboarding() {
   const [index, setIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const handleNext = () => {
+  // useEffect(() => {
+  //   const checkFirstTime = async () => {
+  //     const isFirstTime = await AsyncStorage.getItem("isFirstTime");
+  //     if (isFirstTime === "false") {
+  //       router.replace("/login"); // Redirect if already seen
+  //     } else {
+  //       setLoading(false); // Show onboarding
+  //     }
+  //   };
+  //   checkFirstTime();
+  // }, []);
+
+  const handleNext = async () => {
     if (index < slides.length - 1) {
       setIndex((prev) => prev + 1);
     } else {
-      return;
+      await AsyncStorage.setItem("isFirstTime", "false");
+      router.replace("/login"); // Go to app
     }
   };
+
+  if (!loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center" }]}>
+        <ActivityIndicator size="large" color="#7BE596" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

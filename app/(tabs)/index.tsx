@@ -7,7 +7,9 @@ import { Link } from "expo-router";
 export default function TabOneScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
+      <Text style={styles.title} className="text-red-500">
+        Tab One
+      </Text>
 
       <View
         style={styles.separator}

@@ -14,6 +14,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import SplashScreen from "./splash-screen";
 
 export { ErrorBoundary } from "expo-router";
+import "../global.css";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -52,9 +53,13 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
-        {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
-        {/* <Stack.Screen name="modal" options={{ presentation: "modal" }} /> */}
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="onboarding/index"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="login/index" options={{ headerShown: false }} />
+        <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
     </ThemeProvider>
   );

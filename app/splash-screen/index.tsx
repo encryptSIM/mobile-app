@@ -18,7 +18,7 @@ const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../assets/splash/logo.png")}
+        source={require("../../assets/splash/logo.png")}
         style={styles.logo}
       />
       <Text style={styles.title}>encryptSIM</Text>
