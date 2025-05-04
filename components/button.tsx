@@ -5,53 +5,20 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   GestureResponderEvent,
+  StyleSheet,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/utils";
 
-// Button style variants
-const buttonVariants = cva(
-  "flex-row items-center justify-between rounded-full",
-  {
-    variants: {
-      variant: {
-        primary: "bg-green-500 px-6 py-3",
-        secondary: "bg-green-100 px-6 py-3",
-        inactive: "bg-[#1B2034] border border-[#555] px-6 py-3",
-        loading: "bg-green-500 px-6 py-3",
-        icon: "bg-green-100 px-6 py-3",
-        "slider-login": "bg-green-500 px-6 py-3 flex-1",
-        "slider-signup": "bg-green-100 px-6 py-3 flex-1",
-        slide: "bg-green-500 px-6 py-3",
-      },
-    },
-    defaultVariants: {
-      variant: "primary",
-    },
-  }
-);
-
-// Label style variants
-const labelVariants = cva("text-base font-semibold", {
-  variants: {
-    variant: {
-      primary: "text-white",
-      secondary: "text-green-500",
-      inactive: "text-white",
-      loading: "text-white",
-      icon: "text-green-500",
-      "slider-login": "text-white",
-      "slider-signup": "text-green-500",
-      slide: "text-white",
-    },
-  },
-  defaultVariants: {
-    variant: "primary",
-  },
-});
-
-type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "moonlight"
+  | "inactive"
+  | "loading"
+  | "icon"
+  | "slider-login"
+  | "slider-signup"
+  | "slide";
 
 type Props = {
   label?: string;
@@ -60,7 +27,6 @@ type Props = {
   variant?: ButtonVariant;
   isActive?: boolean;
   showRightArrow?: boolean;
-  background?: boolean;
 };
 
 export const AppButton = ({
@@ -72,16 +38,21 @@ export const AppButton = ({
   showRightArrow = true,
 }: Props) => {
   const isLoading = variant === "loading";
+  const disabled = !isActive || isLoading;
 
   return (
     <TouchableOpacity
-      disabled={!isActive || isLoading}
+      disabled={disabled}
       onPress={onPress}
-      className={cn(buttonVariants({ variant }), !isActive && "opacity-50")}
+      style={[
+        styles.buttonBase,
+        buttonStyles[variant],
+        !isActive && styles.disabled,
+      ]}
     >
-      <View style={{ gap: 4 }} className="flex-row items-center">
+      <View style={styles.contentWrapper}>
         {iconName && (
-          <View className="w-8 h-8 rounded-full bg-[#292F45] items-center justify-center">
+          <View style={styles.iconContainer}>
             <Feather
               name={iconName}
               size={18}
@@ -93,15 +64,113 @@ export const AppButton = ({
           <ActivityIndicator size="small" color="#fff" />
         ) : (
           label && (
-            <Text className={cn(labelVariants({ variant }))}>{label}</Text>
+            <Text style={[styles.labelBase, labelStyles[variant]]}>
+              {label}
+            </Text>
           )
         )}
       </View>
 
-      {/* Right arrow */}
       {!isLoading && showRightArrow && variant !== "inactive" && (
         <Feather name="arrow-right" size={20} color="#00FFAA" />
       )}
     </TouchableOpacity>
   );
+};
+
+const styles = StyleSheet.create({
+  buttonBase: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 999,
+  },
+  contentWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4, // This may require patching for older RN versions
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#292F45",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  labelBase: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+});
+
+// Button background + padding styles per variant
+const buttonStyles: Record<ButtonVariant, any> = {
+  moonlight: {
+    backgroundColor: "#1B2034",
+    borderColor: "#555",
+    borderWidth: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  primary: {
+    backgroundColor: "#22C55E",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  secondary: {
+    backgroundColor: "#D1FAE5",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  inactive: {
+    backgroundColor: "#1B2034",
+    borderColor: "#555",
+    borderWidth: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  loading: {
+    backgroundColor: "#22C55E",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  icon: {
+    backgroundColor: "#D1FAE5",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  "slider-login": {
+    backgroundColor: "#22C55E",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    flex: 1,
+  },
+  "slider-signup": {
+    backgroundColor: "#D1FAE5",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    flex: 1,
+  },
+  slide: {
+    backgroundColor: "#22C55E",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+};
+
+// Label text color styles per variant
+const labelStyles: Record<ButtonVariant, any> = {
+  moonlight: { color: "#fff" },
+  primary: { color: "#fff" },
+  secondary: { color: "#22C55E" },
+  inactive: { color: "#fff" },
+  loading: { color: "#fff" },
+  icon: { color: "#22C55E" },
+  "slider-login": { color: "#fff" },
+  "slider-signup": { color: "#22C55E" },
+  slide: { color: "#fff" },
 };

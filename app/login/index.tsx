@@ -1,7 +1,26 @@
-import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
+import { AppButton } from "@/components/button";
+import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { createPaymentProfile } from "@/service/auth";
+import { Link, router, useNavigation } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
+  const navigation = useNavigation();
+  const { setValue } = useAsyncStorage<string>("publicKey");
+
+  const handleCreatePaymentProfile = async () => {
+    try {
+      const response = await createPaymentProfile();
+      const publicKey = response.data?.publicKey;
+      if (publicKey) {
+        await setValue(publicKey);
+        router.replace("/login/account");
+      }
+    } catch (error) {
+      console.error("Error creating payment profile:", error);
+    }
+  };
   return (
     <SafeAreaView className="flex-1 bg-[#0A0F25] px-6 justify-between">
       {/* Top section */}
@@ -20,58 +39,34 @@ export default function LoginScreen() {
       </View>
 
       {/* Middle section */}
-      <View className="mt-20">
-        {/* Login / Sign up Toggle */}
-        <View className="bg-[#1B223C] flex-row rounded-full p-1 mb-6">
-          <TouchableOpacity className="flex-1 items-center py-3 bg-[#52DD7E] rounded-full">
-            <Text className="text-white font-semibold">Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity className="flex-1 items-center py-3">
-            <Text className="text-[#52DD7E] font-semibold opacity-50">
-              Sign Up
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Email */}
-        <Text className="text-white mb-2">E-Mail Address</Text>
-        <View className="flex-row items-center bg-[#1B223C] rounded-full px-4 py-3 mb-4">
-          {/* <MaterialCommunityIcons
-            name="email-outline"
-            size={20}
-            color="white"
-          /> */}
-          <TextInput
-            className="text-white ml-3 flex-1"
-            placeholder="Enter your e-mail"
-            placeholderTextColor="#A1A1AA"
-          />
-        </View>
-
-        {/* Password */}
-        <Text className="text-white mb-2">Password</Text>
-        <View className="flex-row items-center bg-[#1B223C] rounded-full px-4 py-3">
-          {/* <Ionicons name="lock-closed-outline" size={20} color="white" /> */}
-          <TextInput
-            className="text-white ml-3 flex-1"
-            placeholder="Enter your password"
-            placeholderTextColor="#A1A1AA"
-            secureTextEntry
-          />
-        </View>
-
-        {/* Forgot password */}
-        <TouchableOpacity className="mt-2 self-end">
-          <Text className="text-white text-sm opacity-50">
-            Forgot Password?
-          </Text>
-        </TouchableOpacity>
+      <View
+        style={{
+          gap: 50,
+        }}
+        className="mt-20 flex flex-col"
+      >
+        <AppButton
+          label="Setup payment profile"
+          iconName="credit-card"
+          variant="moonlight"
+          onPress={() => {
+            handleCreatePaymentProfile();
+          }}
+        />
+        <AppButton
+          label="Use existing payment profile"
+          iconName="folder"
+          variant="moonlight"
+          onPress={() => {}}
+        />
       </View>
 
       {/* Login Button */}
-      <TouchableOpacity className="mt-10 mb-6 border border-white rounded-full py-4 items-center">
-        <Text className="text-white font-semibold text-base">Login</Text>
-      </TouchableOpacity>
+      <Link href={"/login/account"} asChild>
+        <TouchableOpacity className="mt-10 mb-6 border border-white rounded-full py-4 items-center">
+          <Text className="text-white font-semibold text-base">Login</Text>
+        </TouchableOpacity>
+      </Link>
     </SafeAreaView>
   );
 }

@@ -47,28 +47,29 @@ export default function ProfileScreen() {
         {/* Options */}
         <View className="px-4 mt-10 space-y-4">
           <Text className="text-white text-base mb-2">Options</Text>
-
           {/* Option Buttons */}
-          <AppButton
-            label="Edit Profile"
-            iconName="user"
-            variant="primary"
-            onPress={() => {}}
-          />
-          <AppButton
-            label="Change Password"
-            iconName="lock"
-            variant="primary"
-            onPress={() => {}}
-          />
+          <View className="gap-4 flex flex-col">
+            <AppButton
+              label="Edit Profile"
+              iconName="user"
+              variant="moonlight"
+              onPress={() => {}}
+            />
+            <AppButton
+              label="Change Password"
+              iconName="lock"
+              variant="moonlight"
+              onPress={() => {}}
+            />
 
-          {/* Logout */}
-          <AppButton
-            label="Logout"
-            iconName="log-out"
-            variant="inactive"
-            onPress={() => {}}
-          />
+            {/* Logout */}
+            <AppButton
+              label="Logout"
+              iconName="log-out"
+              variant="inactive"
+              onPress={() => {}}
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
