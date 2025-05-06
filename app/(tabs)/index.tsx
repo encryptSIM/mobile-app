@@ -1,79 +1,144 @@
-import { View, Text } from "@/components/Themed";
+import { Text, View } from "@/components/Themed";
 import DropdownSelector from "@/components/dropdown";
-import { Link } from "expo-router";
-import { useState } from "react";
+import {
+  getPackages,
+  type EsimPackage,
+  type RegionPackage,
+} from "@/service/package";
+import { useEffect, useMemo, useState } from "react";
 import { SafeAreaView } from "react-native";
 
-const countries = [
-  { label: "USA", value: "us" },
-  { label: "Canada", value: "ca" },
-];
-
-const dataSizes = [
-  { label: "1GB", value: "1gb" },
-  { label: "5GB", value: "5gb" },
-];
-
-const days = [
-  { label: "7 Days", value: "7" },
-  { label: "30 Days", value: "30" },
-];
+type DropdownOption = { label: string; value: string };
 
 export default function EsimScreen() {
-  const [country, setCountry] = useState("us");
-  const [dataSize, setDataSize] = useState("1gb");
-  const [day, setDay] = useState("7");
+  const [packages, setPackages] = useState<RegionPackage[]>([]);
+  const [region, setRegion] = useState<string>("");
+  const [selectedDataSize, setSelectedDataSize] = useState<string | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
 
-  const getPrice = () => {
-    if (dataSize === "5gb" && day === "30") return "$19.99";
-    if (dataSize === "5gb") return "$12.99";
-    return "$6.99";
-  };
+  const capitalize = (str: string) =>
+    str
+      .split("-")
+      .map((w) => w[0].toUpperCase() + w.slice(1))
+      .join(" ");
+
+  useEffect(() => {
+    getPackages({ type: "global" }).then((res) => {
+      const data: RegionPackage[] = res.data;
+      setPackages(data);
+      if (data.length > 0) setRegion(data[0].region);
+    });
+  }, []);
+
+  const regionOptions = useMemo<DropdownOption[]>(
+    () =>
+      packages.map((r) => ({
+        label: capitalize(r.region),
+        value: r.region,
+      })),
+    [packages]
+  );
+
+  const validPackages = useMemo<EsimPackage[]>(() => {
+    const selected = packages.find((r) => r.region === region);
+    return selected
+      ? selected.operators
+          .flatMap((op) => op.packages)
+          .filter((p) => typeof p.price === "number" && !isNaN(p.price))
+      : [];
+  }, [region, packages]);
+
+  const dataSizes = useMemo<string[]>(
+    () => Array.from(new Set(validPackages.map((p) => p.data))),
+    [validPackages]
+  );
+
+  const durations = useMemo<string[]>(
+    () =>
+      Array.from(
+        new Set(
+          validPackages
+            .filter((p) => p.data === selectedDataSize)
+            .map((p) => `${p.day}`)
+        )
+      ),
+    [validPackages, selectedDataSize]
+  );
+
+  const currentPrice = useMemo(() => {
+    return validPackages.find(
+      (p) => p.data === selectedDataSize && `${p.day}` === selectedDuration
+    )?.price;
+  }, [validPackages, selectedDataSize, selectedDuration]);
+
+  // Auto-select first data size and duration when region or size changes
+  useEffect(() => {
+    if (dataSizes.length > 0) {
+      setSelectedDataSize(dataSizes[0]);
+    } else {
+      setSelectedDataSize(null);
+      setSelectedDuration(null);
+    }
+  }, [dataSizes]);
+
+  useEffect(() => {
+    if (durations.length > 0) {
+      setSelectedDuration(durations[0]);
+    } else {
+      setSelectedDuration(null);
+    }
+  }, [durations]);
 
   return (
-    <View className="flex-1">
-      <SafeAreaView>
-        <Text className="text-red-500 text-3xl font-bold text-center mb-8">
-          Esim
+    <SafeAreaView className="flex-1 px-4">
+      <View className="h-full">
+        <Text className="text-red-500 text-3xl font-bold text-center mb-6">
+          eSIM
         </Text>
 
-        <View className="w-full">
-          <DropdownSelector
-            label="Country"
-            selectedValue={country}
-            onValueChange={setCountry}
-            options={countries}
-            // placeholder="Select a country"
-          />
+        <DropdownSelector
+          label="Region"
+          selectedValue={region}
+          onValueChange={setRegion}
+          options={regionOptions}
+        />
 
+        {region && dataSizes.length > 0 && (
           <DropdownSelector
             label="Data Size"
-            selectedValue={dataSize}
-            onValueChange={setDataSize}
-            options={dataSizes}
-            // placeholder="Select data size"
+            selectedValue={selectedDataSize ?? ""}
+            onValueChange={(value) => {
+              setSelectedDataSize(value);
+              setSelectedDuration(null); // reset duration to trigger reselect
+            }}
+            options={dataSizes.map((size) => ({
+              label: size,
+              value: size,
+            }))}
           />
+        )}
 
+        {selectedDataSize && durations.length > 0 && (
           <DropdownSelector
             label="Duration"
-            selectedValue={day}
-            onValueChange={setDay}
-            options={days}
-            // placeholder="Select duration"
+            selectedValue={selectedDuration ?? ""}
+            onValueChange={setSelectedDuration}
+            options={durations.map((d) => ({
+              label: `${d} Days`,
+              value: d,
+            }))}
           />
-        </View>
+        )}
 
-        <Text className="text-lg font-semibold text-center mt-4">
-          Price: <Text className="text-green-600">{getPrice()}</Text>
-        </Text>
-
-        <Link
-          href="/onboarding"
-          className="mt-10 text-blue-500 underline text-center"
-        >
-          Go to onboarding
-        </Link>
-      </SafeAreaView>
-    </View>
+        {selectedDataSize && selectedDuration && (
+          <View className="mt-4">
+            <Text className="text-lg font-semibold mb-2">Price</Text>
+            <Text className="text-center text-green-600 text-xl font-bold">
+              {currentPrice ? `$${currentPrice}` : "Not available"}
+            </Text>
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
