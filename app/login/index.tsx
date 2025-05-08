@@ -43,7 +43,7 @@ export default function LoginScreen() {
         style={{
           gap: 50,
         }}
-        className="mt-20 flex flex-col"
+        className="flex flex-col"
       >
         <AppButton
           label="Setup payment profile"
@@ -57,16 +57,26 @@ export default function LoginScreen() {
           label="Use existing payment profile"
           iconName="folder"
           variant="moonlight"
-          onPress={() => {}}
+          onPress={async () => {
+            await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
+            router.replace("/login/account");
+          }}
         />
       </View>
 
       {/* Login Button */}
-      <Link href={"/login/account"} asChild>
-        <TouchableOpacity className="mt-10 mb-6 border border-white rounded-full py-4 items-center">
-          <Text className="text-white font-semibold text-base">Login</Text>
-        </TouchableOpacity>
-      </Link>
+      {/* <TouchableOpacity
+        onPress={async () => {
+          await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
+          router.replace("/login/account");
+        }}
+        className="mt-10 mb-6 border border-white rounded-full py-4 items-center"
+      >
+        <Text className="text-white font-semibold text-base">
+          Login Test Account
+        </Text>
+      </TouchableOpacity> */}
+      <View></View>
     </SafeAreaView>
   );
 }

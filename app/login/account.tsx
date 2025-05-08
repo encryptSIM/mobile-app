@@ -40,7 +40,7 @@ export default function AccountScreen() {
               variant="moonlight"
               showRightArrow={false}
               onPress={() => {
-                router.replace("/(tabs)");
+                router.replace("/(tabs)/esim/package");
               }}
             />
           </View>

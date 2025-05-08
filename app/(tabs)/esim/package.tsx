@@ -1,20 +1,28 @@
 import { Text, View } from "@/components/Themed";
+import { AppButton } from "@/components/button";
 import DropdownSelector from "@/components/dropdown";
+import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import {
   getPackages,
   type EsimPackage,
   type RegionPackage,
 } from "@/service/package";
+import { createOrder } from "@/service/payment";
+import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView, Switch } from "react-native";
 
 type DropdownOption = { label: string; value: string };
 
 export default function EsimScreen() {
+  const { value: publicKey } = useAsyncStorage<string>("publicKey");
   const [packages, setPackages] = useState<RegionPackage[]>([]);
   const [region, setRegion] = useState<string>("");
   const [selectedDataSize, setSelectedDataSize] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
+  const [type, setType] = useState<"global" | "local">("global");
+  const [packageId, setPackageId] = useState<string | null>(null);
+  const router = useRouter();
 
   const capitalize = (str: string) =>
     str
@@ -23,12 +31,12 @@ export default function EsimScreen() {
       .join(" ");
 
   useEffect(() => {
-    getPackages({ type: "global" }).then((res) => {
+    getPackages({ type }).then((res) => {
       const data: RegionPackage[] = res.data;
       setPackages(data);
       if (data.length > 0) setRegion(data[0].region);
     });
-  }, []);
+  }, [type]); // re-fetch when type changes
 
   const regionOptions = useMemo<DropdownOption[]>(
     () =>
@@ -66,12 +74,16 @@ export default function EsimScreen() {
   );
 
   const currentPrice = useMemo(() => {
+    setPackageId(
+      validPackages.find(
+        (p) => p.data === selectedDataSize && `${p.day}` === selectedDuration
+      )?.id ?? null
+    );
     return validPackages.find(
       (p) => p.data === selectedDataSize && `${p.day}` === selectedDuration
     )?.price;
   }, [validPackages, selectedDataSize, selectedDuration]);
 
-  // Auto-select first data size and duration when region or size changes
   useEffect(() => {
     if (dataSizes.length > 0) {
       setSelectedDataSize(dataSizes[0]);
@@ -89,15 +101,43 @@ export default function EsimScreen() {
     }
   }, [durations]);
 
+  const handleCreateOrder = async () => {
+    if (!publicKey) {
+      console.error("Public key is not available");
+      return;
+    }
+    const order = await createOrder({
+      package_id: packageId ?? "",
+      ppPublicKey: publicKey, // publicKey,
+      quantity: 1,
+      package_price: currentPrice?.toString() ?? "0",
+    });
+    router.push({
+      pathname: "/esim/order",
+      params: { orderId: order.data.orderId },
+    });
+    console.log("Order response:", order);
+    console.log("Order created:", order.data.orderId);
+  };
+
   return (
-    <SafeAreaView className="flex-1 px-4">
-      <View className="h-full">
+    <View className="h-full">
+      <SafeAreaView className="flex-1 px-4">
         <Text className="text-red-500 text-3xl font-bold text-center mb-6">
           eSIM
         </Text>
 
+        {/* Switch for type */}
+        <View className="flex-row justify-between items-center mb-4">
+          <Text className="text-lg font-medium">Show Local Packages</Text>
+          <Switch
+            value={type === "local"}
+            onValueChange={(val) => setType(val ? "local" : "global")}
+          />
+        </View>
+
         <DropdownSelector
-          label="Region"
+          label={type === "local" ? "Country" : "Region"}
           selectedValue={region}
           onValueChange={setRegion}
           options={regionOptions}
@@ -138,7 +178,19 @@ export default function EsimScreen() {
             </Text>
           </View>
         )}
-      </View>
-    </SafeAreaView>
+        {selectedDataSize && selectedDuration && packageId && (
+          <View className="mt-4">
+            <AppButton
+              label="Buy eSIM"
+              iconName="credit-card"
+              variant="moonlight"
+              onPress={() => {
+                handleCreateOrder();
+              }}
+            />
+          </View>
+        )}
+      </SafeAreaView>
+    </View>
   );
 }

@@ -2,17 +2,13 @@ import { StyleSheet } from "react-native";
 
 import EditScreenInfo from "@/components/EditScreenInfo";
 import { Text, View } from "@/components/Themed";
+import { Link } from "expo-router";
 
 export default function DVpnScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>dVPN</Text>
-      <View
-        style={styles.separator}
-        lightColor="#eee"
-        darkColor="rgba(255,255,255,0.1)"
-      />
-      <EditScreenInfo path="app/(tabs)/two.tsx" />
+      <Text style={styles.title}>Working in progress...{"\n"}dVPN</Text>
+      <Link href={"/onboarding"}>onboarding</Link>
     </View>
   );
 }

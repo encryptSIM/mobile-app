@@ -31,7 +31,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="esim"
         options={{
           headerShown: false,
           title: "Esim",

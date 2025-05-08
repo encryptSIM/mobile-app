@@ -1,15 +1,19 @@
+import { AppButton } from "@/components/button";
+import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { addressFormatter } from "@/utils";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-  View,
-  Text,
-  ScrollView,
   SafeAreaView,
+  ScrollView,
+  Text,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { AppButton } from "@/components/button";
 
 export default function ProfileScreen() {
+  const { value: address } = useAsyncStorage<string>("publicKey");
+
   return (
     <SafeAreaView className="flex-1 bg-[#0E1220]">
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -32,15 +36,11 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Username */}
-          <View className="flex-row items-center mt-4">
-            <MaterialCommunityIcons name="crown" size={18} color="#A678F0" />
-            <Text className="text-white text-lg font-semibold ml-1">hal</Text>
-          </View>
-
           {/* Email */}
-          <View className="border border-green-400 rounded-full px-4 py-1 mt-2">
-            <Text className="text-green-400 text-sm">hal@proton.me</Text>
+          <View className="mt-4 border border-green-400 rounded-full px-4 py-1">
+            <Text className="text-green-400 text-sm">
+              {addressFormatter(address || "")}
+            </Text>
           </View>
         </View>
 
@@ -55,13 +55,12 @@ export default function ProfileScreen() {
               variant="moonlight"
               onPress={() => {}}
             />
-            <AppButton
+            {/* <AppButton
               label="Change Password"
               iconName="lock"
               variant="moonlight"
               onPress={() => {}}
-            />
-
+            /> */}
             {/* Logout */}
             <AppButton
               label="Logout"

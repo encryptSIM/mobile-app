@@ -17,7 +17,7 @@ export { ErrorBoundary } from "expo-router";
 import "../global.css";
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)",
+  initialRouteName: "(tabs)/esim/package",
 };
 
 SplashScreenAPI.preventAutoHideAsync();
