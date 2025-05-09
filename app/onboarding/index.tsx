@@ -18,7 +18,7 @@ const slides = [
     key: "1",
     title: "Unbreakable Security",
     description: "eSIM + dVPN.\nNo trackers, no logs.",
-    image: require("../../assets/splash/logo.png"),
+    image: require("../../assets/onboarding/shield.png"),
     buttonText: "Next",
   },
   {
@@ -26,7 +26,7 @@ const slides = [
     title: "Speed Meets Freedom",
     description:
       "Global 5G in 138+ countries, fast servers.\nSentinel dVPN boosts speed with privacy.",
-    image: require("../../assets/splash/logo.png"),
+    image: require("../../assets/onboarding/rocket.png"),
     buttonText: "Next",
   },
   {
@@ -34,7 +34,8 @@ const slides = [
     title: "Your Web3 Gateway",
     description:
       "No KYC, crypto-ready, from $1.95 or $99/yr.\nInstant eSIM + dVPN for secure global use.",
-    image: require("../../assets/splash/logo.png"),
+    image: require("../../assets/onboarding/solana.png"),
+
     buttonText: "Get Started",
   },
 ];
