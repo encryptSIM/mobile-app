@@ -87,7 +87,7 @@ export default function OrderScreen() {
               </Text> */}
               <QRCode size={200} value={orderStatus.sim.qrcode} />
             </View>
-            {/* <Link
+            <Link
               href={orderStatus.sim?.direct_apple_installation_url}
               className="mt-4"
               asChild
@@ -95,7 +95,7 @@ export default function OrderScreen() {
               <Text className="text-white mt-2 text-sm">
                 Click here to install the eSIM
               </Text>
-            </Link> */}
+            </Link>
             <View className=""></View>
             <Text className="text-white mt-2 text-sm">
               Scan the QR code to activate your eSIM.

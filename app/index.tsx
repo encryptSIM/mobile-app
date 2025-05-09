@@ -1,16 +1,18 @@
-import { useRouter, useRootNavigationState } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 
 export default function Index() {
   const router = useRouter();
-  const rootNavigationState = useRootNavigationState();
 
   useEffect(() => {
-    if (!rootNavigationState?.key) return; // Wait for layout to be ready
+    // Delay navigation until after the first render
+    const timeout = setTimeout(() => {
+      router.replace("/onboarding");
+    }, 0);
 
-    router.replace("/onboarding");
-  }, [rootNavigationState]);
+    return () => clearTimeout(timeout);
+  }, []);
 
   return null;
 }

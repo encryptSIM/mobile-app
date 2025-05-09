@@ -1,0 +1,9 @@
+build:
+  name: Custom dApp Store Build
+  steps:
+    - eas/checkout
+    - run:
+        name: Install Dependencies with Force
+        command: npm install --force
+    - eas/prebuild
+    - eas/build

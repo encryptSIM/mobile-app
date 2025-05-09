@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 16.4.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    },
+    "dapp-store": {
+      "channel": "development",
+      "android": {
+        "buildType": "apk"
+      },
+      "config": "dapp-store.yml"
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
