@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const axiosClient = axios.create({
     baseURL: 'https://idx-esim-backend-09657482-483894229313.us-west1.run.app', // Replace with your actual base URL
-    timeout: 10000,
+    // timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
     },

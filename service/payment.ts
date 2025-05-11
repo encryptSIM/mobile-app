@@ -11,10 +11,18 @@ export type CreateOrderResponse = {
     orderId: string;
 };
 
+export type SimInfo = {
+    created_at: string;
+    direct_apple_installation_url: string;
+    iccid: string;
+    qrcode: string;
+    qrcode_url: string;
+};
+
 export type GetOrderResponse = {
     orderId: string;
-    paymentReceived: boolean;
-    sim?: any; // update this to the correct type if known
+    sim?: SimInfo;
+    status: string;
 };
 
 export const createOrder = (data: CreateOrderRequest) => {
