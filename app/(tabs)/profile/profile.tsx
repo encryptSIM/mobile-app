@@ -1,17 +1,50 @@
 import { AppButton } from "@/components/button";
+import { TopUpModal } from "@/components/TopUpModal";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { addressFormatter } from "@/utils";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { SafeAreaView, ScrollView, Text, View } from "react-native";
-import { Header } from "@/components/Header";
 
 export default function ProfileScreen() {
   const { value: address, setValue } = useAsyncStorage<string>("publicKey");
 
+  // Top-up modal state
+  const [showTopup, setShowTopup] = React.useState(false);
+  const [selectedData, setSelectedData] = React.useState("1GB");
+  const [selectedDay, setSelectedDay] = React.useState("3");
+
+  // Placeholder options
+  const dataOptions = [
+    { label: "1GB", value: "1GB" },
+    { label: "3GB", value: "3GB" },
+    { label: "5GB", value: "5GB" },
+  ];
+  const dayOptions = [
+    { label: "3 Days", value: "3" },
+    { label: "7 Days", value: "7" },
+    { label: "30 Days", value: "30" },
+  ];
+
+  // Placeholder plan details
+  const planDetails = `Package: Asia\nData: ${selectedData}\nDuration: ${selectedDay} days\nPrice: $9.99`;
+
   return (
     <SafeAreaView className="flex-1 bg-[#0E1220]">
+      {/* Top-up Modal */}
+      <TopUpModal
+        visible={showTopup}
+        onClose={() => setShowTopup(false)}
+        selectedData={selectedData}
+        setSelectedData={setSelectedData}
+        selectedDay={selectedDay}
+        setSelectedDay={setSelectedDay}
+        onBuy={() => {
+          // Handle buy logic here
+          setShowTopup(false);
+        }}
+      />
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Profile Info */}
         <View className="items-center mt-6">
@@ -39,6 +72,12 @@ export default function ProfileScreen() {
           {/* Option Buttons */}
           <View className="gap-4 flex flex-col">
             <AppButton
+              label="Order History"
+              iconName="list"
+              variant="moonlight"
+              onPress={() => router.push("/profile/order-history")}
+            />
+            <AppButton
               label="Edit Profile"
               iconName="user"
               variant="moonlight"
@@ -61,6 +100,29 @@ export default function ProfileScreen() {
               }}
             />
           </View>
+        </View>
+
+        {/* eSIM Orders Section */}
+        <View className="px-4 mt-10">
+          <Text className="text-white text-base mb-2">eSIM Orders</Text>
+          {/* Placeholder for orders - replace with real data later */}
+          {[1, 2, 3].map((order, idx) => (
+            <View key={order} className="mb-4 bg-[#1E263C] rounded-lg p-4">
+              <Text className="text-white text-lg font-semibold mb-2">
+                Order {order}
+              </Text>
+              <Text className="text-gray-400 mb-2">Package: Asia</Text>
+              <Text className="text-gray-400 mb-2">Status: Active</Text>
+              <AppButton
+                label="Buy More Data"
+                iconName="plus-circle"
+                variant="moonlight"
+                onPress={() => {
+                  setShowTopup(true);
+                }}
+              />
+            </View>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
