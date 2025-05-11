@@ -1,11 +1,11 @@
-import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link, Tabs } from "expo-router";
-import { Pressable } from "react-native";
+import { Tabs, router } from "expo-router";
+import React, { useEffect } from "react";
 
-import Colors from "@/constants/Colors";
-import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
+import { useColorScheme } from "@/components/useColorScheme";
+import Colors from "@/constants/Colors";
+import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -17,6 +17,14 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { value: publicKey, loading } = useAsyncStorage<string>("publicKey");
+  console.log("publicKey", publicKey);
+
+  useEffect(() => {
+    if (!loading && !publicKey) {
+      router.replace("/login");
+    }
+  }, [loading, publicKey]);
 
   return (
     <Tabs

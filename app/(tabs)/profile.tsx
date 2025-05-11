@@ -1,29 +1,18 @@
 import { AppButton } from "@/components/button";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { addressFormatter } from "@/utils";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Header } from "@/components/Header";
 
 export default function ProfileScreen() {
-  const { value: address } = useAsyncStorage<string>("publicKey");
+  const { value: address, setValue } = useAsyncStorage<string>("publicKey");
 
   return (
     <SafeAreaView className="flex-1 bg-[#0E1220]">
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Back Button */}
-        <View className="px-4 pt-4">
-          <TouchableOpacity>
-            <Ionicons name="arrow-back" size={24} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
-
         {/* Profile Info */}
         <View className="items-center mt-6">
           {/* Profile Picture with overlay */}
@@ -66,7 +55,10 @@ export default function ProfileScreen() {
               label="Logout"
               iconName="log-out"
               variant="inactive"
-              onPress={() => {}}
+              onPress={() => {
+                setValue("");
+                router.replace("/login");
+              }}
             />
           </View>
         </View>

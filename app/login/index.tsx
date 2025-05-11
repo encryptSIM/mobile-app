@@ -58,8 +58,12 @@ export default function LoginScreen() {
           iconName="folder"
           variant="moonlight"
           onPress={async () => {
-            await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
-            router.replace("/login/account");
+            try {
+              await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
+              router.replace("/login/account");
+            } catch (error) {
+              console.error("Error setting value:", error);
+            }
           }}
         />
       </View>

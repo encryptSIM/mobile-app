@@ -26,7 +26,7 @@ const DropdownSelector: React.FC<Props> = ({
       <View style={styles.container}>
         <Text style={styles.label}>{label}</Text>
         <View style={styles.pickerContainer}>
-          <PickerIOS
+          <Picker
             onValueChange={(itemValue) => onValueChange(itemValue as string)}
             selectedValue={selectedValue}
             style={styles.picker}
@@ -39,7 +39,7 @@ const DropdownSelector: React.FC<Props> = ({
                 value={option.value}
               />
             ))}
-          </PickerIOS>
+          </Picker>
         </View>
       </View>
     );
@@ -53,7 +53,15 @@ const DropdownSelector: React.FC<Props> = ({
         <Picker
           selectedValue={selectedValue}
           onValueChange={onValueChange}
-          style={[styles.picker, { height: 44 }]}
+          // if ios style={[styles.picker, { height: 44 }]}
+          style={
+            Platform.OS === "android"
+              ? {}
+              : {
+                  height: 44,
+                }
+          }
+          // style={[styles.picker, { height: 44 }]}
           itemStyle={styles.pickerItem}
           mode="dropdown"
         >
