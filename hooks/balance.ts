@@ -37,8 +37,9 @@ export const useBalance = (address: string): UseBalanceReturn => {
             setLoading(true);
             setError(null);
 
+
             // Initialize connection to Solana network with commitment level
-            const connection = new Connection(clusterApiUrl("mainnet-beta"), {
+            const connection = new Connection(process.env.EXPO_PUBLIC_RPC_URL || clusterApiUrl("mainnet-beta"), {
                 commitment: 'confirmed',
                 confirmTransactionInitialTimeout: 60000,
             });

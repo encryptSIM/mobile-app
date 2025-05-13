@@ -10,24 +10,26 @@ import { AppButton } from "@/components/button";
 
 const OrderStatus = React.memo(
   ({ orderId, status }: { orderId: string | null; status: string }) => (
-    <View className="items-center justify-center px-4 py-6 rounded-xl bg-neutral-900 space-y-3 shadow-md">
-      <Text className="text-white text-base font-medium tracking-wide">
-        Order ID:
-      </Text>
-      <Text className="text-nowrap text-green-400 text-xl font-bold tracking-wider">
-        {orderId ?? "N/A"}
-      </Text>
-      <Text
-        className={`text-sm px-3 py-1 rounded-full ${
-          status === "Success"
-            ? "bg-green-500/20 text-green-300"
-            : status === "Pending"
-            ? "bg-yellow-500/20 text-yellow-300"
-            : "bg-red-500/20 text-red-300"
-        }`}
-      >
-        {status}
-      </Text>
+    <View className="flex items-center justify-center w-full px-4 py-6 rounded-xl bg-neutral-900 shadow-md">
+      <View className="space-y-3 items-center">
+        <Text className="text-white text-base font-medium tracking-wide">
+          Order ID:
+        </Text>
+        <Text className="text-green-400 text-xl font-bold tracking-wider">
+          {orderId ?? "N/A"}
+        </Text>
+        <Text
+          className={`text-sm px-3 py-1 rounded-full ${
+            status === "Success"
+              ? "bg-green-500/20 text-green-300"
+              : status === "Pending"
+              ? "bg-yellow-500/20 text-yellow-300"
+              : "bg-red-500/20 text-red-300"
+          }`}
+        >
+          {status}
+        </Text>
+      </View>
     </View>
   )
 );
@@ -77,27 +79,29 @@ export default function OrderScreen() {
   const orderId = useSearchParams().get("orderId");
   const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+
+  const fetchOrderStatus = useCallback(async () => {
+    if (!orderId) {
+      setError("No order ID provided");
+      return;
+    }
+    try {
+      const response = await getOrder(orderId);
+      if (response.status === 200) {
+        setOrderStatus(response.data);
+        setError(null);
+      } else {
+        setError("Order not found");
+      }
+    } catch (error) {
+      setError("Error fetching order");
+    }
+  }, [orderId]);
 
   useEffect(() => {
-    const fetchOrderStatus = async () => {
-      if (!orderId) {
-        setError("No order ID provided");
-        return;
-      }
-      try {
-        const response = await getOrder(orderId);
-        if (response.status === 200) {
-          setOrderStatus(response.data);
-        } else {
-          setError("Order not found");
-        }
-      } catch (error) {
-        setError("Error fetching order");
-      }
-    };
-
-    fetchOrderStatus();
+    if (orderId) {
+      fetchOrderStatus();
+    }
   }, [orderId]);
 
   return (
@@ -111,7 +115,15 @@ export default function OrderScreen() {
           />
 
           {error ? (
-            <Text className="text-red-500">{error}</Text>
+            <View className="items-center space-y-4">
+              <Text className="text-red-500">{error}</Text>
+              <AppButton
+                label="Retry"
+                iconName="refresh-cw"
+                variant="moonlight"
+                onPress={fetchOrderStatus}
+              />
+            </View>
           ) : !orderStatus ? (
             <ActivityIndicator size="large" color="#00FFAA" />
           ) : orderStatus.sim ? (

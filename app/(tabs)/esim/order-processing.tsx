@@ -287,7 +287,7 @@ export default function OrderProcessingScreen() {
                 iconName="credit-card"
                 variant="moonlight"
                 isDisabled={
-                  balance !== null && solPrice !== null && balance <= solPrice
+                  balance !== null && solPrice !== null && balance > solPrice
                 }
                 onPress={handleCreateOrder}
               />
