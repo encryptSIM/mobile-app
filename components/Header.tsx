@@ -1,8 +1,9 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet } from "react-native";
+import { TouchableOpacity, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text } from "./Themed";
+import { Text } from "./Themed";
+import { useTheme } from "@react-navigation/native";
 
 interface HeaderProps {
   showBackButton?: boolean;
@@ -18,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   title,
   onBackPress,
 }) => {
+  const { colors } = useTheme();
   const router = useRouter();
 
   const handleBackPress = () => {
@@ -29,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <View style={[styles.header]}>
+    <View style={[styles.header, { backgroundColor: "transparent" }]}>
       <View>
         {showBackButton && (
           <TouchableOpacity
@@ -37,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
             onPress={handleBackPress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="chevron-back" size={24} color="#000000" />
+            <Ionicons name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
         )}
       </View>

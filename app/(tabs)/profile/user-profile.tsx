@@ -1,0 +1,204 @@
+import { AppButton } from "@/components/button";
+import { TopUpModal } from "@/components/TopUpModal";
+import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { addressFormatter } from "@/utils";
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React from "react";
+import * as Clipboard from "expo-clipboard";
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useBalance } from "@/hooks/balance";
+
+export default function ProfileScreen() {
+  const { value: address, setValue } = useAsyncStorage<string>("publicKey");
+  const { balance, loading, error } = useBalance(address || "");
+
+  const [showTopup, setShowTopup] = React.useState(false);
+  const [selectedData, setSelectedData] = React.useState("1GB");
+  const [selectedDay, setSelectedDay] = React.useState("3");
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <TopUpModal
+        visible={showTopup}
+        onClose={() => setShowTopup(false)}
+        selectedData={selectedData}
+        setSelectedData={setSelectedData}
+        selectedDay={selectedDay}
+        setSelectedDay={setSelectedDay}
+        onBuy={() => setShowTopup(false)}
+      />
+
+      <View style={styles.screen}>
+        {/* Profile Info */}
+        <View style={styles.profileWrapper}>
+          <View style={styles.profilePictureWrapper}>
+            <View style={styles.profilePicture}>
+              <Feather name="user" size={40} color="#00FFAA" />
+            </View>
+            <TouchableOpacity style={styles.editIcon}>
+              <Feather name="edit-2" size={16} color="#0E1220" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            onPress={async () => {
+              await Clipboard.setStringAsync(address || "");
+              ToastAndroid.show("Address copied!", ToastAndroid.SHORT);
+            }}
+            style={styles.addressButton}
+          >
+            <View style={styles.addressRow}>
+              <Feather name="copy" size={16} color="#4ade80" />
+              <Text style={styles.addressText}>
+                {addressFormatter(address || "")}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.balanceCard}>
+            <Text style={styles.balanceLabel}>Current Balance</Text>
+            <Text style={styles.balanceValue}>
+              {loading
+                ? "Loading..."
+                : error
+                ? "Error"
+                : `${balance?.toFixed(4)} SOL`}
+            </Text>
+          </View>
+        </View>
+
+        {/* Options */}
+        <View style={styles.optionsContainer}>
+          <Text style={styles.optionsTitle}>Options</Text>
+          <View style={styles.optionsList}>
+            <AppButton
+              label="Order History"
+              iconName="list"
+              variant="moonlight"
+              onPress={() => router.push("/profile/order-history")}
+            />
+            <AppButton
+              label="Edit Profile"
+              iconName="user"
+              variant="moonlight"
+              onPress={() => {}}
+            />
+            <AppButton
+              label="Logout"
+              iconName="log-out"
+              variant="inactive"
+              onPress={() => {
+                setValue("");
+                router.replace("/login");
+              }}
+            />
+          </View>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#0E1220",
+  },
+  screen: {
+    flex: 1,
+    paddingBottom: 20,
+  },
+  profileWrapper: {
+    alignItems: "center",
+    paddingTop: 24,
+  },
+  profilePictureWrapper: {
+    position: "relative",
+    marginBottom: 16,
+  },
+  profilePicture: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: "#00FFAA",
+    backgroundColor: "#1E263C",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  editIcon: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  addressButton: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#4ade80",
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+  },
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  addressText: {
+    color: "#4ade80",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  balanceCard: {
+    backgroundColor: "#1E263C",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+    alignItems: "center",
+    width: 200,
+  },
+  balanceLabel: {
+    color: "#A0AEC0",
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  balanceValue: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  optionsContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 32,
+  },
+  optionsTitle: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  optionsList: {
+    flex: 1,
+    backgroundColor: "#1E263C",
+    borderRadius: 16,
+    padding: 16,
+    justifyContent: "space-evenly",
+  },
+});

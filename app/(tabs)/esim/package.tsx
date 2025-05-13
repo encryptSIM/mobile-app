@@ -133,30 +133,20 @@ export default function EsimScreen() {
     }
   }, [durations]);
 
-  const handleCreateOrder = useCallback(async () => {
-    if (!publicKey || !packageId || !currentPrice) {
+  const handleCreateOrder = useCallback(() => {
+    if (!packageId || !currentPrice) {
       console.error("Missing required data for order creation");
       return;
     }
 
-    try {
-      const order = await createOrder({
-        package_id: packageId,
-        ppPublicKey: publicKey,
-        quantity: 1,
-        package_price: currentPrice.toString(),
-      });
-
-      console.log("order", order);
-
-      router.push({
-        pathname: "/esim/order",
-        params: { orderId: order.data.orderId },
-      });
-    } catch (error) {
-      console.error("Failed to create order:", error);
-    }
-  }, [publicKey, packageId, currentPrice, router]);
+    router.push({
+      pathname: "/esim/order-processing",
+      params: {
+        packageId: packageId,
+        price: currentPrice.toString(),
+      },
+    });
+  }, [packageId, currentPrice, router]);
 
   const handleTypeChange = useCallback((value: boolean) => {
     setType(value ? "local" : "global");

@@ -2,7 +2,13 @@ import { getOrder, type GetOrderResponse } from "@/service/payment";
 import { Link, useRouter } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
 import React, { useCallback, useEffect, useState } from "react";
-import { Text, View, ActivityIndicator, TouchableOpacity } from "react-native";
+import {
+  Text,
+  View,
+  ActivityIndicator,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
@@ -44,6 +50,7 @@ const SimReady = React.memo(
     installationUrl?: string;
   }) => {
     const router = useRouter();
+    const isIOS = Platform.OS === "ios";
 
     const handleInstallPress = () => {
       if (installationUrl) {
@@ -59,7 +66,7 @@ const SimReady = React.memo(
           </Text>
           <QRCode size={200} value={qrcode} />
         </View>
-        {installationUrl && (
+        {isIOS && installationUrl && (
           <AppButton
             label="Click here to install the eSIM"
             variant="moonlight"

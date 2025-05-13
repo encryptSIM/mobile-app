@@ -5,6 +5,7 @@ export default function EsimLayout() {
   return (
     <Stack initialRouteName="package">
       <Stack.Screen name="package" options={{ headerShown: false }} />
+      <Stack.Screen name="order-processing" options={{ headerShown: false }} />
       <Stack.Screen name="order" options={{ headerShown: false }} />
     </Stack>
   );

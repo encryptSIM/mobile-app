@@ -1,5 +1,12 @@
 import React from "react";
-import { Modal, View, Text, Pressable } from "react-native";
+import {
+  Modal,
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import DropdownSelector from "./dropdown";
 import { AppButton } from "./button";
 
@@ -42,9 +49,9 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-center items-center bg-black/60">
-        <View className="bg-white rounded-xl p-6 w-11/12 max-w-md">
-          <Text className="text-lg font-bold mb-4 text-black">Top Up</Text>
+      <View style={styles.backdrop}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Top Up</Text>
           <DropdownSelector
             label="Data Size"
             selectedValue={selectedData}
@@ -57,10 +64,8 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
             onValueChange={setSelectedDay}
             options={dayOptions}
           />
-          <View className="my-4">
-            <Text className="text-black whitespace-pre-line">
-              {planDetails}
-            </Text>
+          <View style={styles.detailsBox}>
+            <Text style={styles.detailsText}>{planDetails}</Text>
           </View>
           <AppButton
             label="Buy"
@@ -68,11 +73,46 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
             variant="moonlight"
             onPress={onBuy}
           />
-          <Pressable onPress={onClose} className="mt-4">
-            <Text className="text-center text-gray-500">Cancel</Text>
+          <Pressable onPress={onClose} style={styles.cancelButton}>
+            <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
         </View>
       </View>
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    width: "92%",
+    maxWidth: 400,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 16,
+  },
+  detailsBox: {
+    marginVertical: 16,
+  },
+  detailsText: {
+    color: "#000",
+  },
+  cancelButton: {
+    marginTop: 16,
+  },
+  cancelText: {
+    textAlign: "center",
+    color: "#6B7280", // Tailwind's gray-500
+  },
+});

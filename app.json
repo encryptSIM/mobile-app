@@ -19,6 +19,10 @@
         "image": "./assets/splash/logo.png",
         "resizeMode": "contain",
         "backgroundColor": "#0A0F1C"
+      },
+      "bundleIdentifier": "com.giachan2002.encryptsim",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
