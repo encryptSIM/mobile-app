@@ -27,6 +27,7 @@ type Props = {
   variant?: ButtonVariant;
   isActive?: boolean;
   showRightArrow?: boolean;
+  isDisabled?: boolean;
 };
 
 export const AppButton = ({
@@ -36,9 +37,10 @@ export const AppButton = ({
   variant = "primary",
   isActive = true,
   showRightArrow = true,
+  isDisabled,
 }: Props) => {
   const isLoading = variant === "loading";
-  const disabled = !isActive || isLoading;
+  const disabled = !isActive || isLoading || isDisabled;
 
   return (
     <TouchableOpacity
@@ -47,7 +49,7 @@ export const AppButton = ({
       style={[
         styles.buttonBase,
         buttonStyles[variant],
-        !isActive && styles.disabled,
+        disabled && styles.disabled,
       ]}
     >
       <View style={styles.contentWrapper}>

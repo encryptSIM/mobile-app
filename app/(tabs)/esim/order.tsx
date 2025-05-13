@@ -1,21 +1,12 @@
 import { getOrder, type GetOrderResponse } from "@/service/payment";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Text,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
+import { Text, View, ActivityIndicator, Platform } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { AppButton } from "@/components/button";
-
-const POLLING_INTERVAL = 5000;
-const POLLING_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 const OrderStatus = React.memo(
   ({ orderId, status }: { orderId: string | null; status: string }) => (
@@ -84,102 +75,43 @@ const SimReady = React.memo(
 
 export default function OrderScreen() {
   const orderId = useSearchParams().get("orderId");
-  const [status, setStatus] = useState("Waiting for payment...");
   const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
+  const router = useRouter();
 
-  const fetchOrderStatus = useCallback(async () => {
-    if (!orderId) {
-      setStatus("No order ID provided");
-      setError("No order ID provided");
-      return;
-    }
-    setIsPolling(true);
-    setError(null);
-    try {
-      const response = await getOrder(orderId);
-      if (response.status === 204) {
-        setStatus("Waiting for order confirmation...");
-        setOrderStatus(null);
-      } else if (response.status === 200) {
-        const data = response.data;
-        setOrderStatus(data);
-        setStatus("Order found");
-        if (data.sim) {
-          setStatus("Payment confirmed. SIM is ready!");
-        }
-      } else {
-        setError(`Unexpected status: ${response.status}`);
-      }
-    } catch (error) {
-      setError("Error fetching order");
-    }
-    setIsPolling(false);
-  }, [orderId]);
-
-  // Polling logic
   useEffect(() => {
-    let isCancelled = false;
-    const pollOrderStatus = async () => {
-      if (!orderId) return;
-      setIsPolling(true);
-      const startTime = Date.now();
-      while (
-        Date.now() - startTime < POLLING_TIMEOUT &&
-        !isCancelled &&
-        !(orderStatus && orderStatus.sim)
-      ) {
-        try {
-          const response = await getOrder(orderId);
-          if (response.status === 204) {
-            setStatus("Waiting for order confirmation...");
-            setOrderStatus(null);
-          } else if (response.status === 200) {
-            const data = response.data;
-            setOrderStatus(data);
-            setStatus("Order found");
-            if (data.sim) {
-              setStatus("Payment confirmed. SIM is ready!");
-              break;
-            }
-          } else {
-            setError(`Unexpected status: ${response.status}`);
-            break;
-          }
-        } catch (error) {
-          setError("Error fetching order");
-          break;
-        }
-        await new Promise((r) => setTimeout(r, POLLING_INTERVAL));
+    const fetchOrderStatus = async () => {
+      if (!orderId) {
+        setError("No order ID provided");
+        return;
       }
-      setIsPolling(false);
+      try {
+        const response = await getOrder(orderId);
+        if (response.status === 200) {
+          setOrderStatus(response.data);
+        } else {
+          setError("Order not found");
+        }
+      } catch (error) {
+        setError("Error fetching order");
+      }
     };
-    pollOrderStatus();
-    return () => {
-      isCancelled = true;
-    };
-  }, [orderId, orderStatus]);
+
+    fetchOrderStatus();
+  }, [orderId]);
 
   return (
     <SafeAreaView className="flex-1 bg-[#0A0F25]">
       <Header showBackButton={true} title="Order Status" />
       <View className="px-6 justify-center flex-1">
         <View className="items-center space-y-4">
-          <OrderStatus orderId={orderId} status={status} />
+          <OrderStatus
+            orderId={orderId}
+            status={orderStatus?.sim ? "Success" : "Pending"}
+          />
 
           {error ? (
-            <>
-              <Text className="text-red-500">{error}</Text>
-              <View style={{ marginTop: 16 }}>
-                <AppButton
-                  label="Retry"
-                  iconName="refresh-cw"
-                  variant="moonlight"
-                  onPress={fetchOrderStatus}
-                />
-              </View>
-            </>
+            <Text className="text-red-500">{error}</Text>
           ) : !orderStatus ? (
             <ActivityIndicator size="large" color="#00FFAA" />
           ) : orderStatus.sim ? (

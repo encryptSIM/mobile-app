@@ -9,7 +9,11 @@ import {
   type EsimPackage,
   type RegionPackage,
 } from "@/service/package";
-import { createOrder } from "@/service/payment";
+import {
+  createOrder,
+  getOrder,
+  type GetOrderResponse,
+} from "@/service/payment";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -19,6 +23,9 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
+
+const POLLING_INTERVAL = 5000;
+const POLLING_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 export default function OrderProcessingScreen() {
   const cooldownDuration = 10 * 60 * 1000; // 10 minutes
@@ -42,6 +49,10 @@ export default function OrderProcessingScreen() {
     null
   );
   const [priceInSol, setPriceInSol] = useState<number | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
 
   const router = useRouter();
   const params = useLocalSearchParams<{ packageId: string; price: string }>();
@@ -104,12 +115,57 @@ export default function OrderProcessingScreen() {
     fetchPackageDetails();
   }, [params.packageId]);
 
+  // Polling logic for order status
+  useEffect(() => {
+    let isCancelled = false;
+    const pollOrderStatus = async () => {
+      if (!orderId) return;
+      setIsPolling(true);
+      const startTime = Date.now();
+      while (
+        Date.now() - startTime < POLLING_TIMEOUT &&
+        !isCancelled &&
+        !(orderStatus && orderStatus.sim)
+      ) {
+        try {
+          const response = await getOrder(orderId);
+          if (response.status === 204) {
+            setOrderStatus(null);
+          } else if (response.status === 200) {
+            const data = response.data;
+            setOrderStatus(data);
+            if (data.sim) {
+              router.push({
+                pathname: "/esim/order",
+                params: { orderId },
+              });
+              break;
+            }
+          } else {
+            setError(`Unexpected status: ${response.status}`);
+            break;
+          }
+        } catch (error) {
+          setError("Error fetching order");
+          break;
+        }
+        await new Promise((r) => setTimeout(r, POLLING_INTERVAL));
+      }
+      setIsPolling(false);
+    };
+    pollOrderStatus();
+    return () => {
+      isCancelled = true;
+    };
+  }, [orderId, orderStatus, router]);
+
   // Create order logic
   const handleCreateOrder = useCallback(async () => {
     if (!publicKey || !params.packageId || !params.price) return;
 
     try {
       setIsProcessing(true);
+      setError(null);
       const order = await createOrder({
         package_id: params.packageId,
         ppPublicKey: publicKey,
@@ -117,22 +173,20 @@ export default function OrderProcessingScreen() {
         package_price: params.price,
       });
 
+      setOrderId(order.data.orderId);
+
       // Optional: restart cooldown after successful order
       const cooldownEnd = Date.now() + cooldownDuration;
       setCooldownEndTime(cooldownEnd);
       setRemainingTime(cooldownDuration);
       setStoredCooldown(cooldownEnd.toString());
-
-      router.push({
-        pathname: "/esim/order",
-        params: { orderId: order.data.orderId },
-      });
     } catch (error) {
       console.error("Failed to create order:", error);
+      setError("Failed to create order. Please try again.");
     } finally {
       setIsProcessing(false);
     }
-  }, [publicKey, params, setStoredCooldown, router]);
+  }, [publicKey, params, setStoredCooldown]);
 
   const formatAddress = (address: string) =>
     address ? `${address.slice(0, 4)}...${address.slice(-4)}` : "";
@@ -232,18 +286,38 @@ export default function OrderProcessingScreen() {
                 label={isProcessing ? "Processing..." : "Create Order"}
                 iconName="credit-card"
                 variant="moonlight"
+                isDisabled={
+                  balance !== null && solPrice !== null && balance <= solPrice
+                }
                 onPress={handleCreateOrder}
               />
             </View>
           </View>
 
           {/* Processing Spinner */}
-          {isProcessing && (
+          {(isProcessing || isPolling) && (
             <View className="mt-6 items-center">
               <ActivityIndicator size="large" color="#00FFAA" />
               <Text className="text-sm text-gray-400 mt-2">
-                Please wait while we process your order...
+                {isProcessing
+                  ? "Please wait while we process your order..."
+                  : "Waiting for payment confirmation..."}
               </Text>
+            </View>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <View className="mt-6 items-center">
+              <Text className="text-red-500">{error}</Text>
+              <View className="mt-4">
+                <AppButton
+                  label="Retry"
+                  iconName="refresh-cw"
+                  variant="moonlight"
+                  onPress={handleCreateOrder}
+                />
+              </View>
             </View>
           )}
         </View>
