@@ -5,29 +5,46 @@ import { AppButton } from "@/components/button";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { useBalance } from "@/hooks/balance";
 import {
-  getPackages,
-  type EsimPackage,
-  type RegionPackage,
-} from "@/service/package";
-import {
   createOrder,
   getOrder,
   type GetOrderResponse,
+  createTopUp,
+  type ServiceResponse,
 } from "@/service/payment";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
 
 const POLLING_INTERVAL = 5000;
-const POLLING_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+const POLLING_TIMEOUT = 10 * 60 * 1000;
 
-export default function OrderProcessingScreen() {
+interface OrderProcessingProps {
+  packageId: string;
+  price: string;
+  packageDetails?: {
+    data: string;
+    day: number;
+  };
+  onSuccess?: () => void;
+  onError?: (error: string) => void;
+  isTopUp?: boolean;
+}
+
+export const OrderProcessing: React.FC<OrderProcessingProps> = ({
+  packageId,
+  price,
+  packageDetails,
+  onSuccess,
+  onError,
+  isTopUp = false,
+}) => {
   const cooldownDuration = 10 * 60 * 1000; // 10 minutes
 
   const { value: publicKey } = useAsyncStorage<string>("publicKey");
@@ -45,27 +62,27 @@ export default function OrderProcessingScreen() {
   const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
   const [remainingTime, setRemainingTime] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [packageDetails, setPackageDetails] = useState<EsimPackage | null>(
-    null
-  );
   const [priceInSol, setPriceInSol] = useState<number | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
-  const [isLoadingPackage, setIsLoadingPackage] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successDetails, setSuccessDetails] = useState<{
+    orderId: string;
+    paymentInSol: number;
+  } | null>(null);
 
   const router = useRouter();
-  const params = useLocalSearchParams<{ packageId: string; price: string }>();
 
   // Calculate price in SOL when USD price or SOL price changes
   useEffect(() => {
-    if (params.price && solPrice) {
-      const usdPrice = parseFloat(params.price);
+    if (price && solPrice) {
+      const usdPrice = parseFloat(price);
       const solAmount = usdPrice / solPrice;
       setPriceInSol(solAmount);
     }
-  }, [params.price, solPrice]);
+  }, [price, solPrice]);
 
   // Auto-start countdown on mount
   useEffect(() => {
@@ -94,42 +111,6 @@ export default function OrderProcessingScreen() {
     return () => clearInterval(timer);
   }, [cooldownEndTime, setStoredCooldown]);
 
-  // Fetch package info
-  useEffect(() => {
-    const fetchPackageDetails = async () => {
-      if (!params.packageId) return;
-
-      try {
-        setIsLoadingPackage(true);
-        setError(null);
-        const response = await getPackages({ type: "global" });
-
-        if (response.error) {
-          setError(response.error);
-          return;
-        }
-
-        const allPackages = response.data.flatMap((region: RegionPackage) =>
-          region.operators.flatMap((op) => op.packages)
-        );
-        const pkg = allPackages.find(
-          (p: EsimPackage) => p.id === params.packageId
-        );
-        if (pkg) {
-          setPackageDetails(pkg);
-        } else {
-          setError("Package not found");
-        }
-      } catch (error) {
-        setError("Failed to fetch package details");
-      } finally {
-        setIsLoadingPackage(false);
-      }
-    };
-
-    fetchPackageDetails();
-  }, [params.packageId]);
-
   // Polling logic for order status
   useEffect(() => {
     let isCancelled = false;
@@ -148,6 +129,7 @@ export default function OrderProcessingScreen() {
 
           if (response.error) {
             setError(response.error);
+            onError?.(response.error);
             break;
           }
 
@@ -160,11 +142,14 @@ export default function OrderProcessingScreen() {
                 pathname: "/esim/order",
                 params: { orderId },
               });
+              onSuccess?.();
               break;
             }
           }
         } catch (error) {
-          setError("Error fetching order status");
+          const errorMsg = "Error fetching order status";
+          setError(errorMsg);
+          onError?.(errorMsg);
           break;
         }
         await new Promise((r) => setTimeout(r, POLLING_INTERVAL));
@@ -175,42 +160,78 @@ export default function OrderProcessingScreen() {
     return () => {
       isCancelled = true;
     };
-  }, [orderId, orderStatus, router]);
+  }, [orderId, orderStatus, router, onSuccess, onError]);
 
   // Create order logic
   const handleCreateOrder = useCallback(async () => {
-    if (!publicKey || !params.packageId || !params.price) return;
+    if (!publicKey || !packageId || !price) return;
 
     try {
       setIsProcessing(true);
       setError(null);
-      const response = await createOrder({
-        package_id: params.packageId,
-        ppPublicKey: publicKey,
-        quantity: 1,
-        package_price: params.price,
-      });
 
-      if (response.error) {
-        setError(response.error);
-        return;
-      }
+      if (isTopUp) {
+        const response = await createTopUp({
+          package_id: packageId,
+          ppPublicKey: publicKey,
+          iccid: packageId, // Using packageId as iccid for top-up
+          package_price: price,
+        });
 
-      if (response.data) {
-        setOrderId(response.data.orderId);
+        if (response.error) {
+          setError(response.error);
+          onError?.(response.error);
+          return;
+        }
 
-        // Optional: restart cooldown after successful order
-        const cooldownEnd = Date.now() + cooldownDuration;
-        setCooldownEndTime(cooldownEnd);
-        setRemainingTime(cooldownDuration);
-        setStoredCooldown(cooldownEnd.toString());
+        if (response.data) {
+          setSuccessDetails({
+            orderId: response.data.orderId,
+            paymentInSol: response.data.paymentInSol,
+          });
+          setShowSuccessModal(true);
+          onSuccess?.();
+        }
+      } else {
+        const response = await createOrder({
+          package_id: packageId,
+          ppPublicKey: publicKey,
+          quantity: 1,
+          package_price: price,
+        });
+
+        if (response.error) {
+          setError(response.error);
+          onError?.(response.error);
+          return;
+        }
+
+        if (response.data) {
+          setOrderId(response.data.orderId);
+
+          // Optional: restart cooldown after successful order
+          const cooldownEnd = Date.now() + cooldownDuration;
+          setCooldownEndTime(cooldownEnd);
+          setRemainingTime(cooldownDuration);
+          setStoredCooldown(cooldownEnd.toString());
+        }
       }
     } catch (error) {
-      setError("Failed to create order. Please try again.");
+      const errorMsg = "Failed to create order. Please try again.";
+      setError(errorMsg);
+      onError?.(errorMsg);
     } finally {
       setIsProcessing(false);
     }
-  }, [publicKey, params, setStoredCooldown]);
+  }, [
+    publicKey,
+    packageId,
+    price,
+    setStoredCooldown,
+    onError,
+    onSuccess,
+    isTopUp,
+  ]);
 
   const formatAddress = (address: string) =>
     address ? `${address.slice(0, 4)}...${address.slice(-4)}` : "";
@@ -269,14 +290,7 @@ export default function OrderProcessingScreen() {
               <Text className="text-base font-medium mb-2 text-white">
                 Order Information
               </Text>
-              {isLoadingPackage ? (
-                <View className="items-center py-4">
-                  <ActivityIndicator size="small" color="#00FFAA" />
-                  <Text className="text-sm text-gray-400 mt-2">
-                    Loading package details...
-                  </Text>
-                </View>
-              ) : packageDetails ? (
+              {packageDetails ? (
                 <>
                   <View className="flex-row justify-between mb-1">
                     <Text className="text-sm text-gray-300">Data</Text>
@@ -292,9 +306,7 @@ export default function OrderProcessingScreen() {
                   </View>
                   <View className="flex-row justify-between mb-1">
                     <Text className="text-sm text-gray-300">Price (USD)</Text>
-                    <Text className="text-sm text-green-400">
-                      ${params.price}
-                    </Text>
+                    <Text className="text-sm text-green-400">${price}</Text>
                   </View>
                   <View className="flex-row justify-between mb-1">
                     <Text className="text-sm text-gray-300">Price (SOL)</Text>
@@ -307,7 +319,7 @@ export default function OrderProcessingScreen() {
                 </>
               ) : (
                 <Text className="text-sm text-gray-300">
-                  No package details available
+                  Loading package details...
                 </Text>
               )}
             </View>
@@ -320,7 +332,6 @@ export default function OrderProcessingScreen() {
                 isDisabled={
                   isProcessing ||
                   isPolling ||
-                  isLoadingPackage ||
                   !packageDetails ||
                   (balance !== null &&
                     solPrice !== null &&
@@ -359,6 +370,52 @@ export default function OrderProcessingScreen() {
           )}
         </View>
       </SafeAreaView>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50">
+          <View className="bg-[#1E263C] rounded-xl p-6 w-[90%] max-w-[400px]">
+            <View className="items-center mb-6">
+              <View className="w-16 h-16 rounded-full bg-green-500/20 items-center justify-center mb-4">
+                <Feather name="check" size={32} color="#4ade80" />
+              </View>
+              <Text className="text-xl font-bold text-white mb-2">
+                Success!
+              </Text>
+              <Text className="text-gray-300 text-center">
+                Your top-up order has been processed successfully.
+              </Text>
+            </View>
+
+            <View className="bg-[#0E1220] rounded-lg p-4 mb-6">
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-gray-300">Order ID</Text>
+                <Text className="text-white">{successDetails?.orderId}</Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-gray-300">Amount Paid</Text>
+                <Text className="text-green-400">
+                  {successDetails?.paymentInSol.toFixed(4)} SOL
+                </Text>
+              </View>
+            </View>
+
+            <AppButton
+              label="Done"
+              variant="moonlight"
+              onPress={() => {
+                setShowSuccessModal(false);
+                onSuccess?.();
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
-}
+};

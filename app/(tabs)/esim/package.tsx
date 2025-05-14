@@ -194,7 +194,9 @@ export default function EsimScreen() {
           )}
 
           {selectedDataSize && selectedDuration && (
-            <PriceDisplay price={currentPrice} />
+            <PriceDisplay
+              price={currentPrice ? Number(currentPrice) : undefined}
+            />
           )}
 
           {selectedDataSize && selectedDuration && packageId && (

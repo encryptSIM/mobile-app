@@ -18,24 +18,10 @@ import { useBalance } from "@/hooks/balance";
 
 export default function ProfileScreen() {
   const { value: address, setValue } = useAsyncStorage<string>("publicKey");
-  const { balance, loading, error } = useBalance(address || "");
-
-  const [showTopup, setShowTopup] = React.useState(false);
-  const [selectedData, setSelectedData] = React.useState("1GB");
-  const [selectedDay, setSelectedDay] = React.useState("3");
+  const { balance, loading, error, refreshBalance } = useBalance(address || "");
 
   return (
     <SafeAreaView style={styles.container}>
-      <TopUpModal
-        visible={showTopup}
-        onClose={() => setShowTopup(false)}
-        selectedData={selectedData}
-        setSelectedData={setSelectedData}
-        selectedDay={selectedDay}
-        setSelectedDay={setSelectedDay}
-        onBuy={() => setShowTopup(false)}
-      />
-
       <View style={styles.screen}>
         {/* Profile Info */}
         <View style={styles.profileWrapper}>
@@ -63,7 +49,12 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          <View style={styles.balanceCard}>
+          <TouchableOpacity
+            onPress={() => {
+              refreshBalance();
+            }}
+            style={styles.balanceCard}
+          >
             <Text style={styles.balanceLabel}>Current Balance</Text>
             <Text style={styles.balanceValue}>
               {loading
@@ -72,7 +63,7 @@ export default function ProfileScreen() {
                 ? "Error"
                 : `${balance?.toFixed(4)} SOL`}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Options */}

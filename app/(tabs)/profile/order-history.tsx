@@ -1,39 +1,112 @@
+import { AppButton } from "@/components/button";
 import { ESimOrderCard } from "@/components/ESimOrderCard";
-import { TopUpModal } from "@/components/TopUpModal";
-import { SafeAreaView, ScrollView, Text, View } from "react-native";
-import React from "react";
 import { Header } from "@/components/Header";
+import { OrderProcessing } from "@/components/OrderProcessing";
+import { TopUpModal } from "@/components/TopUpModal";
+import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import {
+  getOrderHistory,
+  type GetOrderHistoryResponse,
+} from "@/service/payment";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 export default function OrderHistoryScreen() {
-  // Sample orders data - in a real app, this would come from an API or database
-  const orders = [
-    { id: 101, region: "Asia", status: "Active", dataUsed: 3, dataLimit: 5 },
-    { id: 102, region: "Europe", status: "Active", dataUsed: 2, dataLimit: 5 },
-    { id: 103, region: "USA", status: "Active", dataUsed: 1, dataLimit: 5 },
-  ];
+  const { value: address } = useAsyncStorage<string>("publicKey");
+  const [orders, setOrders] = useState<GetOrderHistoryResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Top-up modal state
-  const [showTopup, setShowTopup] = React.useState(false);
-  const [selectedData, setSelectedData] = React.useState("1GB");
-  const [selectedDay, setSelectedDay] = React.useState("3");
+  const [showTopup, setShowTopup] = useState(false);
+  const [selectedData, setSelectedData] = useState("1GB");
+  const [selectedDay, setSelectedDay] = useState("3");
+  const [selectedIccid, setSelectedIccid] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState<{
+    id: string;
+    price: string;
+    data: string;
+    day: number;
+  } | null>(null);
 
-  return (
-    <SafeAreaView className="flex-1 bg-[#0E1220]">
-      <Header title="Order History" showBackButton />
-      {/* Top-up Modal */}
-      <TopUpModal
-        visible={showTopup}
-        onClose={() => setShowTopup(false)}
-        selectedData={selectedData}
-        setSelectedData={setSelectedData}
-        selectedDay={selectedDay}
-        setSelectedDay={setSelectedDay}
-        onBuy={() => {
-          // Handle buy logic here
-          setShowTopup(false);
-        }}
-      />
+  const fetchOrderHistory = useCallback(async () => {
+    if (!address) return;
 
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await getOrderHistory(address);
+
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
+      if (response.data) {
+        setOrders(response.data);
+      }
+    } catch (error) {
+      setError("Failed to fetch order history");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    fetchOrderHistory();
+  }, [fetchOrderHistory]);
+
+  const handleTopUpSuccess = useCallback(() => {
+    setSelectedPackage(null);
+    fetchOrderHistory();
+  }, [fetchOrderHistory]);
+
+  const handleTopUpError = useCallback((error: string) => {
+    setError(error);
+    setSelectedPackage(null);
+  }, []);
+
+  const renderContent = () => {
+    if (error) {
+      return (
+        <View className="items-center space-y-4 py-8">
+          <Text className="text-red-500 text-center">{error}</Text>
+          <AppButton
+            label="Retry"
+            iconName="refresh-cw"
+            variant="moonlight"
+            onPress={fetchOrderHistory}
+          />
+        </View>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <View className="items-center justify-center py-8">
+          <ActivityIndicator size="large" color="#00FFAA" />
+          <Text className="text-gray-400 mt-4">Loading order history...</Text>
+        </View>
+      );
+    }
+
+    if (orders.length === 0) {
+      return (
+        <View className="items-center justify-center py-8">
+          <Text className="text-gray-400 text-center">
+            No orders found. Your order history will appear here.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
         <Text className="text-white text-xl font-bold mb-4">
           📦 Your eSIM Orders
@@ -41,13 +114,58 @@ export default function OrderHistoryScreen() {
 
         {orders.map((order, idx) => (
           <ESimOrderCard
-            key={order.id}
+            key={order.orderId + idx}
             order={order}
             index={idx}
-            onBuyMoreData={() => setShowTopup(true)}
+            onBuyMoreData={() => {
+              setSelectedIccid(order.iccid);
+              setShowTopup(true);
+            }}
           />
         ))}
       </ScrollView>
+    );
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-[#0E1220]">
+      {/* <Header title="Order History" showBackButton /> */}
+
+      {/* Top-up Modal */}
+      {address && (
+        <TopUpModal
+          ppPublicKey={address}
+          iccid={selectedIccid}
+          visible={showTopup}
+          onClose={() => setShowTopup(false)}
+          selectedData={selectedData}
+          setSelectedData={setSelectedData}
+          selectedDay={selectedDay}
+          setSelectedDay={setSelectedDay}
+          onSelectPackage={(packageDetails) => {
+            setSelectedPackage(packageDetails);
+            setShowTopup(false);
+          }}
+        />
+      )}
+
+      {/* Order Processing Screen */}
+      {selectedPackage && (
+        <OrderProcessing
+          packageId={selectedPackage.id}
+          price={selectedPackage.price}
+          packageDetails={{
+            data: selectedPackage.data,
+            day: selectedPackage.day,
+          }}
+          isTopUp={true}
+          onSuccess={handleTopUpSuccess}
+          onError={handleTopUpError}
+        />
+      )}
+
+      {/* Main Content */}
+      {!selectedPackage && renderContent()}
     </SafeAreaView>
   );
 }

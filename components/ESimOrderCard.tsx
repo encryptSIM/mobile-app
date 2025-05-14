@@ -1,6 +1,7 @@
 import { AppButton } from "@/components/button";
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import React from "react";
+import type { GetOrderHistoryResponse } from "@/service/payment";
 
 interface ESimOrder {
   id: number;
@@ -11,7 +12,7 @@ interface ESimOrder {
 }
 
 interface ESimOrderCardProps {
-  order: ESimOrder;
+  order: GetOrderHistoryResponse;
   index: number;
   onBuyMoreData: () => void;
 }
@@ -21,37 +22,51 @@ export const ESimOrderCard: React.FC<ESimOrderCardProps> = ({
   index,
   onBuyMoreData,
 }) => {
+  const percent = Math.round((3 / 5) * 100);
+  const progressWidth = Math.max(5, percent);
+  let barColor = styles.greenBar;
+  if (percent >= 90) barColor = styles.redBar;
+  else if (percent >= 60) barColor = styles.yellowBar;
+
   return (
-    <View className="mb-4 bg-[#1E263C] rounded-2xl p-5 shadow-md border border-[#2A3550]">
-      {/* Header Row with Order Label and ID */}
-      <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-white text-lg font-semibold">
-          📄 Order #{index + 1}
-        </Text>
-        <Text className="text-xs text-gray-400">#ID: {order.id}</Text>
+    <View style={styles.card}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.orderTitle}>{order.orderId}</Text>
+        {/* <Text style={styles.orderId}>#ID: {order.orderId}</Text> */}
       </View>
 
-      {/* Status and Package Chips */}
-      <View className="flex-row space-x-2 mb-4">
-        <View className="bg-[#2E3B55] px-3 py-1 rounded-full">
-          <Text className="text-sm text-white">🌏 {order.region} Package</Text>
+      {/* Chips */}
+      <View style={styles.chipsRow}>
+        <View style={styles.regionChip}>
+          <Text style={styles.chipText}>🌏 {order.package_id} Package</Text>
         </View>
-        <View className="bg-green-600 px-3 py-1 rounded-full">
-          <Text className="text-sm text-white">🟢 {order.status}</Text>
+        {/* <View style={styles.statusChip}>
+          <Text style={styles.chipText}>🟢 {order.status}</Text>
+        </View> */}
+      </View>
+
+      {/* Data Usage */}
+      <Text style={styles.usageLabel}>Data Usage</Text>
+      <View>
+        <View style={styles.usageRow}>
+          <Text style={styles.usageText}>
+            {/* {order.dataUsed} / {order.dataLimit} GB */}
+          </Text>
+          <Text style={styles.usageText}>{percent}% used</Text>
+        </View>
+        <View style={styles.progressContainer}>
+          <View
+            style={[
+              styles.progressBar,
+              barColor,
+              { width: `${progressWidth}%` },
+            ]}
+          />
         </View>
       </View>
 
-      {/* Optional Data Progress Bar */}
-      {/* 
-      <View className="h-2 bg-gray-700 rounded-full mb-4">
-        <View
-          className="h-2 bg-blue-500 rounded-full"
-          style={{ width: `${(order.dataUsed / order.dataLimit) * 100}%` }}
-        />
-      </View>
-      */}
-
-      {/* CTA Button */}
+      {/* Button */}
       <AppButton
         label="Buy More Data"
         iconName="plus-circle"
@@ -61,3 +76,91 @@ export const ESimOrderCard: React.FC<ESimOrderCardProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    marginBottom: 16,
+    backgroundColor: "#1E263C",
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#2A3550",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  orderTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  orderId: {
+    fontSize: 12,
+    color: "#A0A0A0",
+  },
+  chipsRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  regionChip: {
+    backgroundColor: "#2E3B55",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  statusChip: {
+    backgroundColor: "#16A34A",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  chipText: {
+    fontSize: 14,
+    color: "#FFFFFF",
+  },
+  usageLabel: {
+    fontSize: 12,
+    color: "#FFFFFF",
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  usageRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  usageText: {
+    fontSize: 12,
+    color: "#FFFFFF",
+  },
+  progressContainer: {
+    height: 16,
+    backgroundColor: "#374151",
+    borderRadius: 999,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#60A5FA",
+    marginBottom: 16,
+  },
+  progressBar: {
+    height: 16,
+    borderRadius: 999,
+  },
+  greenBar: {
+    backgroundColor: "#22C55E",
+  },
+  yellowBar: {
+    backgroundColor: "#FACC15",
+  },
+  redBar: {
+    backgroundColor: "#EF4444",
+  },
+});

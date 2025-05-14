@@ -1,46 +1,76 @@
-import React from "react";
+import { createTopUp, getTopUpOptions } from "@/service/payment";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
-  View,
-  Text,
   Pressable,
   StyleSheet,
-  Dimensions,
+  Text,
+  View,
 } from "react-native";
-import DropdownSelector from "./dropdown";
 import { AppButton } from "./button";
+import DropdownSelector from "./dropdown";
+import { useRouter } from "expo-router";
 
 interface TopUpModalProps {
+  iccid: string;
   visible: boolean;
   onClose: () => void;
   selectedData: string;
   setSelectedData: (val: string) => void;
   selectedDay: string;
   setSelectedDay: (val: string) => void;
-  onBuy: () => void;
+  ppPublicKey: string;
+  onSelectPackage?: (packageDetails: {
+    id: string;
+    price: string;
+    data: string;
+    day: number;
+  }) => void;
 }
 
-const dataOptions = [
-  { label: "1GB", value: "1GB" },
-  { label: "3GB", value: "3GB" },
-  { label: "5GB", value: "5GB" },
-];
-const dayOptions = [
-  { label: "3 Days", value: "3" },
-  { label: "7 Days", value: "7" },
-  { label: "30 Days", value: "30" },
-];
-
 export const TopUpModal: React.FC<TopUpModalProps> = ({
+  iccid,
   visible,
   onClose,
   selectedData,
   setSelectedData,
   selectedDay,
   setSelectedDay,
-  onBuy,
+  ppPublicKey,
+  onSelectPackage,
 }) => {
-  const planDetails = `Package: Asia\nData: ${selectedData}\nDuration: ${selectedDay} days\nPrice: $9.99`;
+  const [topUpOptions, setTopUpOptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (visible && iccid) {
+      setLoading(true);
+      getTopUpOptions(iccid)
+        .then((res) => {
+          setTopUpOptions(res.data);
+          // Default select the first option
+          if (res.data.length > 0) {
+            setSelectedOptionId(res.data[0].id);
+            setSelectedData(res.data[0].data);
+            setSelectedDay(res.data[0].day.toString());
+          }
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [visible, iccid, setSelectedData, setSelectedDay]);
+
+  const selectedOption = topUpOptions.find(
+    (opt) => opt.id === selectedOptionId
+  );
+
+  const dropdownOptions = topUpOptions.map((option) => ({
+    label: `${option.title} - $${option.price}`,
+    value: option.id,
+  }));
 
   return (
     <Modal
@@ -52,27 +82,70 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
       <View style={styles.backdrop}>
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Top Up</Text>
-          <DropdownSelector
-            label="Data Size"
-            selectedValue={selectedData}
-            onValueChange={setSelectedData}
-            options={dataOptions}
-          />
-          <DropdownSelector
-            label="Day"
-            selectedValue={selectedDay}
-            onValueChange={setSelectedDay}
-            options={dayOptions}
-          />
-          <View style={styles.detailsBox}>
-            <Text style={styles.detailsText}>{planDetails}</Text>
-          </View>
-          <AppButton
-            label="Buy"
-            iconName="credit-card"
-            variant="moonlight"
-            onPress={onBuy}
-          />
+          {loading ? (
+            <ActivityIndicator size="large" color="#00FFAA" />
+          ) : (
+            <>
+              {topUpOptions.length === 0 ? (
+                <Text>No top-up options available.</Text>
+              ) : (
+                <DropdownSelector
+                  label="Top-up Plan"
+                  selectedValue={selectedOptionId ?? ""}
+                  onValueChange={(val) => {
+                    setSelectedOptionId(val);
+                    const selected = topUpOptions.find((opt) => opt.id === val);
+                    if (selected) {
+                      setSelectedData(selected.data);
+                      setSelectedDay(selected.day.toString());
+                    }
+                  }}
+                  options={dropdownOptions}
+                />
+              )}
+              {selectedOption && (
+                <View style={styles.detailsBox}>
+                  <Text style={styles.detailsText}>
+                    Data: {selectedOption.data}
+                    {"\n"}
+                    Duration: {selectedOption.day} days{"\n"}
+                    Price: ${selectedOption.price}
+                  </Text>
+                </View>
+              )}
+              <AppButton
+                label="Buy"
+                iconName="credit-card"
+                variant="moonlight"
+                onPress={async () => {
+                  if (!selectedOption) return;
+                  try {
+                    setProcessing(true);
+                    const response = await createTopUp({
+                      ppPublicKey,
+                      package_id: selectedOption.id,
+                      iccid,
+                      package_price: selectedOption.price.toString(),
+                    });
+                    onClose();
+                    // Call onSelectPackage with the selected package details
+                    onSelectPackage?.({
+                      id: selectedOption.id,
+                      price: selectedOption.price.toString(),
+                      data: selectedOption.data,
+                      day: selectedOption.day,
+                    });
+                  } catch (error) {
+                    console.error("Failed to create top-up:", error);
+                    // You might want to show an error message to the user here
+                  } finally {
+                    setProcessing(false);
+                  }
+                }}
+                isDisabled={!selectedOption || processing}
+              />
+            </>
+          )}
           <Pressable onPress={onClose} style={styles.cancelButton}>
             <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
@@ -102,6 +175,19 @@ const styles = StyleSheet.create({
     color: "#000",
     marginBottom: 16,
   },
+  option: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    marginBottom: 8,
+  },
+  selectedOption: {
+    backgroundColor: "#A7F3D0",
+  },
+  optionText: {
+    color: "#111",
+    fontSize: 16,
+  },
   detailsBox: {
     marginVertical: 16,
   },
@@ -113,6 +199,6 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     textAlign: "center",
-    color: "#6B7280", // Tailwind's gray-500
+    color: "#6B7280",
   },
 });

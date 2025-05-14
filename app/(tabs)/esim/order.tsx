@@ -1,4 +1,8 @@
-import { getOrder, type GetOrderResponse } from "@/service/payment";
+import {
+  getOrder,
+  type GetOrderResponse,
+  type ServiceResponse,
+} from "@/service/payment";
 import { useRouter } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
 import React, { useCallback, useEffect, useState } from "react";
@@ -79,22 +83,33 @@ export default function OrderScreen() {
   const orderId = useSearchParams().get("orderId");
   const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchOrderStatus = useCallback(async () => {
     if (!orderId) {
       setError("No order ID provided");
       return;
     }
+
     try {
+      setIsLoading(true);
+      setError(null);
       const response = await getOrder(orderId);
-      if (response.status === 200) {
+
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
+      if (response.data) {
         setOrderStatus(response.data);
-        setError(null);
       } else {
         setError("Order not found");
       }
     } catch (error) {
-      setError("Error fetching order");
+      setError("Error fetching order status");
+    } finally {
+      setIsLoading(false);
     }
   }, [orderId]);
 
@@ -102,7 +117,59 @@ export default function OrderScreen() {
     if (orderId) {
       fetchOrderStatus();
     }
-  }, [orderId]);
+  }, [orderId, fetchOrderStatus]);
+
+  const renderContent = () => {
+    if (error) {
+      return (
+        <View className="items-center space-y-4">
+          <Text className="text-red-500">{error}</Text>
+          <AppButton
+            label="Retry"
+            iconName="refresh-cw"
+            variant="moonlight"
+            onPress={fetchOrderStatus}
+          />
+        </View>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <View className="items-center space-y-4">
+          <ActivityIndicator size="large" color="#00FFAA" />
+          <Text className="text-gray-400">Loading order status...</Text>
+        </View>
+      );
+    }
+
+    if (!orderStatus) {
+      return <Text className="text-white">No order data available.</Text>;
+    }
+
+    if (orderStatus.sim) {
+      return (
+        <SimReady
+          qrcode={orderStatus.sim.qrcode}
+          installationUrl={orderStatus.sim.direct_apple_installation_url}
+        />
+      );
+    }
+
+    return (
+      <View className="items-center space-y-4">
+        <Text className="text-white">
+          Order data loaded, but SIM not ready.
+        </Text>
+        <AppButton
+          label="Refresh Status"
+          iconName="refresh-cw"
+          variant="moonlight"
+          onPress={fetchOrderStatus}
+        />
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#0A0F25]">
@@ -113,29 +180,7 @@ export default function OrderScreen() {
             orderId={orderId}
             status={orderStatus?.sim ? "Success" : "Pending"}
           />
-
-          {error ? (
-            <View className="items-center space-y-4">
-              <Text className="text-red-500">{error}</Text>
-              <AppButton
-                label="Retry"
-                iconName="refresh-cw"
-                variant="moonlight"
-                onPress={fetchOrderStatus}
-              />
-            </View>
-          ) : !orderStatus ? (
-            <ActivityIndicator size="large" color="#00FFAA" />
-          ) : orderStatus.sim ? (
-            <SimReady
-              qrcode={orderStatus.sim.qrcode}
-              installationUrl={orderStatus.sim.direct_apple_installation_url}
-            />
-          ) : (
-            <Text className="text-white">
-              Order data loaded, but SIM not ready.
-            </Text>
-          )}
+          {renderContent()}
         </View>
       </View>
     </SafeAreaView>
