@@ -17,6 +17,8 @@ import { useRouter } from "expo-router";
 
 export { ErrorBoundary } from "expo-router";
 import "../global.css";
+import { LightTheme } from "@/constants/custom-theme";
+import { DarkThemeCustom } from "@/constants/custom-theme";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)/esim/package",
@@ -64,7 +66,9 @@ function RootLayoutNav() {
   }, [storedPublicKey, storageLoading, router]);
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider
+      value={colorScheme === "dark" ? DarkThemeCustom : LightTheme}
+    >
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen

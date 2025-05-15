@@ -7,6 +7,7 @@ export default {
     background: '#F8FAFC',
     modalBackground: '#FFFFFF',
     tint: tintColorLight,
+    primary: tintColorLight, // alias
     tabIconDefault: '#94A3B8',
     tabIconSelected: tintColorLight,
   },
@@ -15,6 +16,7 @@ export default {
     background: '#111926',
     modalBackground: '#1F2837',
     tint: tintColorDark,
+    primary: tintColorDark, // alias
     tabIconDefault: '#64748B',
     tabIconSelected: tintColorDark,
   },
