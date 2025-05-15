@@ -22,11 +22,26 @@ export const ESimOrderCard: React.FC<ESimOrderCardProps> = ({
   index,
   onBuyMoreData,
 }) => {
-  const percent = Math.round((3 / 5) * 100);
-  const progressWidth = Math.max(5, percent);
+  const { usage_data } = order;
+  const dataUsed = usage_data.total - usage_data.remaining;
+  const dataLimit = usage_data.total;
+
+  // Avoid division by zero if dataLimit is 0
+  const percent = dataLimit > 0 ? Math.round((dataUsed / dataLimit) * 100) : 0;
+  const progressWidth = Math.max(5, percent); // Ensure progress bar is always slightly visible
+
   let barColor = styles.greenBar;
   if (percent >= 90) barColor = styles.redBar;
   else if (percent >= 60) barColor = styles.yellowBar;
+
+  // Helper function to format data units
+  const formatData = (value: number) => {
+    // Assuming value is in MB. Convert to GB if >= 1000 MB.
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)} GB`;
+    }
+    return `${value} MB`;
+  };
 
   return (
     <View style={styles.card}>
@@ -51,7 +66,7 @@ export const ESimOrderCard: React.FC<ESimOrderCardProps> = ({
       <View>
         <View style={styles.usageRow}>
           <Text style={styles.usageText}>
-            {/* {order.dataUsed} / {order.dataLimit} GB */}
+            {formatData(dataUsed)} / {formatData(dataLimit)}
           </Text>
           <Text style={styles.usageText}>{percent}% used</Text>
         </View>

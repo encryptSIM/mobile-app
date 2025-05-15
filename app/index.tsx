@@ -1,17 +1,32 @@
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import { ActivityIndicator, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Delay navigation until after the first render
-    const timeout = setTimeout(() => {
-      router.replace("/onboarding");
-    }, 0);
+    const checkOnboarding = async () => {
+      const onboarded = await SecureStore.getItemAsync("hasOnboarded");
+      if (onboarded === "true") {
+        router.replace("/(tabs)/esim/package");
+      } else {
+        router.replace("/onboarding");
+      }
+    };
 
-    return () => clearTimeout(timeout);
+    checkOnboarding().finally(() => setChecking(false));
   }, []);
+
+  if (checking) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return null;
 }

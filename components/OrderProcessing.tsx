@@ -6,10 +6,10 @@ import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { useBalance } from "@/hooks/balance";
 import {
   createOrder,
-  getOrder,
-  type GetOrderResponse,
   createTopUp,
-  type ServiceResponse,
+  type GetOrderResponse,
+  type TopUpResult,
+  type SimInfo,
 } from "@/service/payment";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -21,13 +21,13 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
-
-const POLLING_INTERVAL = 5000;
-const POLLING_TIMEOUT = 10 * 60 * 1000;
+import { useTopUpPolling } from "@/hooks/use-topup-polling";
+import { useOrderPolling } from "@/hooks/use-order-polling";
 
 interface OrderProcessingProps {
   packageId: string;
   price: string;
+  iccidForTopUp?: string;
   packageDetails?: {
     data: string;
     day: number;
@@ -40,13 +40,13 @@ interface OrderProcessingProps {
 export const OrderProcessing: React.FC<OrderProcessingProps> = ({
   packageId,
   price,
+  iccidForTopUp,
   packageDetails,
   onSuccess,
   onError,
   isTopUp = false,
 }) => {
   const cooldownDuration = 10 * 60 * 1000; // 10 minutes
-
   const { value: publicKey } = useAsyncStorage<string>("publicKey");
   const { setValue: setStoredCooldown } =
     useAsyncStorage<string>("orderCooldown");
@@ -64,27 +64,28 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [priceInSol, setPriceInSol] = useState<number | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
+  const [pollingTopUpTransactionId, setPollingTopUpTransactionId] = useState<
+    string | null
+  >(null);
+  const [topUpPaymentAmountForModal, setTopUpPaymentAmountForModal] = useState<
+    number | null
+  >(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successDetails, setSuccessDetails] = useState<{
     orderId: string;
     paymentInSol: number;
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
 
-  // Calculate price in SOL when USD price or SOL price changes
   useEffect(() => {
     if (price && solPrice) {
       const usdPrice = parseFloat(price);
-      const solAmount = usdPrice / solPrice;
-      setPriceInSol(solAmount);
+      setPriceInSol(usdPrice / solPrice);
     }
   }, [price, solPrice]);
 
-  // Auto-start countdown on mount
   useEffect(() => {
     const endTime = Date.now() + cooldownDuration;
     setCooldownEndTime(endTime);
@@ -92,146 +93,99 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
     setStoredCooldown(endTime.toString());
   }, []);
 
-  // Countdown tick logic
   useEffect(() => {
     if (!cooldownEndTime) return;
-
     const timer = setInterval(() => {
       const remaining = cooldownEndTime - Date.now();
       if (remaining <= 0) {
+        clearInterval(timer);
         setCooldownEndTime(null);
         setRemainingTime(0);
         setStoredCooldown("");
-        clearInterval(timer);
       } else {
         setRemainingTime(remaining);
       }
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [cooldownEndTime, setStoredCooldown]);
+  }, [cooldownEndTime]);
 
-  // Polling logic for order status
-  useEffect(() => {
-    let isCancelled = false;
-    const pollOrderStatus = async () => {
-      if (!orderId) return;
-      setIsPolling(true);
-      const startTime = Date.now();
+  const { isPolling: isPollingOrder } = useOrderPolling(
+    orderId,
+    !!orderId && !isTopUp,
+    (res: GetOrderResponse) => {
+      router.push({
+        pathname: "/esim/order",
+        params: { orderId: res.orderId },
+      });
+      onSuccess?.();
+    },
+    (msg: string) => setError(msg)
+  );
 
-      while (
-        Date.now() - startTime < POLLING_TIMEOUT &&
-        !isCancelled &&
-        !(orderStatus && orderStatus.sim)
-      ) {
-        try {
-          const response = await getOrder(orderId);
+  const { isPolling: isPollingTopUp } = useTopUpPolling(
+    pollingTopUpTransactionId,
+    !!pollingTopUpTransactionId,
+    topUpPaymentAmountForModal,
+    (res: TopUpResult, amount: number) => {
+      console.log("res & show success modal", res);
+      setSuccessDetails({ orderId: res.orderId, paymentInSol: amount });
+      setShowSuccessModal(true);
+    },
+    (msg: string) => setError(msg)
+  );
 
-          if (response.error) {
-            setError(response.error);
-            onError?.(response.error);
-            break;
-          }
-
-          if (!response.data) {
-            setOrderStatus(null);
-          } else {
-            setOrderStatus(response.data);
-            if (response.data.sim) {
-              router.push({
-                pathname: "/esim/order",
-                params: { orderId },
-              });
-              onSuccess?.();
-              break;
-            }
-          }
-        } catch (error) {
-          const errorMsg = "Error fetching order status";
-          setError(errorMsg);
-          onError?.(errorMsg);
-          break;
-        }
-        await new Promise((r) => setTimeout(r, POLLING_INTERVAL));
-      }
-      setIsPolling(false);
-    };
-    pollOrderStatus();
-    return () => {
-      isCancelled = true;
-    };
-  }, [orderId, orderStatus, router, onSuccess, onError]);
-
-  // Create order logic
   const handleCreateOrder = useCallback(async () => {
     if (!publicKey || !packageId || !price) return;
-
     try {
       setIsProcessing(true);
       setError(null);
 
       if (isTopUp) {
-        const response = await createTopUp({
+        if (!iccidForTopUp) throw new Error("ICCID is required for top-up.");
+
+        const res = await createTopUp({
           package_id: packageId,
           ppPublicKey: publicKey,
-          iccid: packageId, // Using packageId as iccid for top-up
+          iccid: iccidForTopUp,
           package_price: price,
         });
 
-        if (response.error) {
-          setError(response.error);
-          onError?.(response.error);
-          return;
-        }
-
-        if (response.data) {
-          setSuccessDetails({
-            orderId: response.data.orderId,
-            paymentInSol: response.data.paymentInSol,
-          });
-          setShowSuccessModal(true);
-          onSuccess?.();
+        if (res.error) throw new Error(res.error);
+        if (res.data) {
+          setPollingTopUpTransactionId(res.data.orderId);
+          setTopUpPaymentAmountForModal(res.data.paymentInSol);
+        } else {
+          throw new Error("Top-up response is missing data.");
         }
       } else {
-        const response = await createOrder({
+        const res = await createOrder({
           package_id: packageId,
           ppPublicKey: publicKey,
           quantity: 1,
           package_price: price,
         });
 
-        if (response.error) {
-          setError(response.error);
-          onError?.(response.error);
-          return;
+        if (res.error) throw new Error(res.error);
+        if (res.data) {
+          console.log("res.data", res.data);
+          setOrderId(res.data.orderId);
+        } else {
+          throw new Error("Create order response is missing data.");
         }
 
-        if (response.data) {
-          setOrderId(response.data.orderId);
-
-          // Optional: restart cooldown after successful order
-          const cooldownEnd = Date.now() + cooldownDuration;
-          setCooldownEndTime(cooldownEnd);
-          setRemainingTime(cooldownDuration);
-          setStoredCooldown(cooldownEnd.toString());
-        }
+        const cooldownEnd = Date.now() + cooldownDuration;
+        setCooldownEndTime(cooldownEnd);
+        setRemainingTime(cooldownDuration);
+        setStoredCooldown(cooldownEnd.toString());
       }
-    } catch (error) {
-      const errorMsg = "Failed to create order. Please try again.";
-      setError(errorMsg);
-      onError?.(errorMsg);
+    } catch (err: any) {
+      const msg = err?.message || "Order creation failed.";
+      setError(msg);
+      onError?.(msg);
     } finally {
       setIsProcessing(false);
     }
-  }, [
-    publicKey,
-    packageId,
-    price,
-    setStoredCooldown,
-    onError,
-    onSuccess,
-    isTopUp,
-  ]);
+  }, [publicKey, packageId, price, isTopUp, iccidForTopUp]);
 
   const formatAddress = (address: string) =>
     address ? `${address.slice(0, 4)}...${address.slice(-4)}` : "";
@@ -246,7 +200,6 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
         <Header showBackButton title="Process Order" />
         <View className="flex-1 px-4 py-6 justify-between">
           <View>
-            {/* Timer */}
             {cooldownEndTime && remainingTime > 0 && (
               <View className="items-center mb-6">
                 <CircularTimer remainingTime={remainingTime} />
@@ -255,7 +208,6 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
 
             <Text className="text-xl font-semibold mb-6">Order Processing</Text>
 
-            {/* Wallet Info */}
             <View className="bg-[#1E263C] rounded-xl p-4 mb-6">
               <Text className="text-base font-medium mb-2 text-white">
                 Wallet Information
@@ -285,7 +237,6 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
               </View>
             </View>
 
-            {/* Order Info */}
             <View className="bg-[#1E263C] rounded-xl p-4 mb-6">
               <Text className="text-base font-medium mb-2 text-white">
                 Order Information
@@ -324,37 +275,34 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
               )}
             </View>
 
-            <View className="gap-4">
-              <AppButton
-                label={isProcessing ? "Processing..." : "Create Order"}
-                iconName="credit-card"
-                variant="moonlight"
-                isDisabled={
-                  isProcessing ||
-                  isPolling ||
-                  !packageDetails ||
-                  (balance !== null &&
-                    solPrice !== null &&
-                    balance < priceInSol!)
-                }
-                onPress={handleCreateOrder}
-              />
-            </View>
+            <AppButton
+              label={isProcessing ? "Processing..." : "Create Order"}
+              iconName="credit-card"
+              variant="moonlight"
+              isDisabled={
+                isProcessing ||
+                balance === null ||
+                priceInSol === null ||
+                balance < priceInSol ||
+                remainingTime > 0
+              }
+              onPress={handleCreateOrder}
+            />
           </View>
 
-          {/* Processing Spinner */}
-          {(isProcessing || isPolling) && (
+          {(isProcessing || isPollingOrder || isPollingTopUp) && (
             <View className="mt-6 items-center">
               <ActivityIndicator size="large" color="#00FFAA" />
               <Text className="text-sm text-gray-400 mt-2">
                 {isProcessing
                   ? "Please wait while we process your order..."
-                  : "Waiting for payment confirmation..."}
+                  : isPollingOrder
+                  ? "Waiting for payment confirmation..."
+                  : "Confirming top-up activation..."}
               </Text>
             </View>
           )}
 
-          {/* Error Message */}
           {error && (
             <View className="mt-6 items-center">
               <Text className="text-red-500">{error}</Text>
@@ -371,7 +319,6 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
         </View>
       </SafeAreaView>
 
-      {/* Success Modal */}
       <Modal
         visible={showSuccessModal}
         transparent
@@ -394,11 +341,11 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
 
             <View className="bg-[#0E1220] rounded-lg p-4 mb-6">
               <View className="flex-row justify-between mb-2">
-                <Text className="text-gray-300">Order ID</Text>
+                <Text className="text-gray-300">Order ID:</Text>
                 <Text className="text-white">{successDetails?.orderId}</Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-gray-300">Amount Paid</Text>
+                <Text className="text-gray-300">Amount Paid:</Text>
                 <Text className="text-green-400">
                   {successDetails?.paymentInSol.toFixed(4)} SOL
                 </Text>

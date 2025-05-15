@@ -1,364 +1,137 @@
 import { Header } from "@/components/Header";
 import { Text, View } from "@/components/Themed";
-import { CircularTimer } from "@/components/CircularTimer";
 import { AppButton } from "@/components/button";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
-import { useBalance } from "@/hooks/balance";
 import {
   getPackages,
   type EsimPackage,
   type RegionPackage,
 } from "@/service/package";
-import {
-  createOrder,
-  getOrder,
-  type GetOrderResponse,
-} from "@/service/payment";
-import { Feather } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
+import { OrderProcessing } from "@/components/OrderProcessing";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  SafeAreaView,
-  TouchableOpacity,
-} from "react-native";
-
-const POLLING_INTERVAL = 5000;
-const POLLING_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, SafeAreaView } from "react-native";
 
 export default function OrderProcessingScreen() {
-  const cooldownDuration = 10 * 60 * 1000; // 10 minutes
-
-  const { value: publicKey } = useAsyncStorage<string>("publicKey");
-  const { setValue: setStoredCooldown } =
-    useAsyncStorage<string>("orderCooldown");
-
-  const {
-    balance,
-    loading: balanceLoading,
-    error: balanceError,
-    refreshBalance,
-    solPrice,
-  } = useBalance(publicKey || "");
-
-  const [cooldownEndTime, setCooldownEndTime] = useState<number | null>(null);
-  const [remainingTime, setRemainingTime] = useState<number>(0);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [packageDetails, setPackageDetails] = useState<EsimPackage | null>(
     null
   );
-  const [priceInSol, setPriceInSol] = useState<number | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
+  const [screenError, setScreenError] = useState<string | null>(null);
   const [isLoadingPackage, setIsLoadingPackage] = useState(false);
 
   const router = useRouter();
   const params = useLocalSearchParams<{ packageId: string; price: string }>();
 
-  // Calculate price in SOL when USD price or SOL price changes
-  useEffect(() => {
-    if (params.price && solPrice) {
-      const usdPrice = parseFloat(params.price);
-      const solAmount = usdPrice / solPrice;
-      setPriceInSol(solAmount);
-    }
-  }, [params.price, solPrice]);
-
-  // Auto-start countdown on mount
-  useEffect(() => {
-    const endTime = Date.now() + cooldownDuration;
-    setCooldownEndTime(endTime);
-    setRemainingTime(cooldownDuration);
-    setStoredCooldown(endTime.toString());
-  }, []);
-
-  // Countdown tick logic
-  useEffect(() => {
-    if (!cooldownEndTime) return;
-
-    const timer = setInterval(() => {
-      const remaining = cooldownEndTime - Date.now();
-      if (remaining <= 0) {
-        setCooldownEndTime(null);
-        setRemainingTime(0);
-        setStoredCooldown("");
-        clearInterval(timer);
-      } else {
-        setRemainingTime(remaining);
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [cooldownEndTime, setStoredCooldown]);
-
-  // Fetch package info
   useEffect(() => {
     const fetchPackageDetails = async () => {
-      if (!params.packageId) return;
+      if (!params.packageId) {
+        setScreenError("Package ID is missing.");
+        return;
+      }
+      if (!params.price) {
+        setScreenError("Price is missing.");
+        return;
+      }
 
       try {
         setIsLoadingPackage(true);
-        setError(null);
+        setScreenError(null);
         const response = await getPackages({ type: "global" });
 
         if (response.error) {
-          setError(response.error);
+          setScreenError(response.error);
           return;
         }
 
-        const allPackages = response.data.flatMap((region: RegionPackage) =>
-          region.operators.flatMap((op) => op.packages)
-        );
-        const pkg = allPackages.find(
-          (p: EsimPackage) => p.id === params.packageId
-        );
-        if (pkg) {
-          setPackageDetails(pkg);
+        if (response.data) {
+          const allPackages = response.data.flatMap((region: RegionPackage) =>
+            region.operators.flatMap((op) => op.packages)
+          );
+          const pkg = allPackages.find(
+            (p: EsimPackage) => p.id === params.packageId
+          );
+          if (pkg) {
+            setPackageDetails(pkg);
+          } else {
+            setScreenError("Package not found.");
+          }
         } else {
-          setError("Package not found");
+          setScreenError("No package data received.");
         }
       } catch (error) {
-        setError("Failed to fetch package details");
+        setScreenError("Failed to fetch package details. Please try again.");
       } finally {
         setIsLoadingPackage(false);
       }
     };
 
     fetchPackageDetails();
-  }, [params.packageId]);
+  }, [params.packageId, params.price]);
 
-  // Polling logic for order status
-  useEffect(() => {
-    let isCancelled = false;
-    const pollOrderStatus = async () => {
-      if (!orderId) return;
-      setIsPolling(true);
-      const startTime = Date.now();
-
-      while (
-        Date.now() - startTime < POLLING_TIMEOUT &&
-        !isCancelled &&
-        !(orderStatus && orderStatus.sim)
-      ) {
-        try {
-          const response = await getOrder(orderId);
-
-          if (response.error) {
-            setError(response.error);
-            break;
-          }
-
-          if (!response.data) {
-            setOrderStatus(null);
-          } else {
-            setOrderStatus(response.data);
-            if (response.data.sim) {
-              router.push({
-                pathname: "/esim/order",
-                params: { orderId },
-              });
-              break;
-            }
-          }
-        } catch (error) {
-          setError("Error fetching order status");
-          break;
-        }
-        await new Promise((r) => setTimeout(r, POLLING_INTERVAL));
-      }
-      setIsPolling(false);
-    };
-    pollOrderStatus();
-    return () => {
-      isCancelled = true;
-    };
-  }, [orderId, orderStatus, router]);
-
-  // Create order logic
-  const handleCreateOrder = useCallback(async () => {
-    if (!publicKey || !params.packageId || !params.price) return;
-
-    try {
-      setIsProcessing(true);
-      setError(null);
-      const response = await createOrder({
-        package_id: params.packageId,
-        ppPublicKey: publicKey,
-        quantity: 1,
-        package_price: params.price,
-      });
-
-      if (response.error) {
-        setError(response.error);
-        return;
-      }
-
-      if (response.data) {
-        setOrderId(response.data.orderId);
-
-        // Optional: restart cooldown after successful order
-        const cooldownEnd = Date.now() + cooldownDuration;
-        setCooldownEndTime(cooldownEnd);
-        setRemainingTime(cooldownDuration);
-        setStoredCooldown(cooldownEnd.toString());
-      }
-    } catch (error) {
-      setError("Failed to create order. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [publicKey, params, setStoredCooldown]);
-
-  const formatAddress = (address: string) =>
-    address ? `${address.slice(0, 4)}...${address.slice(-4)}` : "";
-
-  const copyAddress = async () => {
-    if (publicKey) await Clipboard.setStringAsync(publicKey);
+  const handleOrderSuccess = () => {
+    console.log("Order processing successful (new order flow).");
   };
 
-  return (
-    <View className="flex-1 bg-[#0E1220]">
-      <SafeAreaView className="flex-1">
+  const handleOrderError = (errorMsg: string) => {
+    setScreenError(`Order failed: ${errorMsg}`);
+  };
+
+  if (isLoadingPackage) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#0E1220]">
         <Header showBackButton title="Process Order" />
-        <View className="flex-1 px-4 py-6 justify-between">
-          <View>
-            {/* Timer */}
-            {cooldownEndTime && remainingTime > 0 && (
-              <View className="items-center mb-6">
-                <CircularTimer remainingTime={remainingTime} />
-              </View>
-            )}
-
-            <Text className="text-xl font-semibold mb-6">Order Processing</Text>
-
-            {/* Wallet Info */}
-            <View className="bg-[#1E263C] rounded-xl p-4 mb-6">
-              <Text className="text-base font-medium mb-2 text-white">
-                Wallet Information
-              </Text>
-              <View className="flex-row items-center justify-between mb-1">
-                <Text className="text-sm text-gray-300">
-                  Address: {formatAddress(publicKey || "")}
-                </Text>
-                {publicKey && (
-                  <TouchableOpacity onPress={copyAddress}>
-                    <Feather name="copy" size={16} color="#4ade80" />
-                  </TouchableOpacity>
-                )}
-              </View>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-gray-300">
-                  Balance:{" "}
-                  {balanceLoading
-                    ? "Loading..."
-                    : balanceError
-                    ? "Error"
-                    : `${balance?.toFixed(4)} SOL`}
-                </Text>
-                <TouchableOpacity onPress={refreshBalance}>
-                  <Feather name="refresh-cw" size={16} color="#4ade80" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Order Info */}
-            <View className="bg-[#1E263C] rounded-xl p-4 mb-6">
-              <Text className="text-base font-medium mb-2 text-white">
-                Order Information
-              </Text>
-              {isLoadingPackage ? (
-                <View className="items-center py-4">
-                  <ActivityIndicator size="small" color="#00FFAA" />
-                  <Text className="text-sm text-gray-400 mt-2">
-                    Loading package details...
-                  </Text>
-                </View>
-              ) : packageDetails ? (
-                <>
-                  <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Data</Text>
-                    <Text className="text-sm text-white">
-                      {packageDetails.data}
-                    </Text>
-                  </View>
-                  <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Duration</Text>
-                    <Text className="text-sm text-white">
-                      {packageDetails.day} Days
-                    </Text>
-                  </View>
-                  <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Price (USD)</Text>
-                    <Text className="text-sm text-green-400">
-                      ${params.price}
-                    </Text>
-                  </View>
-                  <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Price (SOL)</Text>
-                    <Text className="text-sm text-green-400">
-                      {priceInSol
-                        ? `${priceInSol.toFixed(4)} SOL`
-                        : "Loading..."}
-                    </Text>
-                  </View>
-                </>
-              ) : (
-                <Text className="text-sm text-gray-300">
-                  No package details available
-                </Text>
-              )}
-            </View>
-
-            <View className="gap-4">
-              <AppButton
-                label={isProcessing ? "Processing..." : "Create Order"}
-                iconName="credit-card"
-                variant="moonlight"
-                isDisabled={
-                  isProcessing ||
-                  isPolling ||
-                  isLoadingPackage ||
-                  !packageDetails ||
-                  (balance !== null &&
-                    solPrice !== null &&
-                    balance < priceInSol!)
-                }
-                onPress={handleCreateOrder}
-              />
-            </View>
-          </View>
-
-          {/* Processing Spinner */}
-          {(isProcessing || isPolling) && (
-            <View className="mt-6 items-center">
-              <ActivityIndicator size="large" color="#00FFAA" />
-              <Text className="text-sm text-gray-400 mt-2">
-                {isProcessing
-                  ? "Please wait while we process your order..."
-                  : "Waiting for payment confirmation..."}
-              </Text>
-            </View>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <View className="mt-6 items-center">
-              <Text className="text-red-500">{error}</Text>
-              <View className="mt-4">
-                <AppButton
-                  label="Retry"
-                  iconName="refresh-cw"
-                  variant="moonlight"
-                  onPress={handleCreateOrder}
-                />
-              </View>
-            </View>
-          )}
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#00FFAA" />
+          <Text className="text-gray-400 mt-4">Loading package details...</Text>
         </View>
       </SafeAreaView>
-    </View>
+    );
+  }
+
+  if (screenError && !packageDetails) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#0E1220]">
+        <Header showBackButton title="Process Order" />
+        <View className="flex-1 justify-center items-center px-4">
+          <Text className="text-red-500 text-center text-lg mb-4">Error</Text>
+          <Text className="text-gray-300 text-center mb-6">{screenError}</Text>
+          <AppButton
+            label="Go Back"
+            onPress={() => router.back()}
+            variant="moonlight"
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!packageDetails || !params.packageId || !params.price) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#0E1220]">
+        <Header showBackButton title="Process Order" />
+        <View className="flex-1 justify-center items-center">
+          <Text className="text-gray-400">Package information is missing.</Text>
+          <AppButton
+            label="Go Back"
+            onPress={() => router.back()}
+            variant="moonlight"
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <OrderProcessing
+      packageId={params.packageId}
+      price={params.price}
+      packageDetails={{
+        data: packageDetails.data,
+        day: packageDetails.day,
+      }}
+      onSuccess={handleOrderSuccess}
+      onError={handleOrderError}
+      isTopUp={false}
+    />
   );
 }

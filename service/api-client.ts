@@ -12,7 +12,7 @@ export class APIError extends Error {
 }
 
 const axiosClient = axios.create({
-    baseURL: 'https://idx-esim-backend-09657482-483894229313.us-west1.run.app', // Replace with your actual base URL
+    baseURL: process.env.EXPO_PUBLIC_API_URL, // Replace with your actual base URL
     // timeout: 10000,
     headers: {
         'Content-Type': 'application/json',

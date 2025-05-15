@@ -158,6 +158,7 @@ export default function OrderHistoryScreen() {
             data: selectedPackage.data,
             day: selectedPackage.day,
           }}
+          iccidForTopUp={selectedIccid}
           isTopUp={true}
           onSuccess={handleTopUpSuccess}
           onError={handleTopUpError}
