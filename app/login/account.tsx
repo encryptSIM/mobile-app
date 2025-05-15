@@ -1,12 +1,13 @@
 import { Text, View } from "@/components/Themed";
 import { AppButton } from "@/components/button";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { createPaymentProfile } from "@/service/auth";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -16,17 +17,15 @@ import {
 } from "react-native";
 
 export default function AccountScreen() {
-  const {
-    value: publicKey,
-    loading,
-    setValue,
-  } = useAsyncStorage<string>("publicKey");
-
+  const { loading, setValue } = useAsyncStorage<string>("publicKey");
+  const [step, setStep] = useState<"view" | "confirm">("view");
   const [copied, setCopied] = useState(false);
   const [customKey, setCustomKey] = useState("");
+  const [confirmKey, setConfirmKey] = useState("");
+  const [publicKey, setPublicKey] = useState<string | null>(null);
   const { colors } = useTheme();
   const params = useSearchParams();
-  const isLoginState = params.get("state") === "login" && !publicKey;
+  const isLoginState = params.get("state") === "login";
 
   const handleCopy = async () => {
     if (!publicKey) return;
@@ -35,16 +34,36 @@ export default function AccountScreen() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCreatePaymentProfile = async () => {
+    try {
+      const response = await createPaymentProfile();
+      setPublicKey(response.data?.publicKey);
+      if (publicKey) {
+        await setValue(publicKey);
+      }
+    } catch (error) {
+      console.error("Error creating payment profile:", error);
+    }
+  };
+
   const handleSubmitCustomKey = async () => {
-    const trimmed = customKey.trim();
+    const trimmed = customKey.trim().toLowerCase();
     if (!trimmed) return;
     await setValue(trimmed);
     router.replace("/(tabs)/esim/package");
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (!publicKey) return;
+    await setValue(publicKey);
     router.replace("/(tabs)/esim/package");
   };
+
+  useEffect(() => {
+    if (params.get("state") === "create") {
+      handleCreatePaymentProfile();
+    }
+  }, [params.get("state")]);
 
   if (loading) {
     return (
@@ -83,19 +102,31 @@ export default function AccountScreen() {
               onChangeText={setCustomKey}
               autoCapitalize="none"
             />
-            <AppButton
-              label="Continue"
-              iconName="arrow-right"
-              variant="moonlight"
-              showRightArrow={false}
-              onPress={handleSubmitCustomKey}
-            />
+            <View style={styles.buttonGroup}>
+              <AppButton
+                label="Continue"
+                iconName="arrow-right"
+                variant="moonlight"
+                showRightArrow={false}
+                onPress={handleSubmitCustomKey}
+              />
+              <AppButton
+                label="Go back"
+                iconName="arrow-left"
+                variant="inactive"
+                showRightArrow={false}
+                onPress={() => router.replace("/login")}
+              />
+            </View>
           </>
-        ) : (
+        ) : step === "view" ? (
           <>
-            <View style={styles.addressRow}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Your Public Address
+            </Text>
+            <View style={styles.addressContainer}>
               <Text
-                style={[styles.accountText, { color: colors.text }]}
+                style={[styles.accountText, { color: "#111827" }]}
                 numberOfLines={1}
               >
                 {publicKey || "Not available"}
@@ -103,30 +134,73 @@ export default function AccountScreen() {
               {!!publicKey && (
                 <TouchableOpacity
                   onPress={handleCopy}
-                  style={[styles.copyBtn, { backgroundColor: colors.border }]}
+                  style={styles.copyButton}
                 >
                   <Feather
                     name={copied ? "check" : "copy"}
-                    size={18}
-                    color={copied ? "#10B981" : colors.text}
+                    size={16}
+                    color={copied ? "#10B981" : "#111827"}
                   />
                 </TouchableOpacity>
               )}
             </View>
-
             {copied && (
               <Text style={[styles.copiedText, { color: "#10B981" }]}>
                 Address copied to clipboard
               </Text>
             )}
-
-            <AppButton
-              label="Continue"
-              iconName="arrow-right"
-              variant="moonlight"
-              showRightArrow={false}
-              onPress={handleContinue}
+            <View style={styles.buttonGroup}>
+              <AppButton
+                label="Continue"
+                iconName="arrow-right"
+                variant="moonlight"
+                showRightArrow={false}
+                onPress={() => setStep("confirm")}
+              />
+              <AppButton
+                label="Go back"
+                iconName="arrow-left"
+                variant="inactive"
+                showRightArrow={false}
+                onPress={() => router.replace("/login")}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Confirm you've written down your public address
+            </Text>
+            <TextInput
+              style={[
+                styles.inputBox,
+                { color: colors.text, borderColor: colors.border },
+              ]}
+              placeholder="Enter your written down public key"
+              placeholderTextColor={colors.border}
+              value={confirmKey}
+              onChangeText={setConfirmKey}
+              autoCapitalize="none"
             />
+            <View style={styles.buttonGroup}>
+              <AppButton
+                label="Go back to your address"
+                iconName="arrow-left"
+                variant="moonlight"
+                showRightArrow={false}
+                onPress={() => setStep("view")}
+              />
+              <AppButton
+                label="Confirm & Proceed"
+                iconName="check-circle"
+                variant="moonlight"
+                isDisabled={
+                  confirmKey.trim().toLowerCase() !== publicKey?.toLowerCase()
+                }
+                showRightArrow={false}
+                onPress={handleContinue}
+              />
+            </View>
           </>
         )}
       </View>
@@ -153,47 +227,45 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
   },
-  headerText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  section: {
-    width: "100%",
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  card: {
-    padding: 16,
+  inputBox: {
+    borderWidth: 1,
     borderRadius: 12,
-    gap: 20,
+    padding: 14,
+    fontSize: 14,
+    marginBottom: 20,
   },
   accountText: {
     fontSize: 14,
     flex: 1,
+    fontWeight: "500",
   },
-  addressRow: {
+  addressContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    justifyContent: "space-between",
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 12,
   },
-  copyBtn: {
-    padding: 6,
-    borderRadius: 6,
+  copyButton: {
+    backgroundColor: "#E2E8F0",
+    padding: 8,
+    borderRadius: 8,
   },
   copiedText: {
     fontSize: 13,
-    marginTop: -10,
+    marginTop: -4,
+    marginBottom: 16,
+    textAlign: "center",
   },
-  inputBox: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
-    marginBottom: 12,
+  buttonGroup: {
+    gap: 12,
   },
 });

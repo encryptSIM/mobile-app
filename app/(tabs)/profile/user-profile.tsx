@@ -4,9 +4,10 @@ import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { addressFormatter } from "@/utils";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import {
+  Modal,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -19,6 +20,7 @@ import { useBalance } from "@/hooks/balance";
 export default function ProfileScreen() {
   const { value: address, setValue } = useAsyncStorage<string>("publicKey");
   const { balance, loading, error, refreshBalance } = useBalance(address || "");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -87,13 +89,54 @@ export default function ProfileScreen() {
               iconName="log-out"
               variant="inactive"
               onPress={() => {
-                setValue("");
-                router.replace("/login");
+                // setValue("");
+                // router.replace("/login");
+                setShowLogoutConfirm(true);
               }}
             />
           </View>
         </View>
       </View>
+      <Modal
+        transparent
+        visible={showLogoutConfirm}
+        animationType="fade"
+        onRequestClose={() => setShowLogoutConfirm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirm Logout</Text>
+            <Text style={styles.modalMessage}>
+              Please make sure you've written down your wallet address before
+              logging out. You’ll need it to restore access to your account.
+            </Text>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={() => setShowLogoutConfirm(false)}
+                style={[styles.modalButton, { backgroundColor: "#E2E8F0" }]}
+              >
+                <Text style={{ color: "#0E1220", fontWeight: "bold" }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setValue("");
+                  setShowLogoutConfirm(false);
+                  router.replace("/login");
+                }}
+                style={[styles.modalButton, { backgroundColor: "#EF4444" }]}
+              >
+                <Text style={{ color: "white", fontWeight: "bold" }}>
+                  Logout
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -191,5 +234,40 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     justifyContent: "space-evenly",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: 300,
+    backgroundColor: "#1E263C",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalMessage: {
+    color: "#CBD5E1",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
   },
 });

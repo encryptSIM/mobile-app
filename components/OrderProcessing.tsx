@@ -36,6 +36,8 @@ interface OrderProcessingProps {
   isTopUp?: boolean;
 }
 
+const EPSILON = 0.00001;
+
 export const OrderProcessing: React.FC<OrderProcessingProps> = ({
   packageId,
   price,
@@ -313,7 +315,7 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
                 isProcessing ||
                 balance === null ||
                 priceInSol === null ||
-                balance < priceInSol ||
+                balance < priceInSol + EPSILON ||
                 remainingTime > 0
               }
               onPress={handleCreateOrder}

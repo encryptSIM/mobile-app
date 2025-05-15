@@ -1,90 +1,98 @@
 import { AppButton } from "@/components/button";
+import { Text, View } from "@/components/Themed";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { createPaymentProfile } from "@/service/auth";
-import { router, useNavigation } from "expo-router";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { router } from "expo-router";
+import { Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTheme } from "@react-navigation/native";
 
 export default function LoginScreen() {
   const { setValue } = useAsyncStorage<string>("publicKey");
+  const { colors } = useTheme();
 
-  const handleCreatePaymentProfile = async () => {
-    try {
-      const response = await createPaymentProfile();
-      const publicKey = response.data?.publicKey;
-      if (publicKey) {
-        await setValue(publicKey);
-        router.replace("/login/account");
-      }
-    } catch (error) {
-      console.error("Error creating payment profile:", error);
-    }
-  };
   return (
-    <SafeAreaView className="flex-1 bg-[#0A0F25] px-6 justify-between">
-      {/* Top section */}
-      <View className="mt-4">
-        {/* Shield logo + Connect Wallet */}
-        <View className="flex-row justify-between items-center">
-          <Image
-            source={require("../../assets/splash/logo.png")} // Replace with your logo
-            className="w-10 h-10"
-            resizeMode="contain"
-          />
-          <TouchableOpacity className="bg-[#52DD7E] px-4 py-2 rounded-full">
-            <Text className="text-white font-semibold">Connect Wallet</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Middle section */}
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: colors.background,
+        paddingHorizontal: 16,
+      }}
+    >
+      {/* Top bar */}
       <View
         style={{
-          gap: 50,
+          marginTop: 12,
+          paddingVertical: 8,
+          paddingHorizontal: 8,
+          backgroundColor: colors.background,
+          borderRadius: 12,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
-        className="flex flex-col"
       >
-        <AppButton
-          label="Setup payment profile"
-          iconName="credit-card"
-          variant="moonlight"
-          onPress={() => {
-            handleCreatePaymentProfile();
-          }}
+        <Image
+          source={require("../../assets/splash/logo.png")}
+          style={{ width: 40, height: 40 }}
+          resizeMode="contain"
         />
-        <AppButton
-          label="Use existing payment profile"
-          iconName="folder"
-          variant="moonlight"
-          onPress={async () => {
-            try {
-              // await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
-              router.replace({
-                pathname: "/login/account",
-                params: {
-                  state: "login",
-                },
-              });
-            } catch (error) {
-              console.error("Error setting value:", error);
-            }
+        <TouchableOpacity
+          style={{
+            backgroundColor: colors.primary,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 999,
           }}
-        />
+        >
+          <Text style={{ color: "white", fontWeight: "600" }}>
+            Connect Wallet
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Login Button */}
-      {/* <TouchableOpacity
-        onPress={async () => {
-          await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
-          router.replace("/login/account");
+      {/* Button group inside card */}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          justifyContent: "center",
+          alignItems: "center",
         }}
-        className="mt-10 mb-6 border border-white rounded-full py-4 items-center"
       >
-        <Text className="text-white font-semibold text-base">
-          Login Test Account
-        </Text>
-      </TouchableOpacity> */}
-      <View></View>
+        <View
+          style={{
+            borderRadius: 16,
+            padding: 16,
+            marginTop: 80,
+            gap: 20,
+            backgroundColor: colors.background,
+          }}
+        >
+          <AppButton
+            label="Setup payment profile"
+            iconName="credit-card"
+            variant="moonlight"
+            onPress={() => {
+              router.replace({
+                pathname: "/login/account",
+                params: { state: "create" },
+              });
+            }}
+          />
+          <AppButton
+            label="Use existing payment profile"
+            iconName="folder"
+            variant="moonlight"
+            onPress={() => {
+              router.replace({
+                pathname: "/login/account",
+                params: { state: "login" },
+              });
+            }}
+          />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
