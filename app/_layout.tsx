@@ -12,6 +12,8 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
 import SplashScreen from "./splash-screen";
+import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { useRouter } from "expo-router";
 
 export { ErrorBoundary } from "expo-router";
 import "../global.css";
@@ -49,6 +51,17 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { value: storedPublicKey, loading: storageLoading } =
+    useAsyncStorage<string>("publicKey");
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!storageLoading) {
+      if (storedPublicKey) {
+        router.replace("/(tabs)/esim/package");
+      }
+    }
+  }, [storedPublicKey, storageLoading, router]);
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

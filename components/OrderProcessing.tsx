@@ -1,15 +1,16 @@
+import { CircularTimer } from "@/components/CircularTimer";
 import { Header } from "@/components/Header";
 import { Text, View } from "@/components/Themed";
-import { CircularTimer } from "@/components/CircularTimer";
 import { AppButton } from "@/components/button";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { useBalance } from "@/hooks/balance";
+import { useOrderPolling } from "@/hooks/use-order-polling";
+import { useTopUpPolling } from "@/hooks/use-topup-polling";
 import {
   createOrder,
   createTopUp,
   type GetOrderResponse,
   type TopUpResult,
-  type SimInfo,
 } from "@/service/payment";
 import { Feather } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -21,8 +22,6 @@ import {
   SafeAreaView,
   TouchableOpacity,
 } from "react-native";
-import { useTopUpPolling } from "@/hooks/use-topup-polling";
-import { useOrderPolling } from "@/hooks/use-order-polling";
 
 interface OrderProcessingProps {
   packageId: string;
@@ -206,24 +205,24 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
               </View>
             )}
 
-            <Text className="text-xl font-semibold mb-6">Order Processing</Text>
-
             <View className="bg-[#1E263C] rounded-xl p-4 mb-6">
-              <Text className="text-base font-medium mb-2 text-white">
+              <Text
+                style={{ fontSize: 20, fontWeight: "500", marginBottom: 8 }}
+              >
                 Wallet Information
               </Text>
               <View className="flex-row items-center justify-between mb-1">
-                <Text className="text-sm text-gray-300">
+                <Text style={{ fontSize: 18, marginBottom: 4 }}>
                   Address: {formatAddress(publicKey || "")}
                 </Text>
                 {publicKey && (
                   <TouchableOpacity onPress={copyAddress}>
-                    <Feather name="copy" size={16} color="#4ade80" />
+                    <Feather name="copy" size={20} color="#4ade80" />
                   </TouchableOpacity>
                 )}
               </View>
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-gray-300">
+                <Text style={{ fontSize: 18 }}>
                   Balance:{" "}
                   {balanceLoading
                     ? "Loading..."
@@ -232,36 +231,69 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
                     : `${balance?.toFixed(4)} SOL`}
                 </Text>
                 <TouchableOpacity onPress={refreshBalance}>
-                  <Feather name="refresh-cw" size={16} color="#4ade80" />
+                  <Feather name="refresh-cw" size={20} color="#4ade80" />
                 </TouchableOpacity>
               </View>
             </View>
 
             <View className="bg-[#1E263C] rounded-xl p-4 mb-6">
-              <Text className="text-base font-medium mb-2 text-white">
+              <Text
+                style={{ fontSize: 20, fontWeight: "500", marginBottom: 8 }}
+              >
                 Order Information
               </Text>
               {packageDetails ? (
                 <>
                   <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Data</Text>
-                    <Text className="text-sm text-white">
-                      {packageDetails.data}
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Data
                     </Text>
+                    <Text style={{ fontSize: 18 }}>{packageDetails.data}</Text>
                   </View>
                   <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Duration</Text>
-                    <Text className="text-sm text-white">
+                    <Text
+                      style={{
+                        fontSize: 18,
+
+                        marginBottom: 4,
+                      }}
+                    >
+                      Duration
+                    </Text>
+                    <Text style={{ fontSize: 18 }}>
                       {packageDetails.day} Days
                     </Text>
                   </View>
                   <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Price (USD)</Text>
-                    <Text className="text-sm text-green-400">${price}</Text>
+                    <Text
+                      style={{
+                        fontSize: 18,
+
+                        marginBottom: 4,
+                      }}
+                    >
+                      Price (USD)
+                    </Text>
+                    <Text style={{ fontSize: 18, color: "#4ade80" }}>
+                      ${price}
+                    </Text>
                   </View>
                   <View className="flex-row justify-between mb-1">
-                    <Text className="text-sm text-gray-300">Price (SOL)</Text>
-                    <Text className="text-sm text-green-400">
+                    <Text
+                      style={{
+                        fontSize: 18,
+
+                        marginBottom: 4,
+                      }}
+                    >
+                      Price (SOL)
+                    </Text>
+                    <Text style={{ fontSize: 18, color: "#4ade80" }}>
                       {priceInSol
                         ? `${priceInSol.toFixed(4)} SOL`
                         : "Loading..."}
@@ -269,9 +301,7 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
                   </View>
                 </>
               ) : (
-                <Text className="text-sm text-gray-300">
-                  Loading package details...
-                </Text>
+                <Text style={{ fontSize: 18 }}>Loading package details...</Text>
               )}
             </View>
 

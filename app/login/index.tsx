@@ -1,12 +1,11 @@
 import { AppButton } from "@/components/button";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { createPaymentProfile } from "@/service/auth";
-import { Link, router, useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
-  const navigation = useNavigation();
   const { setValue } = useAsyncStorage<string>("publicKey");
 
   const handleCreatePaymentProfile = async () => {
@@ -59,8 +58,13 @@ export default function LoginScreen() {
           variant="moonlight"
           onPress={async () => {
             try {
-              await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
-              router.replace("/login/account");
+              // await setValue("Fip7DsE6uA9tgQcatYkWQEYfyCmcoYPSrCoTPr2SbE76");
+              router.replace({
+                pathname: "/login/account",
+                params: {
+                  state: "login",
+                },
+              });
             } catch (error) {
               console.error("Error setting value:", error);
             }

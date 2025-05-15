@@ -42,7 +42,7 @@ export default function TabLayout() {
         name="esim"
         options={{
           headerShown: false,
-          title: "Esim",
+          title: "eSim",
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="mobile-phone" color={color} />
           ),

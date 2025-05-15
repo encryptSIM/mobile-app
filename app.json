@@ -4,7 +4,7 @@
     "slug": "encrypt-sim",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/splash/logo.png",
+    "icon": "./assets/app-logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -32,7 +32,8 @@
         "backgroundColor": "#0A0F1C"
       },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/app-logo.png",
+        "resizeMode": "contain",
         "backgroundColor": "#ffffff"
       },
       "package": "com.giachan2002.encryptsim"

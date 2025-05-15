@@ -11,6 +11,10 @@ import { OrderProcessing } from "@/components/OrderProcessing";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, SafeAreaView } from "react-native";
+import { useSearchParams } from "expo-router/build/hooks";
+
+// Define the expected package type
+type PackageType = "global" | "local" | "regional";
 
 export default function OrderProcessingScreen() {
   const [packageDetails, setPackageDetails] = useState<EsimPackage | null>(
@@ -20,7 +24,12 @@ export default function OrderProcessingScreen() {
   const [isLoadingPackage, setIsLoadingPackage] = useState(false);
 
   const router = useRouter();
-  const params = useLocalSearchParams<{ packageId: string; price: string }>();
+  // Specify the type for params.type
+  const params = useLocalSearchParams<{
+    packageId: string;
+    price: string;
+    type: PackageType; // Use the defined PackageType
+  }>();
 
   useEffect(() => {
     const fetchPackageDetails = async () => {
@@ -32,11 +41,23 @@ export default function OrderProcessingScreen() {
         setScreenError("Price is missing.");
         return;
       }
+      // Ensure params.type is one of the allowed values before using it.
+      // This check is good for runtime safety, though the type cast below handles the TS error.
+      if (
+        !params.type ||
+        !["global", "local", "regional"].includes(params.type)
+      ) {
+        setScreenError("Package type is missing or invalid.");
+        return;
+      }
 
       try {
         setIsLoadingPackage(true);
         setScreenError(null);
-        const response = await getPackages({ type: "global" });
+        // Cast params.type to PackageType to satisfy the getPackages function signature
+        const response = await getPackages({
+          type: params.type as PackageType,
+        });
 
         if (response.error) {
           setScreenError(response.error);

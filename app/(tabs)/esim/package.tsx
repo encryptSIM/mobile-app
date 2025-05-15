@@ -138,12 +138,15 @@ export default function EsimScreen() {
       console.error("Missing required data for order creation");
       return;
     }
+    console.log("packageId", packageId);
+    console.log("currentPrice", currentPrice);
 
     router.push({
       pathname: "/esim/order-processing",
       params: {
         packageId: packageId,
         price: currentPrice.toString(),
+        type: type,
       },
     });
   }, [packageId, currentPrice, router]);
