@@ -311,13 +311,13 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
               label={isProcessing ? "Processing..." : "Create Order"}
               iconName="credit-card"
               variant="moonlight"
-              isDisabled={
-                isProcessing ||
-                balance === null ||
-                priceInSol === null ||
-                balance < priceInSol + EPSILON ||
-                remainingTime > 0
-              }
+              // isDisabled={
+              //   isProcessing ||
+              //   balance === null ||
+              //   priceInSol === null ||
+              //   balance < priceInSol + EPSILON ||
+              //   remainingTime > 0
+              // }
               onPress={handleCreateOrder}
             />
           </View>

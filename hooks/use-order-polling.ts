@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getOrder, getOrderResultDummy, type GetOrderResponse } from "@/service/payment";
+import { getOrderResult, getOrderResultDummy, type GetOrderResponse } from "@/service/payment";
 
 const POLLING_INTERVAL = 5000;
 const POLLING_TIMEOUT = 10 * 60 * 1000;
@@ -25,7 +25,7 @@ export const useOrderPolling = (
 
             while (Date.now() - startTime < POLLING_TIMEOUT && !isCancelled) {
                 try {
-                    const res = await getOrderResultDummy(orderId);
+                    const res = await getOrderResult(orderId);
 
                     if (res.error) {
                         const errMsg = res.error;

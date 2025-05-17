@@ -104,7 +104,7 @@ export const createOrder = async (data: CreateOrderRequest): Promise<ServiceResp
     }
 };
 
-export const getOrder = async (orderId: string): Promise<ServiceResponse<GetOrderResponse>> => {
+export const getOrderResult = async (orderId: string): Promise<ServiceResponse<GetOrderResponse>> => {
     try {
         const response = await axiosClient.get<GetOrderResponse>(`/order/${orderId}`, {
             validateStatus: (status) => [200, 204].includes(status),
