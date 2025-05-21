@@ -11,6 +11,7 @@ import QRCode from "react-native-qrcode-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "@/components/Header";
 import { AppButton } from "@/components/button";
+import { errorLog } from "@/service/error-log";
 
 const OrderStatus = React.memo(
   ({ orderId, status }: { orderId: string | null; status: string }) => (
@@ -107,6 +108,7 @@ export default function OrderScreen() {
         setError("Order not found");
       }
     } catch (error) {
+      await errorLog(error as Error);
       setError("Error fetching order status");
     } finally {
       setIsLoading(false);

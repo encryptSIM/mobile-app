@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { OrderProcessing } from "@/components/OrderProcessing";
 import { TopUpModal } from "@/components/TopUpModal";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { errorLog } from "@/service/error-log";
 import {
   getOrderHistory,
   type GetOrderHistoryResponse,
@@ -52,6 +53,7 @@ export default function OrderHistoryScreen() {
         setOrders(response.data);
       }
     } catch (error) {
+      await errorLog(error as Error);
       setError("Failed to fetch order history");
     } finally {
       setIsLoading(false);

@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, SafeAreaView } from "react-native";
 import { useSearchParams } from "expo-router/build/hooks";
+import { errorLog } from "@/service/error-log";
 
 // Define the expected package type
 type PackageType = "global" | "local" | "regional";
@@ -80,6 +81,7 @@ export default function OrderProcessingScreen() {
           setScreenError("No package data received.");
         }
       } catch (error) {
+        await errorLog(error as Error);
         setScreenError("Failed to fetch package details. Please try again.");
       } finally {
         setIsLoadingPackage(false);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getOrderResult, getOrderResultDummy, type GetOrderResponse } from "@/service/payment";
-
+import { errorLog } from "@/service/error-log";
 const POLLING_INTERVAL = 5000;
 const POLLING_TIMEOUT = 10 * 60 * 1000;
 
@@ -41,7 +41,12 @@ export const useOrderPolling = (
                             break;
                         }
                     }
-                } catch {
+                } catch (err: unknown) {
+                    if (err instanceof Error) {
+                        await errorLog(err);
+                    } else {
+                        await errorLog("Error fetching order status: Unknown error");
+                    }
                     const errMsg = "Error fetching order status";
                     setError(errMsg);
                     onError?.(errMsg);

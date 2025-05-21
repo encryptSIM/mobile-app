@@ -11,7 +11,7 @@ import {
 import { AppButton } from "./button";
 import DropdownSelector from "./dropdown";
 import { useRouter } from "expo-router";
-
+import { errorLog } from "@/service/error-log";
 interface TopUpModalProps {
   iccid: string;
   visible: boolean;
@@ -136,6 +136,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
                       day: selectedOption.day,
                     });
                   } catch (error) {
+                    await errorLog(error as Error);
                     console.error("Failed to create top-up:", error);
                     // You might want to show an error message to the user here
                   } finally {

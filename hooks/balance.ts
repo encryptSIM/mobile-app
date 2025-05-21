@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Connection, PublicKey, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js';
 import 'react-native-get-random-values';
 import { Buffer } from 'buffer';
+import { errorLog } from '@/service/error-log';
 
 // Polyfill for Buffer
 global.Buffer = Buffer;
@@ -25,8 +26,14 @@ export const useBalance = (address: string): UseBalanceReturn => {
             const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
             const data = await response.json();
             setSolPrice(data.solana.usd);
-        } catch (err) {
-            console.error('Error fetching SOL price:', err);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                await errorLog("Error fetching SOL price: " + err.message);
+                console.error('Error fetching SOL price:', err);
+            } else {
+                await errorLog("Error fetching SOL price: Unknown error");
+                console.error('Error fetching SOL price: Unknown error');
+            }
         }
     }, []);
 

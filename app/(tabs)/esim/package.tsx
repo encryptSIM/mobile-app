@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { SafeAreaView, Switch } from "react-native";
 import { Header } from "@/components/Header";
+import { errorLog } from "@/service/error-log";
 
 type DropdownOption = { label: string; value: string };
 
@@ -66,6 +67,7 @@ export default function EsimScreen() {
         setPackages(data);
         if (data.length > 0) setRegion(data[0].region);
       } catch (error) {
+        await errorLog(error as Error);
         console.error("Failed to fetch packages:", error);
       }
     };

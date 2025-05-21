@@ -6,6 +6,7 @@ import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { useBalance } from "@/hooks/balance";
 import { useOrderPolling } from "@/hooks/use-order-polling";
 import { useTopUpPolling } from "@/hooks/use-topup-polling";
+import { errorLog } from "@/service/error-log";
 import {
   createOrder,
   createTopUp,
@@ -180,6 +181,7 @@ export const OrderProcessing: React.FC<OrderProcessingProps> = ({
         setStoredCooldown(cooldownEnd.toString());
       }
     } catch (err: any) {
+      await errorLog(err as Error);
       const msg = err?.message || "Order creation failed.";
       setError(msg);
       onError?.(msg);

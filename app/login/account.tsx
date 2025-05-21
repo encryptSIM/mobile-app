@@ -2,6 +2,7 @@ import { Text, View } from "@/components/Themed";
 import { AppButton } from "@/components/button";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { createPaymentProfile } from "@/service/auth";
+import { errorLog } from "@/service/error-log";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
@@ -43,6 +44,7 @@ export default function AccountScreen() {
         await setValue(publicKey);
       }
     } catch (error) {
+      await errorLog(error as Error);
       console.error("Error creating payment profile:", error);
     }
   };

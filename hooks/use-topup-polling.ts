@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getTopUpResult, getTopUpResultDummy, type TopUpResult } from "@/service/payment";
+import { getTopUpResult, type TopUpResult } from "@/service/payment";
+import { errorLog } from "@/service/error-log";
 
 const POLLING_INTERVAL = 5000;
 const POLLING_TIMEOUT = 10 * 60 * 1000;
@@ -52,7 +53,12 @@ export const useTopUpPolling = (
                             break;
                         }
                     }
-                } catch {
+                } catch (err: unknown) {
+                    if (err instanceof Error) {
+                        await errorLog(err);
+                    } else {
+                        await errorLog("Error fetching top-up status: Unknown error");
+                    }
                     const errMsg = "Error fetching top-up status";
                     setError(errMsg);
                     onError?.(errMsg);
