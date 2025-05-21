@@ -104,28 +104,48 @@ export const createOrder = async (data: CreateOrderRequest): Promise<ServiceResp
     }
 };
 
-export const getOrderResult = async (orderId: string): Promise<ServiceResponse<GetOrderResponse>> => {
+export const getOrderResult = async (
+    orderId: string
+): Promise<ServiceResponse<GetOrderResponse>> => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+
     try {
         const response = await axiosClient.get<GetOrderResponse>(`/order/${orderId}`, {
+            signal: controller.signal,
             validateStatus: (status) => [200, 204].includes(status),
         });
+
+        clearTimeout(timeout);
+
         return {
             data: response.status === 200 ? response.data : null,
             loading: false,
-            error: null
+            error: null,
         };
-    } catch (error) {
+    } catch (error: any) {
+        clearTimeout(timeout);
+
+        if (error.name === 'AbortError') {
+            return {
+                data: null,
+                loading: false,
+                error: 'Request timed out',
+            };
+        }
+
         if (error instanceof APIError) {
             return {
                 data: null,
                 loading: false,
-                error: error.message
+                error: error.message,
             };
         }
+
         return {
             data: null,
             loading: false,
-            error: 'Failed to fetch order'
+            error: 'Failed to fetch order',
         };
     }
 };
@@ -229,7 +249,7 @@ export const getTopUpResult = async (topupId: string): Promise<ServiceResponse<T
 //
 export const getTopUpResultDummy = async (topupId: string): Promise<ServiceResponse<TopUpResult>> => {
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 10000));
 
     const dummyData: TopUpResult = {
         "orderId": "6b174c7e-f256-4fd7-b53a-5a1deefb1920",
@@ -266,7 +286,7 @@ export const getTopUpResultDummy = async (topupId: string): Promise<ServiceRespo
 
 export const getOrderResultDummy = async (orderId: string): Promise<ServiceResponse<GetOrderResponse>> => {
     // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 30000));
 
     const dummyData: GetOrderResponse = {
         "orderId": "8ad5887d-cbde-4e50-98c7-b950b62973d2",

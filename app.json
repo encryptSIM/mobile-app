@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "encrypt-sim",
-    "slug": "encrypt-sim",
+    "name": "encryptSim",
+    "slug": "encryptSIM",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-logo.png",

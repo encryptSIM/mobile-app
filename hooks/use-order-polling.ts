@@ -36,7 +36,6 @@ export const useOrderPolling = (
 
                     if (res.data) {
                         setOrderStatus(res.data);
-
                         if (res.data.sim) {
                             onSuccess?.(res.data);
                             break;

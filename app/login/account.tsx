@@ -21,6 +21,7 @@ export default function AccountScreen() {
   const [step, setStep] = useState<"view" | "confirm">("view");
   const [copied, setCopied] = useState(false);
   const [customKey, setCustomKey] = useState("");
+  console.log("customKey", customKey);
   const [confirmKey, setConfirmKey] = useState("");
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const { colors } = useTheme();
@@ -47,7 +48,7 @@ export default function AccountScreen() {
   };
 
   const handleSubmitCustomKey = async () => {
-    const trimmed = customKey.trim().toLowerCase();
+    const trimmed = customKey.trim();
     if (!trimmed) return;
     await setValue(trimmed);
     router.replace("/(tabs)/esim/package");

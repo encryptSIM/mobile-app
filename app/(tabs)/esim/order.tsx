@@ -1,5 +1,5 @@
 import {
-  getOrder,
+  getOrderResult,
   type GetOrderResponse,
   type ServiceResponse,
 } from "@/service/payment";
@@ -94,7 +94,7 @@ export default function OrderScreen() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await getOrder(orderId);
+      const response = await getOrderResult(orderId);
 
       if (response.error) {
         setError(response.error);
