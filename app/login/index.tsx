@@ -45,7 +45,12 @@ export default function LoginScreen() {
             borderRadius: 999,
           }}
         >
-          <Text style={{ color: "white", fontWeight: "600" }}>
+          <Text
+            style={{ color: "white", fontWeight: "600" }}
+            onPress={() => {
+              router.replace("/onboarding");
+            }}
+          >
             Connect Wallet
           </Text>
         </TouchableOpacity>

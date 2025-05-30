@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Image, Text, StyleSheet } from "react-native";
+import { ScaledSheet, moderateScale } from "react-native-size-matters"; // <--
 
 const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
   const [visible, setVisible] = useState(true);
@@ -8,7 +9,7 @@ const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
     const timer = setTimeout(() => {
       setVisible(false);
       onFinish();
-    }, 2000); // 2 seconds splash screen
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -29,28 +30,29 @@ const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
 
 export default SplashScreen;
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0A0F1C",
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: "24@s", // responsive horizontal padding
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: "120@s", // scale with device size
+    height: "120@s",
     resizeMode: "contain",
   },
   title: {
-    marginTop: 20,
-    fontSize: 24,
+    marginTop: "20@vs",
+    fontSize: "26@s", // scalable font size
     color: "white",
     fontWeight: "bold",
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: "15@s",
     color: "white",
     textAlign: "center",
-    marginTop: 10,
+    marginTop: "12@vs",
   },
 });

@@ -1,11 +1,12 @@
 {
   "expo": {
     "name": "encryptSim",
-    "slug": "encryptSIM",
+    "slug": "encrypt-sim",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-logo.png",
-    "scheme": "myapp",
+    "resizeMode": "contain",
+    "scheme": "encryptSim",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -30,11 +31,6 @@
         "image": "./assets/splash/logo.png",
         "resizeMode": "contain",
         "backgroundColor": "#0A0F1C"
-      },
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/app-logo.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
       },
       "package": "com.giachan2002.encryptsim"
     },

@@ -7,11 +7,18 @@ import {
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 
-const { width } = Dimensions.get("window");
+// Responsive scaling helpers
+const { width, height } = Dimensions.get("window");
+const guidelineBaseWidth = 375; // iPhone 11/12/13/14 width
+const guidelineBaseHeight = 812;
+
+const scale = (size: number) => (width / guidelineBaseWidth) * size;
+const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
 
 const slides = [
   {
@@ -35,38 +42,37 @@ const slides = [
     description:
       "No KYC, crypto-ready, from $1.95 or $99/yr.\nInstant eSIM + dVPN for secure global use.",
     image: require("../../assets/onboarding/solana.png"),
-
     buttonText: "Get Started",
   },
 ];
 
 export default function Onboarding() {
   const [index, setIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Default: show onboarding, not loader
   const router = useRouter();
 
-  // useEffect(() => {
-  //   const checkFirstTime = async () => {
-  //     const isFirstTime = await AsyncStorage.getItem("isFirstTime");
-  //     if (isFirstTime === "false") {
-  //       router.replace("/login"); // Redirect if already seen
-  //     } else {
-  //       setLoading(false); // Show onboarding
-  //     }
-  //   };
-  //   checkFirstTime();
-  // }, []);
+  useEffect(() => {
+    const checkFirstTime = async () => {
+      const isFirstTime = await AsyncStorage.getItem("isFirstTime");
+      if (isFirstTime === "false") {
+        router.replace("/login");
+      } else {
+        setLoading(false);
+      }
+    };
+    checkFirstTime();
+  }, []);
 
   const handleNext = async () => {
     if (index < slides.length - 1) {
       setIndex((prev) => prev + 1);
     } else {
       await AsyncStorage.setItem("isFirstTime", "false");
-      router.replace("/login"); // Go to app
+      router.replace("/login");
     }
   };
 
-  if (!loading) {
+  if (loading) {
     return (
       <View style={[styles.container, { justifyContent: "center" }]}>
         <ActivityIndicator size="large" color="#7BE596" />
@@ -100,77 +106,79 @@ export default function Onboarding() {
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
-    display: "flex",
+    flex: 1,
     backgroundColor: "#0A0F1C",
     alignItems: "center",
     justifyContent: "space-between",
   },
   imageContainer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     width: "100%",
-    height: 500,
-  },
-  image: {
-    width: width * 0.6,
-    height: width * 0.6,
-    resizeMode: "contain",
-    marginTop: 80,
-  },
-  content: {
-    paddingBottom: 40,
-    borderRadius: 24,
-    display: "flex",
-    backgroundColor: "#202939",
-    width: "100%",
-    height: 350,
-    paddingHorizontal: 40,
+    flex: 1.1, // More space on taller screens
     alignItems: "center",
-    gap: 25,
     justifyContent: "flex-end",
   },
+  image: {
+    width: width * 0.55,
+    height: width * 0.55,
+    resizeMode: "contain",
+    marginTop: verticalScale(Platform.OS === "android" ? 30 : 60),
+  },
+  content: {
+    width: "100%",
+    backgroundColor: "#202939",
+    borderTopLeftRadius: scale(28),
+    borderTopRightRadius: scale(28),
+    alignItems: "center",
+    paddingHorizontal: scale(30),
+    paddingBottom: verticalScale(40),
+    paddingTop: verticalScale(24),
+    flex: 0.8,
+    gap: verticalScale(20),
+    minHeight: verticalScale(260),
+    maxHeight: verticalScale(340),
+  },
   title: {
-    fontSize: 24,
+    fontSize: scale(22),
     fontWeight: "bold",
     color: "white",
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: verticalScale(6),
   },
   description: {
-    fontSize: 16,
-    color: "rgba(248, 250, 252, 0.6)",
+    fontSize: scale(14.5),
+    color: "rgba(248, 250, 252, 0.7)",
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: verticalScale(14),
+    lineHeight: scale(21),
   },
   pagination: {
     flexDirection: "row",
-    marginBottom: 20,
+    marginBottom: verticalScale(8),
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: scale(8),
+    height: scale(8),
+    borderRadius: scale(4),
     backgroundColor: "#444",
-    marginHorizontal: 4,
+    marginHorizontal: scale(4),
+    transitionDuration: "200ms",
   },
   activeDot: {
-    width: 20,
+    width: scale(20),
     backgroundColor: "#7BE596",
   },
   button: {
     backgroundColor: "#7BE596",
-    display: "flex",
     alignItems: "center",
     width: "100%",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 48,
+    borderRadius: scale(12),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(48),
+    marginTop: verticalScale(4),
   },
   buttonText: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: scale(16),
   },
 });
