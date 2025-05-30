@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+import { errorLog } from './error-log';
 
 export class APIError extends Error {
     constructor (
@@ -37,31 +38,9 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
     response => response,
     error => {
-        if (error instanceof AxiosError) {
-            const status = error.response?.status;
-            const data = error.response?.data;
-
-            let message = 'An error occurred';
-            if (status === 401) {
-                message = 'Unauthorized access';
-            } else if (status === 403) {
-                message = 'Access forbidden';
-            } else if (status === 404) {
-                message = 'Resource not found';
-            } else if (status === 500) {
-                message = 'Server error';
-            } else if (error.code === 'ECONNABORTED') {
-                message = 'Request timeout';
-            } else if (!error.response) {
-                message = 'Network error';
-            }
-
-            console.error('API error:', { status, data, message });
-            return Promise.reject(new APIError(message, status, data));
-        }
-
-        console.error('Unknown error:', error);
-        return Promise.reject(new APIError('An unexpected error occurred'));
+        console.error('Response error:', error);
+        errorLog(error);
+        return Promise.reject(error);
     },
 )
 
