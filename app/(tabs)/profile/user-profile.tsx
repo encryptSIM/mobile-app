@@ -1,6 +1,4 @@
 import { AppButton } from "@/components/button";
-import { TopUpModal } from "@/components/TopUpModal";
-import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { addressFormatter } from "@/utils";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -16,10 +14,11 @@ import {
   View,
 } from "react-native";
 import { useBalance } from "@/hooks/balance";
+import { useAuth } from "@/context/auth-context";
 
 export default function ProfileScreen() {
-  const { value: address, setValue } = useAsyncStorage<string>("publicKey");
-  const { balance, loading, error, refreshBalance } = useBalance(address || "");
+  const { publicKey, setValue } = useAuth();
+  const { balance, error, refreshBalance } = useBalance(publicKey || "");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
@@ -38,7 +37,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={async () => {
-              await Clipboard.setStringAsync(address || "");
+              await Clipboard.setStringAsync(publicKey || "");
               ToastAndroid.show("Address copied!", ToastAndroid.SHORT);
             }}
             style={styles.addressButton}
@@ -46,7 +45,7 @@ export default function ProfileScreen() {
             <View style={styles.addressRow}>
               <Feather name="copy" size={16} color="#4ade80" />
               <Text style={styles.addressText}>
-                {addressFormatter(address || "")}
+                {addressFormatter(publicKey || "")}
               </Text>
             </View>
           </TouchableOpacity>
@@ -59,11 +58,7 @@ export default function ProfileScreen() {
           >
             <Text style={styles.balanceLabel}>Current Balance</Text>
             <Text style={styles.balanceValue}>
-              {loading
-                ? "Loading..."
-                : error
-                ? "Error"
-                : `${balance?.toFixed(4)} SOL`}
+              {error ? "Error" : `${balance?.toFixed(4)} SOL`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -89,8 +84,6 @@ export default function ProfileScreen() {
               iconName="log-out"
               variant="inactive"
               onPress={() => {
-                // setValue("");
-                // router.replace("/login");
                 setShowLogoutConfirm(true);
               }}
             />
@@ -122,8 +115,8 @@ export default function ProfileScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => {
-                  setValue("");
+                onPress={async () => {
+                  await setValue("");
                   setShowLogoutConfirm(false);
                   router.replace("/login");
                 }}

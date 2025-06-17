@@ -1,9 +1,5 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreenAPI from "expo-splash-screen";
@@ -11,14 +7,14 @@ import { useEffect, useState } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
-import SplashScreen from "./splash-screen";
+import { DarkThemeCustom, LightTheme } from "@/constants/custom-theme";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 import { useRouter } from "expo-router";
+import "../global.css";
+import SplashScreen from "./splash-screen";
+import { AuthProvider, useAuth } from "@/context/auth-context";
 
 export { ErrorBoundary } from "expo-router";
-import "../global.css";
-import { LightTheme } from "@/constants/custom-theme";
-import { DarkThemeCustom } from "@/constants/custom-theme";
 
 export const unstable_settings = {
   initialRouteName: "(tabs)/esim/package",
@@ -27,43 +23,40 @@ export const unstable_settings = {
 SplashScreenAPI.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    ...FontAwesome.font,
-  });
+  const [fontsLoaded, fontError] = useFonts({ ...FontAwesome.font });
+  const [splashFinished, setSplashFinished] = useState(false);
 
-  const [splashDone, setSplashDone] = useState(false);
+  const ready = fontsLoaded && splashFinished;
 
   useEffect(() => {
-    if (error) throw error;
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded && splashDone) {
+    if (ready) {
       SplashScreenAPI.hideAsync();
     }
-  }, [loaded, splashDone]);
+  }, [ready]);
 
-  if (!loaded || !splashDone) {
-    return <SplashScreen onFinish={() => setSplashDone(true)} />;
+  if (!ready) {
+    return <SplashScreen onFinish={() => setSplashFinished(true)} />;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
+  );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { value: storedPublicKey, loading: storageLoading } =
-    useAsyncStorage<string>("publicKey");
+  const { publicKey, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!storageLoading) {
-      if (storedPublicKey) {
+    if (!loading) {
+      if (publicKey) {
         router.replace("/(tabs)/esim/package");
       }
     }
-  }, [storedPublicKey, storageLoading, router]);
+  }, [publicKey, loading, router]);
 
   return (
     <ThemeProvider

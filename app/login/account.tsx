@@ -1,6 +1,6 @@
 import { Text, View } from "@/components/Themed";
 import { AppButton } from "@/components/button";
-import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { useAuth } from "@/context/auth-context";
 import { createPaymentProfile } from "@/service/auth";
 import { errorLog } from "@/service/error-log";
 import { Feather } from "@expo/vector-icons";
@@ -18,20 +18,20 @@ import {
 } from "react-native";
 
 export default function AccountScreen() {
-  const { loading, setValue } = useAsyncStorage<string>("publicKey");
+  const { publicKey, loading, setValue } = useAuth();
   const [step, setStep] = useState<"view" | "confirm">("view");
   const [copied, setCopied] = useState(false);
   const [customKey, setCustomKey] = useState("");
+  const [fetchedKey, setFetchedKey] = useState("");
   console.log("customKey", customKey);
   const [confirmKey, setConfirmKey] = useState("");
-  const [publicKey, setPublicKey] = useState<string | null>(null);
   const { colors } = useTheme();
   const params = useSearchParams();
   const isLoginState = params.get("state") === "login";
 
   const handleCopy = async () => {
-    if (!publicKey) return;
-    await Clipboard.setStringAsync(publicKey);
+    if (!fetchedKey) return;
+    await Clipboard.setStringAsync(fetchedKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -39,9 +39,9 @@ export default function AccountScreen() {
   const handleCreatePaymentProfile = async () => {
     try {
       const response = await createPaymentProfile();
-      setPublicKey(response.data?.publicKey);
-      if (publicKey) {
-        await setValue(publicKey);
+      const pk = response.data?.publicKey;
+      if (pk) {
+        setFetchedKey(pk);
       }
     } catch (error) {
       await errorLog(error as Error);
@@ -57,13 +57,13 @@ export default function AccountScreen() {
   };
 
   const handleContinue = async () => {
-    if (!publicKey) return;
-    await setValue(publicKey);
+    if (!confirmKey || confirmKey !== fetchedKey) return;
+    await setValue(fetchedKey);
     router.replace("/(tabs)/esim/package");
   };
 
   useEffect(() => {
-    if (params.get("state") === "create") {
+    if (params.get("state") === "create" && !fetchedKey) {
       handleCreatePaymentProfile();
     }
   }, [params.get("state")]);
@@ -132,9 +132,9 @@ export default function AccountScreen() {
                 style={[styles.accountText, { color: "#111827" }]}
                 numberOfLines={1}
               >
-                {publicKey || "Not available"}
+                {fetchedKey || "Not available"}
               </Text>
-              {!!publicKey && (
+              {!!fetchedKey && (
                 <TouchableOpacity
                   onPress={handleCopy}
                   style={styles.copyButton}
@@ -198,7 +198,7 @@ export default function AccountScreen() {
                 iconName="check-circle"
                 variant="moonlight"
                 isDisabled={
-                  confirmKey.trim().toLowerCase() !== publicKey?.toLowerCase()
+                  confirmKey.trim().toLowerCase() !== fetchedKey?.toLowerCase()
                 }
                 showRightArrow={false}
                 onPress={handleContinue}

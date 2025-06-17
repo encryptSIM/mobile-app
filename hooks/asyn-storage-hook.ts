@@ -18,12 +18,16 @@ export function useAsyncStorage<T>(
   const [error, setError] = useState<Error | null>(null);
 
   const loadValue = useCallback(async () => {
+    setLoading(true);
     try {
       const raw = await AsyncStorage.getItem(key);
-      if (raw !== null) {
+      if (raw != null) {
         setValueState(JSON.parse(raw));
+      } else {
+        setValueState(null); // explicitly handle null storage
       }
     } catch (err) {
+      console.warn(`AsyncStorage load error for key "${key}":`, err);
       setError(err as Error);
     } finally {
       setLoading(false);
@@ -33,9 +37,11 @@ export function useAsyncStorage<T>(
   const setValue = useCallback(
     async (newValue: T) => {
       try {
-        await AsyncStorage.setItem(key, JSON.stringify(newValue));
+        const json = JSON.stringify(newValue);
+        await AsyncStorage.setItem(key, json);
         setValueState(newValue);
       } catch (err) {
+        console.warn(`AsyncStorage set error for key "${key}":`, err);
         setError(err as Error);
       }
     },
@@ -47,6 +53,7 @@ export function useAsyncStorage<T>(
       await AsyncStorage.removeItem(key);
       setValueState(null);
     } catch (err) {
+      console.warn(`AsyncStorage remove error for key "${key}":`, err);
       setError(err as Error);
     }
   }, [key]);

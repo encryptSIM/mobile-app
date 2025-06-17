@@ -1,13 +1,10 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Tabs, router } from "expo-router";
-import React, { useEffect } from "react";
+import { Tabs } from "expo-router";
+import React from "react";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-import { useColorScheme } from "@/components/useColorScheme";
 import Colors from "@/constants/Colors";
-import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
@@ -16,16 +13,6 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const { value: publicKey, loading } = useAsyncStorage<string>("publicKey");
-  console.log("publicKey", publicKey);
-
-  useEffect(() => {
-    if (!loading && !publicKey) {
-      router.replace("/login");
-    }
-  }, [loading, publicKey]);
-
   return (
     <Tabs
       screenOptions={{

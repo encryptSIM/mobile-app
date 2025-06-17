@@ -1,15 +1,21 @@
 import { AppButton } from "@/components/button";
 import { Text, View } from "@/components/Themed";
-import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
-import { createPaymentProfile } from "@/service/auth";
+import { useTheme } from "@react-navigation/native";
 import { router } from "expo-router";
 import { Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@react-navigation/native";
+import { useAuth } from "@/context/auth-context";
+import { useEffect } from "react";
 
 export default function LoginScreen() {
-  const { setValue } = useAsyncStorage<string>("publicKey");
   const { colors } = useTheme();
+  const { publicKey, loading } = useAuth();
+
+  useEffect(() => {
+    if (publicKey) {
+      router.replace("/(tabs)/esim/package");
+    }
+  }, [loading, publicKey]);
 
   return (
     <SafeAreaView
