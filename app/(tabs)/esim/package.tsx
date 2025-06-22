@@ -1,18 +1,17 @@
+import { Header } from "@/components/Header";
 import { Text, View } from "@/components/Themed";
 import { AppButton } from "@/components/button";
 import DropdownSelector from "@/components/dropdown";
 import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
+import { errorLog } from "@/service/error-log";
 import {
   getPackages,
   type EsimPackage,
   type RegionPackage,
 } from "@/service/package";
-import { createOrder } from "@/service/payment";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { SafeAreaView, Switch } from "react-native";
-import { Header } from "@/components/Header";
-import { errorLog } from "@/service/error-log";
 
 type DropdownOption = { label: string; value: string };
 

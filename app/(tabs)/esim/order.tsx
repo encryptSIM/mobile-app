@@ -82,10 +82,11 @@ const SimReady = React.memo(
 
 export default function OrderScreen() {
   const orderId = useSearchParams().get("orderId");
+  const from = useSearchParams().get("from");
   const [orderStatus, setOrderStatus] = useState<GetOrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const router = useRouter();
   const fetchOrderStatus = useCallback(async () => {
     if (!orderId) {
       setError("No order ID provided");
@@ -175,7 +176,17 @@ export default function OrderScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#0A0F25]">
-      <Header showBackButton={true} title="Order Status" />
+      <Header
+        onBackPress={() => {
+          if (from) {
+            router.push(from as any);
+          } else {
+            router.back();
+          }
+        }}
+        showBackButton={true}
+        title="Order Status"
+      />
       <View className="px-6 justify-center flex-1">
         <View className="items-center space-y-4">
           <OrderStatus

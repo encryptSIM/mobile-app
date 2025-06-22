@@ -2,6 +2,7 @@ import { AppButton } from "@/components/button";
 import { View, Text, StyleSheet } from "react-native";
 import React from "react";
 import type { GetOrderHistoryResponse } from "@/service/payment";
+import { router } from "expo-router";
 
 interface ESimOrder {
   id: number;
@@ -82,12 +83,24 @@ export const ESimOrderCard: React.FC<ESimOrderCardProps> = ({
       </View>
 
       {/* Button */}
-      <AppButton
-        label="Buy More Data"
-        iconName="plus-circle"
-        variant="moonlight"
-        onPress={onBuyMoreData}
-      />
+      <View style={styles.buttonContainer}>
+        <AppButton
+          label="View Details"
+          iconName="eye"
+          variant="moonlight"
+          onPress={() => {
+            router.push(
+              `/esim/order?orderId=${order.orderId}&from=/(tabs)/profile/order-history`
+            );
+          }}
+        />
+        <AppButton
+          label="Buy More Data"
+          iconName="plus-circle"
+          variant="moonlight"
+          onPress={onBuyMoreData}
+        />
+      </View>
     </View>
   );
 };
@@ -177,5 +190,9 @@ const styles = StyleSheet.create({
   },
   redBar: {
     backgroundColor: "#EF4444",
+  },
+  buttonContainer: {
+    flexDirection: "column",
+    gap: 10,
   },
 });
