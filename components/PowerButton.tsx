@@ -3,13 +3,23 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 interface PowerButtonProps {
   onPress: () => void;
+  disabled?: boolean;
 }
 
-export const PowerButton: React.FC<PowerButtonProps> = ({ onPress }) => {
+export const PowerButton: React.FC<PowerButtonProps> = ({
+  onPress,
+  disabled = false,
+}) => {
   return (
     <View style={styles.centerContent}>
-      <TouchableOpacity style={styles.powerButton} onPress={onPress}>
-        <Text style={styles.powerIcon}>⏻</Text>
+      <TouchableOpacity
+        style={[styles.powerButton, disabled && styles.powerButtonDisabled]}
+        onPress={onPress}
+        disabled={disabled}
+      >
+        <Text style={[styles.powerIcon, disabled && styles.powerIconDisabled]}>
+          ⏻
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -35,5 +45,15 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
-  powerIcon: { fontSize: 64, color: "#fff" },
+  powerButtonDisabled: {
+    backgroundColor: "#666",
+    shadowOpacity: 0.1,
+  },
+  powerIcon: {
+    fontSize: 64,
+    color: "#fff",
+  },
+  powerIconDisabled: {
+    color: "#ccc",
+  },
 });
