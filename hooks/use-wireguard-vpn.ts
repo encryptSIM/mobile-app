@@ -43,6 +43,7 @@ interface UseWireGuardVpnReturn {
     disconnect: () => Promise<void>;
     getStatus: () => Promise<void>;
     getStatistics: () => Promise<void>;
+    buildConfig: (wireguardJS: any) => string;
 }
 
 export const useWireGuardVpn = (): UseWireGuardVpnReturn => {
@@ -92,6 +93,31 @@ export const useWireGuardVpn = (): UseWireGuardVpnReturn => {
             setIsLoading(false);
         }
     }, [getStatus]);
+
+    // Build a WireGuard config string from a JS object
+    const buildConfig = useCallback((wireguardJS: any) => {
+        let config = `[Interface]\n`;
+        if (wireguardJS.PrivateKey) config += `PrivateKey = ${wireguardJS.PrivateKey}\n`;
+        if (wireguardJS.Address) config += `Address = ${wireguardJS.Address}\n`;
+        if (wireguardJS.DNS) config += `DNS = ${wireguardJS.DNS}\n`;
+        if (wireguardJS.Interface) {
+            if (wireguardJS.Interface.PrivateKey) config += `PrivateKey = ${wireguardJS.Interface.PrivateKey}\n`;
+            if (wireguardJS.Interface.Address) config += `Address = ${wireguardJS.Interface.Address}\n`;
+            if (wireguardJS.Interface.DNS) config += `DNS = ${wireguardJS.Interface.DNS}\n`;
+        }
+        config += `\n[Peer]\n`;
+        if (wireguardJS.PublicKey) config += `PublicKey = ${wireguardJS.PublicKey}\n`;
+        if (wireguardJS.Endpoint) config += `Endpoint = ${wireguardJS.Endpoint}\n`;
+        if (wireguardJS.AllowedIPs) config += `AllowedIPs = ${wireguardJS.AllowedIPs}\n`;
+        if (wireguardJS.PersistentKeepalive) config += `PersistentKeepalive = ${wireguardJS.PersistentKeepalive}\n`;
+        if (wireguardJS.Peer) {
+            if (wireguardJS.Peer.PublicKey) config += `PublicKey = ${wireguardJS.Peer.PublicKey}\n`;
+            if (wireguardJS.Peer.Endpoint) config += `Endpoint = ${wireguardJS.Peer.Endpoint}\n`;
+            if (wireguardJS.Peer.AllowedIPs) config += `AllowedIPs = ${wireguardJS.Peer.AllowedIPs}\n`;
+            if (wireguardJS.Peer.PersistentKeepalive) config += `PersistentKeepalive = ${wireguardJS.Peer.PersistentKeepalive}\n`;
+        }
+        return config.trim();
+    }, []);
 
     // Connect to VPN
     const connect = useCallback(async (configString: string) => {
@@ -157,8 +183,8 @@ export const useWireGuardVpn = (): UseWireGuardVpnReturn => {
             setError(data.error);
         });
 
-        // Initialize on mount
-        initialize();
+        // Removed automatic initialize() call here
+        // initialize();
 
         // Cleanup
         return () => {
@@ -190,5 +216,6 @@ export const useWireGuardVpn = (): UseWireGuardVpnReturn => {
         disconnect,
         getStatus,
         getStatistics,
+        buildConfig,
     };
 };

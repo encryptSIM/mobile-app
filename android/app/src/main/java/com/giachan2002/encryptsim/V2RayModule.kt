@@ -4,6 +4,9 @@ import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
 import java.io.File
+import java.net.Socket
+import java.net.InetSocketAddress
+import org.json.JSONObject
 
 @ReactModule(name = V2RayModule.NAME)
 class V2RayModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -351,6 +354,196 @@ class V2RayModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     }
 
     @ReactMethod
+    fun testServerConnectivity(promise: Promise) {
+        try {
+            Log.d(TAG, "Testing V2Ray server connectivity")
+            
+            Thread {
+                try {
+                    // Test server connectivity directly (bypass any existing VPN)
+                    val serverAddress = "132.226.202.17"
+                    val serverPort = 7777
+                    
+                    Log.d(TAG, "Testing connection to V2Ray server: $serverAddress:$serverPort")
+                    
+                    val socket = java.net.Socket()
+                    try {
+                        // Use shorter timeout for server test
+                        socket.connect(java.net.InetSocketAddress(serverAddress, serverPort), 8000)
+                        socket.close()
+                        
+                        Log.d(TAG, "✅ V2Ray server is reachable")
+                        
+                        val result = WritableNativeMap().apply {
+                            putBoolean("serverReachable", true)
+                            putString("serverAddress", serverAddress)
+                            putInt("serverPort", serverPort)
+                            putString("status", "V2Ray server is reachable")
+                        }
+                        promise.resolve(result)
+                        
+                    } catch (e: java.net.SocketTimeoutException) {
+                        Log.e(TAG, "❌ Server connection timeout")
+                        promise.reject("SERVER_TIMEOUT", "Server connection timed out - server may be down or unreachable")
+                    } catch (e: java.net.ConnectException) {
+                        Log.e(TAG, "❌ Cannot connect to server: ${e.message}")
+                        promise.reject("SERVER_UNREACHABLE", "Cannot connect to server: ${e.message}")
+                    }
+                    
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Server test failed: ${e.message}", e)
+                    promise.reject("SERVER_TEST_ERROR", "Server test error: ${e.message}")
+                }
+            }.start()
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error testing server connectivity", e)
+            promise.reject("TEST_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun testV2RayProxies(promise: Promise) {
+        Log.d(TAG, "Testing V2Ray proxy accessibility (v2rayNG style)")
+        
+        Thread {
+            try {
+                val result = JSONObject()
+                
+                // Test HTTP proxy (10809)
+                try {
+                    val httpSocket = Socket()
+                    httpSocket.connect(InetSocketAddress("127.0.0.1", 10809), 2000)
+                    httpSocket.close()
+                    result.put("httpProxy", "✅ Accessible on 127.0.0.1:10809")
+                    Log.d(TAG, "✅ HTTP proxy is accessible")
+                } catch (e: Exception) {
+                    result.put("httpProxy", "❌ Not accessible: ${e.message}")
+                    Log.w(TAG, "❌ HTTP proxy not accessible: ${e.message}")
+                }
+                
+                // Test SOCKS proxy (10808)
+                try {
+                    val socksSocket = Socket()
+                    socksSocket.connect(InetSocketAddress("127.0.0.1", 10808), 2000)
+                    socksSocket.close()
+                    result.put("socksProxy", "✅ Accessible on 127.0.0.1:10808")
+                    Log.d(TAG, "✅ SOCKS proxy is accessible")
+                } catch (e: Exception) {
+                    result.put("socksProxy", "❌ Not accessible: ${e.message}")
+                    Log.w(TAG, "❌ SOCKS proxy not accessible: ${e.message}")
+                }
+                
+                // Test external IP through HTTP proxy
+                try {
+                    val externalIP = testExternalIPThroughProxy()
+                    result.put("externalIp", externalIP)
+                    result.put("success", true)
+                    Log.d(TAG, "✅ External IP test: $externalIP")
+                } catch (e: Exception) {
+                    result.put("externalIp", "Failed to get external IP: ${e.message}")
+                    result.put("success", false)
+                    Log.w(TAG, "❌ External IP test failed: ${e.message}")
+                }
+                
+                promise.resolve(Arguments.createMap().apply {
+                    putString("httpProxy", result.getString("httpProxy"))
+                    putString("socksProxy", result.getString("socksProxy"))
+                    putString("externalIp", result.getString("externalIp"))
+                    putBoolean("success", result.optBoolean("success", false))
+                })
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "V2Ray proxy test failed: ${e.message}", e)
+                promise.reject("TEST_FAILED", "V2Ray proxy test failed: ${e.message}")
+            }
+        }.start()
+    }
+    
+    @ReactMethod
+    fun testProxyConnection(promise: Promise) {
+        try {
+            Log.d(TAG, "Testing V2Ray proxy connection")
+            
+            Thread {
+                try {
+                    // Step 1: Test if V2Ray core is running
+                    val v2rayRunning = V2RayHelper.isRunning()
+                    Log.d(TAG, "V2Ray core running: $v2rayRunning")
+                    
+                    if (!v2rayRunning) {
+                        promise.reject("V2RAY_NOT_RUNNING", "V2Ray core is not running")
+                        return@Thread
+                    }
+                    
+                    // Step 2: Test if HTTP proxy port is open
+                    try {
+                        val socket = java.net.Socket()
+                        socket.connect(java.net.InetSocketAddress("127.0.0.1", 10809), 5000)
+                        socket.close()
+                        Log.d(TAG, "✅ HTTP proxy port 10809 is accessible")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ HTTP proxy port 10809 not accessible: ${e.message}")
+                        promise.reject("PROXY_PORT_UNREACHABLE", "HTTP proxy port 10809 not accessible: ${e.message}")
+                        return@Thread
+                    }
+                    
+                    // Step 3: Test HTTP proxy connection with detailed logging
+                    Log.d(TAG, "Testing HTTP request through proxy...")
+                    val url = java.net.URL("http://httpbin.org/ip")
+                    val proxy = java.net.Proxy(java.net.Proxy.Type.HTTP, java.net.InetSocketAddress("127.0.0.1", 10809))
+                    val connection = url.openConnection(proxy) as java.net.HttpURLConnection
+                    connection.connectTimeout = 10000
+                    connection.readTimeout = 10000
+                    connection.setRequestProperty("User-Agent", "V2Ray-Test/1.0")
+                    
+                    Log.d(TAG, "Sending HTTP request...")
+                    val responseCode = connection.responseCode
+                    Log.d(TAG, "HTTP response code: $responseCode")
+                    
+                    if (responseCode == 200) {
+                        val response = connection.inputStream.bufferedReader().readText()
+                        Log.d(TAG, "HTTP response: $response")
+                        
+                        // Parse external IP
+                        val ipRegex = Regex("\"origin\":\\s*\"([^\"]+)\"")
+                        val match = ipRegex.find(response)
+                        val externalIp = match?.groupValues?.get(1) ?: "unknown"
+                        
+                        Log.d(TAG, "✅ Proxy test successful - External IP: $externalIp")
+                        
+                        val result = WritableNativeMap().apply {
+                            putBoolean("success", true)
+                            putString("externalIp", externalIp)
+                            putString("responseCode", responseCode.toString())
+                            putString("fullResponse", response)
+                            putString("status", "V2Ray proxy is working")
+                            putBoolean("v2rayRunning", v2rayRunning)
+                        }
+                        promise.resolve(result)
+                    } else {
+                        Log.e(TAG, "❌ HTTP proxy returned error code: $responseCode")
+                        promise.reject("PROXY_TEST_FAILED", "HTTP proxy returned code: $responseCode")
+                    }
+                } catch (e: java.net.SocketTimeoutException) {
+                    Log.e(TAG, "❌ Proxy test timeout: ${e.message}")
+                    promise.reject("PROXY_TIMEOUT", "Proxy connection timed out: ${e.message}")
+                } catch (e: java.net.ConnectException) {
+                    Log.e(TAG, "❌ Proxy connection failed: ${e.message}")
+                    promise.reject("PROXY_CONNECTION_FAILED", "Cannot connect to proxy: ${e.message}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Proxy test failed: ${e.message}", e)
+                    promise.reject("PROXY_TEST_ERROR", "Proxy test error: ${e.message}")
+                }
+            }.start()
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error testing proxy connection", e)
+            promise.reject("TEST_ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
     fun getBaseKeyFilePath(promise: Promise) {
         try {
             val file = File(reactApplicationContext.filesDir, BASEKEY_FILENAME)
@@ -362,6 +555,27 @@ class V2RayModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
         } catch (e: Exception) {
             Log.e(TAG, "Error getting basekey file path", e)
             promise.reject("BASEKEY_ERROR", e.message, e)
+        }
+    }
+
+    private fun testExternalIPThroughProxy(): String {
+        val url = java.net.URL("http://httpbin.org/ip")
+        val proxy = java.net.Proxy(java.net.Proxy.Type.HTTP, InetSocketAddress("127.0.0.1", 10809))
+        val connection = url.openConnection(proxy) as java.net.HttpURLConnection
+        connection.connectTimeout = 10000
+        connection.readTimeout = 10000
+        connection.setRequestProperty("User-Agent", "V2Ray-Test/1.0")
+        
+        val responseCode = connection.responseCode
+        if (responseCode == 200) {
+            val response = connection.inputStream.bufferedReader().readText()
+            
+            // Parse external IP
+            val ipRegex = Regex("\"origin\":\\s*\"([^\"]+)\"")
+            val match = ipRegex.find(response)
+            return match?.groupValues?.get(1) ?: "unknown"
+        } else {
+            throw Exception("HTTP $responseCode")
         }
     }
 }

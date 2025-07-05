@@ -3,6 +3,7 @@ import { AppButton } from "@/components/button";
 import { useAuth } from "@/context/auth-context";
 import { createPaymentProfile } from "@/service/auth";
 import { errorLog } from "@/service/error-log";
+import { createDevice } from "@/service/vpnService";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
@@ -18,7 +19,14 @@ import {
 } from "react-native";
 
 export default function AccountScreen() {
-  const { publicKey, loading, setValue } = useAuth();
+  const {
+    publicKey,
+    loading,
+    setValue,
+    deviceToken,
+    deviceTokenLoading,
+    setDeviceToken,
+  } = useAuth();
   const [step, setStep] = useState<"view" | "confirm">("view");
   const [copied, setCopied] = useState(false);
   const [customKey, setCustomKey] = useState("");
@@ -53,12 +61,34 @@ export default function AccountScreen() {
     const trimmed = customKey.trim();
     if (!trimmed) return;
     await setValue(trimmed);
+    try {
+      console.log("🔄 Creating device token for custom key...");
+      const deviceToken = await createDevice();
+      console.log("✅ Device token received:", deviceToken);
+      await setDeviceToken(deviceToken);
+      console.log("✅ Device token saved to storage");
+    } catch (err) {
+      console.error("❌ Failed to create/save device token", err);
+      console.error("❌ Error type:", typeof err);
+      console.error("❌ Error details:", JSON.stringify(err, null, 2));
+    }
     router.replace("/(tabs)/esim/package");
   };
 
   const handleContinue = async () => {
     if (!confirmKey || confirmKey !== fetchedKey) return;
     await setValue(fetchedKey);
+    try {
+      console.log("🔄 Creating device token for fetched key...");
+      const deviceToken = await createDevice();
+      console.log("✅ Device token received:", deviceToken);
+      await setDeviceToken(deviceToken);
+      console.log("✅ Device token saved to storage");
+    } catch (err) {
+      console.error("❌ Failed to create/save device token", err);
+      console.error("❌ Error type:", typeof err);
+      console.error("❌ Error details:", JSON.stringify(err, null, 2));
+    }
     router.replace("/(tabs)/esim/package");
   };
 
@@ -68,7 +98,7 @@ export default function AccountScreen() {
     }
   }, [params.get("state")]);
 
-  if (loading) {
+  if (loading || deviceTokenLoading || !deviceToken) {
     return (
       <SafeAreaView
         style={[

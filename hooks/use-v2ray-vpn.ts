@@ -136,6 +136,51 @@ export function useV2RayVpn() {
         }
     }, []);
 
+    // Test server connectivity
+    const testServerConnectivity = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const result = await V2RayModule.testServerConnectivity();
+            setLoading(false);
+            return result;
+        } catch (err: any) {
+            setError(err.message || String(err));
+            setLoading(false);
+            throw err;
+        }
+    }, []);
+
+    // Test V2Ray proxies accessibility (v2rayNG style)
+    const testV2RayProxies = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const result = await V2RayModule.testV2RayProxies();
+            setLoading(false);
+            return result;
+        } catch (err: any) {
+            setError(err.message || String(err));
+            setLoading(false);
+            throw err;
+        }
+    }, []);
+
+    // Test proxy connection and get external IP
+    const testProxyConnection = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const result = await V2RayModule.testProxyConnection();
+            setLoading(false);
+            return result;
+        } catch (err: any) {
+            setError(err.message || String(err));
+            setLoading(false);
+            throw err;
+        }
+    }, []);
+
     return {
         isRunning,
         status,
@@ -152,5 +197,9 @@ export function useV2RayVpn() {
         getBasekeyFilePath,
         getStatus,
         getVersion,
+        // Testing methods
+        testServerConnectivity,
+        testV2RayProxies,
+        testProxyConnection,
     };
 }

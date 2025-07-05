@@ -20,6 +20,12 @@ object V2RayHelper {
     private var isInitialized = false
 
     // --- Panic-Resistant BaseKey Management ---
+    private var vpnMode = false
+
+    fun enableVpnMode(enabled: Boolean) {
+        vpnMode = enabled
+        Log.d(TAG, "[enableVpnMode] VPN mode: $enabled")
+    }
 
     private fun ensureValidBaseKey(context: Context): File {
         Log.d(TAG, "[ensureValidBaseKey] Starting basekey setup")
@@ -201,10 +207,18 @@ object V2RayHelper {
             stopV2Ray()
             Thread.sleep(500) // Give it time to stop
         }
-        
+
         return try {
             Log.d(TAG, "[startV2Ray] Config size: ${config.length} chars")
             currentConfig = config
+
+            // VPN mode logging
+            if (vpnMode) {
+                Log.d(TAG, "[startV2Ray] Running in VPN mode - traffic will be routed through proxy")
+            } else {
+                Log.d(TAG, "[startV2Ray] Running in local proxy mode")
+            }
+
             coreController?.startLoop(config)
             
             // Verify it actually started
@@ -236,6 +250,7 @@ object V2RayHelper {
         return try {
             coreController?.stopLoop()
             currentConfig = null
+            vpnMode = false // Reset VPN mode
             
             // Verify it actually stopped
             Thread.sleep(500)
@@ -250,6 +265,7 @@ object V2RayHelper {
         } catch (e: Exception) {
             Log.e(TAG, "[stopV2Ray] ❌ Exception: ${e.message}", e)
             currentConfig = null
+            vpnMode = false
             true // Return true to avoid blocking further operations
         }
     }
@@ -379,20 +395,23 @@ object V2RayHelper {
                 
                 // Android VPN service compatible inbounds
                 put("inbounds", org.json.JSONArray().apply {
-                    // TUN interface listener - this is key for Android VPN!
+                    // PRIMARY: SOCKS proxy for TUN2SOCKS bridge (v2rayNG style)
                     put(JSONObject().apply {
-                        put("tag", "tun-in")
-                        put("port", 0) // Use file descriptor from Android VPN service
-                        put("protocol", "dokodemo-door")
+                        put("tag", "socks-in")
+                        put("port", 10808)
+                        put("listen", "127.0.0.1")
+                        put("protocol", "socks")
                         put("settings", JSONObject().apply {
-                            put("network", "tcp,udp")
-                            put("followRedirect", true)
-                            put("userLevel", 0)
+                            put("auth", "noauth")
+                            put("udp", true)
+                            put("ip", "127.0.0.1")
                         })
-                        put("streamSettings", JSONObject().apply {
-                            put("sockopt", JSONObject().apply {
-                                put("tproxy", "tun")
-                                put("mark", 255)
+                        put("sniffing", JSONObject().apply {
+                            put("enabled", true)
+                            put("destOverride", org.json.JSONArray().apply {
+                                put("http")
+                                put("tls")
+                                put("fakedns")
                             })
                         })
                     })
@@ -405,18 +424,6 @@ object V2RayHelper {
                         put("protocol", "http")
                         put("settings", JSONObject().apply {
                             put("allowTransparent", true)
-                        })
-                    })
-                    
-                    // SOCKS proxy for VPN traffic routing
-                    put(JSONObject().apply {
-                        put("tag", "socks-in")
-                        put("port", 10808)
-                        put("listen", "127.0.0.1")
-                        put("protocol", "socks")
-                        put("settings", JSONObject().apply {
-                            put("auth", "noauth")
-                            put("udp", true)
                         })
                     })
                     
@@ -582,10 +589,10 @@ object V2RayHelper {
                             })
                         })
                         
-                        // CRITICAL: All traffic from TUN interface goes through proxy
+                        // CRITICAL: All traffic from SOCKS proxy goes through V2Ray proxy (v2rayNG style)
                         put(JSONObject().apply {
                             put("type", "field")
-                            put("inboundTag", org.json.JSONArray().put("tun-in"))
+                            put("inboundTag", org.json.JSONArray().put("socks-in"))
                             put("outboundTag", "proxy")
                         })
                         
@@ -596,10 +603,10 @@ object V2RayHelper {
                             put("outboundTag", "proxy")
                         })
                         
-                        // Traffic from SOCKS proxy
+                        // DNS redirect traffic
                         put(JSONObject().apply {
                             put("type", "field")
-                            put("inboundTag", org.json.JSONArray().put("socks-in"))
+                            put("inboundTag", org.json.JSONArray().put("dns-redirect"))
                             put("outboundTag", "proxy")
                         })
                         

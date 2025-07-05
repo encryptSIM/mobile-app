@@ -19,15 +19,20 @@ export function useAsyncStorage<T>(
 
   const loadValue = useCallback(async () => {
     setLoading(true);
+    console.log(`🔄 AsyncStorage loading value for key "${key}"`);
     try {
       const raw = await AsyncStorage.getItem(key);
+      console.log(`🔄 AsyncStorage raw value for key "${key}":`, raw);
       if (raw != null) {
-        setValueState(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        console.log(`✅ AsyncStorage loaded value for key "${key}":`, parsed);
+        setValueState(parsed);
       } else {
+        console.log(`⚠️ AsyncStorage no value found for key "${key}"`);
         setValueState(null); // explicitly handle null storage
       }
     } catch (err) {
-      console.warn(`AsyncStorage load error for key "${key}":`, err);
+      console.error(`❌ AsyncStorage load error for key "${key}":`, err);
       setError(err as Error);
     } finally {
       setLoading(false);
@@ -37,11 +42,18 @@ export function useAsyncStorage<T>(
   const setValue = useCallback(
     async (newValue: T) => {
       try {
+        console.log(`🔄 AsyncStorage setValue for key "${key}":`, newValue);
+        if (newValue === undefined || newValue === null) {
+          console.warn(`❌ AsyncStorage setValue error for key "${key}": Cannot store undefined or null values. Use removeValue() instead.`);
+          return;
+        }
         const json = JSON.stringify(newValue);
+        console.log(`🔄 AsyncStorage setting key "${key}" with JSON:`, json);
         await AsyncStorage.setItem(key, json);
         setValueState(newValue);
+        console.log(`✅ AsyncStorage setValue success for key "${key}"`);
       } catch (err) {
-        console.warn(`AsyncStorage set error for key "${key}":`, err);
+        console.error(`❌ AsyncStorage set error for key "${key}":`, err);
         setError(err as Error);
       }
     },

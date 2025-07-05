@@ -1,24 +1,31 @@
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 interface PowerButtonProps {
   onPress: () => void;
   disabled?: boolean;
+  connected?: boolean;
 }
 
 export const PowerButton: React.FC<PowerButtonProps> = ({
   onPress,
   disabled = false,
+  connected = false,
 }) => {
   return (
     <View style={styles.centerContent}>
       <TouchableOpacity
-        style={[styles.powerButton, disabled && styles.powerButtonDisabled]}
+        style={[
+          styles.powerButton,
+          disabled && styles.powerButtonDisabled,
+          connected && styles.powerButtonConnected,
+        ]}
         onPress={onPress}
         disabled={disabled}
       >
         <Text style={[styles.powerIcon, disabled && styles.powerIconDisabled]}>
-          ⏻
+          <Ionicons name="power" size={32} color="white" />
         </Text>
       </TouchableOpacity>
     </View>
@@ -55,5 +62,8 @@ const styles = StyleSheet.create({
   },
   powerIconDisabled: {
     color: "#ccc",
+  },
+  powerButtonConnected: {
+    backgroundColor: "#008000",
   },
 });

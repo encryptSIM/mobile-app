@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import "../global.css";
 import SplashScreen from "./splash-screen";
 import { AuthProvider, useAuth } from "@/context/auth-context";
+import { createDevice } from "@/service/vpnService";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -47,7 +48,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { publicKey, loading } = useAuth();
+  const { publicKey, loading, deviceToken, setDeviceToken } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -56,7 +57,7 @@ function RootLayoutNav() {
         router.replace("/(tabs)/esim/package");
       }
     }
-  }, [publicKey, loading, router]);
+  }, [publicKey, loading, router, deviceToken]);
 
   return (
     <ThemeProvider

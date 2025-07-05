@@ -155,6 +155,47 @@ export default function V2RayTestComponent() {
     setTesting(false);
   };
 
+  const testServerConnectivity = async () => {
+    try {
+      addLog("🔗 Testing V2Ray server connectivity...");
+      const result = await V2RayModule.testServerConnectivity();
+      addLog(`✅ Server connectivity test successful!`);
+      addLog(`📍 Server: ${result.serverAddress}:${result.serverPort}`);
+      addLog(`📊 Status: ${result.status}`);
+    } catch (error: any) {
+      addLog(`❌ Server connectivity test failed: ${error.message}`);
+      if (error.message.includes("timeout")) {
+        addLog("💡 This could be due to:");
+        addLog("   • Server is down or unreachable");
+        addLog("   • Network firewall blocking connections");
+        addLog("   • Your device is on VPN that blocks the server");
+      }
+    }
+  };
+
+  const testProxyConnection = async () => {
+    try {
+      addLog("🌐 Testing V2Ray proxy connection...");
+      const result = await V2RayModule.testProxyConnection();
+      addLog(`✅ Proxy test successful!`);
+      addLog(`🌍 External IP: ${result.externalIp}`);
+      addLog(`📊 Response: ${result.status}`);
+      addLog(`🔗 Full response: ${result.fullResponse}`);
+    } catch (error: any) {
+      addLog(`❌ Proxy test failed: ${error.message}`);
+      if (
+        error.message.includes("timeout") ||
+        error.message.includes("not accessible")
+      ) {
+        addLog("💡 This could be due to:");
+        addLog("   • V2Ray core not running properly");
+        addLog("   • Server connectivity issues");
+        addLog("   • Network conflicts with existing VPN");
+        addLog("   • Try testing server connectivity first");
+      }
+    }
+  };
+
   return (
     <View className="flex-1 p-4 bg-gray-100">
       <Text className="text-xl font-bold mb-4">V2Ray Debug Console</Text>
@@ -193,6 +234,22 @@ export default function V2RayTestComponent() {
           className="px-4 py-2 rounded bg-orange-500"
         >
           <Text className="text-white font-medium">Request VPN Permission</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={testServerConnectivity}
+          disabled={testing}
+          className="px-4 py-2 rounded bg-blue-500"
+        >
+          <Text className="text-white font-medium">Test Server</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={testProxyConnection}
+          disabled={testing}
+          className="px-4 py-2 rounded bg-green-500"
+        >
+          <Text className="text-white font-medium">Test Proxy</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

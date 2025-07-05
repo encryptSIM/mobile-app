@@ -17,10 +17,10 @@ import { useBalance } from "@/hooks/balance";
 import { useAuth } from "@/context/auth-context";
 
 export default function ProfileScreen() {
-  const { publicKey, setValue } = useAuth();
+  const { publicKey, setValue, deviceToken } = useAuth();
   const { balance, error, refreshBalance } = useBalance(publicKey || "");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
+  console.log("deviceToken", deviceToken);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.screen}>
