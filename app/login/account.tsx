@@ -98,7 +98,7 @@ export default function AccountScreen() {
     }
   }, [params.get("state")]);
 
-  if (loading || deviceTokenLoading || !deviceToken) {
+  if (loading || deviceTokenLoading) {
     return (
       <SafeAreaView
         style={[

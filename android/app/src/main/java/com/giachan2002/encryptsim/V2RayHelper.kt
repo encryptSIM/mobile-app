@@ -110,6 +110,7 @@ object V2RayHelper {
                 1L -> Log.w(TAG, "[Core] WARNING: $message")
                 2L -> Log.e(TAG, "[Core] ERROR: $message")
                 else -> Log.i(TAG, "[Core] [$code]: $message")
+                
             }
             return 0
         }
