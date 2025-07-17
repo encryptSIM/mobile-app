@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-logo.png",
-    "scheme": "encryptSIM",
+    "scheme": "encryptsim",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
