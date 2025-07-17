@@ -6,13 +6,25 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_RPC_URL": "https://api.devnet.solana.com",
+        "EXPO_PUBLIC_API_URL": "https://example.com"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_RPC_URL": "https://api.testnet.solana.com",
+        "EXPO_PUBLIC_API_URL": "https://example.com"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_RPC_URL": "https://api.mainnet-beta.solana.com",
+        "EXPO_PUBLIC_API_URL": "https://example.com"
+      }
     },
     "dapp-store": {
       "channel": "development",
