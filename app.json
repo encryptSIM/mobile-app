@@ -5,7 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-logo.png",
-    "resizeMode": "contain",
     "scheme": "encryptSIM",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
