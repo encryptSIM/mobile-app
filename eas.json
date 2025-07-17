@@ -21,15 +21,18 @@
     },
     "production": {
       "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_RPC_URL": "https://api.mainnet-beta.solana.com",
-        "EXPO_PUBLIC_API_URL": "https://example.com"
+      "android": {
+        "ndk": "26.2.11394342",
+        "image": "latest",
+        "buildType": "app-bundle"
       }
     },
     "dapp-store": {
       "channel": "development",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "ndk": "26.2.11394342",
+        "image": "latest"
       },
       "config": "dapp-store.yml"
     }

@@ -16,6 +16,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "deploymentTarget": "15.1",
       "splash": {
         "image": "./assets/splash/logo.png",
         "resizeMode": "contain",
@@ -23,7 +24,18 @@
       },
       "bundleIdentifier": "com.giachan2002.encryptsim",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": [
+          "https",
+          "solana-wallet",
+          "phantom",
+          "solflare",
+          "glow",
+          "trust",
+          "backpack",
+          "mathwallet",
+          "metamask"
+        ]
       }
     },
     "android": {
@@ -32,7 +44,33 @@
         "resizeMode": "contain",
         "backgroundColor": "#0A0F1C"
       },
-      "package": "com.giachan2002.encryptsim"
+      "package": "com.giachan2002.encryptsim",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 23,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
+          "data": {
+            "scheme": "https",
+            "host": "encryptsim.com"
+          }
+        },
+        {
+          "action": "VIEW",
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
+          "data": {
+            "scheme": "encryptSIM"
+          }
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -41,9 +79,19 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font",
-      "expo-web-browser",
-      "expo-secure-store"
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          },
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 23
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -54,9 +102,7 @@
         "projectId": "f311d411-62b2-4dec-b531-1fd384fd0a64"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/504c0721-f7ed-48de-8f62-79c5efaf7a4c"
     },

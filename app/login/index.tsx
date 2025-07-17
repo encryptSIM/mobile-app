@@ -9,13 +9,13 @@ import { useEffect } from "react";
 
 export default function LoginScreen() {
   const { colors } = useTheme();
-  const { publicKey, loading } = useAuth();
+  const { publicKey, loading, deviceToken, deviceTokenLoading } = useAuth();
 
   useEffect(() => {
-    if (publicKey) {
+    if (publicKey && deviceToken && !deviceTokenLoading) {
       router.replace("/(tabs)/esim/package");
     }
-  }, [loading, publicKey]);
+  }, [loading, publicKey, deviceToken, deviceTokenLoading]);
 
   return (
     <SafeAreaView
