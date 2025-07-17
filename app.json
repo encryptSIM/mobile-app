@@ -7,7 +7,7 @@
     "icon": "./assets/app-logo.png",
     "resizeMode": "contain",
     "scheme": "encryptSIM",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash/logo.png",
