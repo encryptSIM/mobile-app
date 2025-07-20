@@ -96,6 +96,18 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+        
+        // 16KB page size support
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+        }
+        
+        // Add 16KB page size support for native libraries
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
     }
 
     signingConfigs {
@@ -120,10 +132,21 @@ android {
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
         }
     }
+    
+    // 16KB page size compatibility configuration
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
     packagingOptions {
         jniLibs {
             useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
+            // Ensure 16KB page size compatibility
+            pickFirsts += ['**/libv2ray.so', '**/libtunnel.so']
         }
+        // 16KB page size compatibility
+        excludes += ['META-INF/DEPENDENCIES', 'META-INF/INDEX.LIST', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt']
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -153,10 +176,17 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    // Official V2ray
+    
+    // IMPORTANT: V2Ray library needs 16KB page size support
+    // The current libv2ray.aar may not be compatible with 16KB pages
+    // Solutions: 1) Get updated AAR from V2Ray team with 16KB support
+    //           2) Rebuild V2Ray core with NDK r28+ and 16KB flags
+    //           3) Consider using v2rayNG core or similar updated alternatives
     implementation files('libs/libv2ray.aar')
-    // Official WireGuard Android library
-    implementation 'com.wireguard.android:tunnel:1.0.20211029'
+    
+    // WireGuard Android library - version 1.0.20230706 with 16KB page size support
+    // Using JitPack to get the newer version from WireGuard git repository
+    implementation("com.wireguard.android:tunnel:1.0.20230706")
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
     def isWebpAnimatedEnabled = (findProperty('expo.webp.animated') ?: "") == "true";

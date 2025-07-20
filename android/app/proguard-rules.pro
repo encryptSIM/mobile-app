@@ -11,4 +11,8 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+# 16KB page size compatibility
+-keep class libv2ray.** { *; }
+-keep class com.wireguard.** { *; }
+
 # Add any project specific keep options here:

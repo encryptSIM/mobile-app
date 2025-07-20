@@ -32,10 +32,15 @@ allprojects {
 
     google()
     mavenCentral()
-    maven { url 'https://www.jitpack.io' }
+    // JitPack repository for WireGuard Android 1.0.20230706
+    maven { 
+      url 'https://jitpack.io'
+      content { 
+        includeGroup "com.github.WireGuard" 
+      }
+    }
     maven { url 'https://maven.google.com' }
     maven { url 'https://repo1.maven.org/maven2/' }
-    maven { url 'https://dl.bintray.com/wireguard/wireguard-android' }
   }
 }
 
