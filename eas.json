@@ -9,14 +9,14 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_RPC_URL": "https://api.devnet.solana.com",
-        "EXPO_PUBLIC_API_URL": "https://example.com"
+        "EXPO_PUBLIC_API_URL": "https://api-63k4aibnea-de.a.run.app"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_RPC_URL": "https://api.testnet.solana.com",
-        "EXPO_PUBLIC_API_URL": "https://example.com"
+        "EXPO_PUBLIC_API_URL": "https://api-63k4aibnea-de.a.run.app"
       }
     },
     "production": {
