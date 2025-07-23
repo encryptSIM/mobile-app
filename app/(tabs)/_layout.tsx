@@ -1,6 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import Colors from "@/constants/Colors";
@@ -26,6 +26,16 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
+        name="index"
+        options={{
+          headerShown: false,
+          title: "eSim Home",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="mobile-phone" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="esim"
         options={{
           headerShown: false,
@@ -33,20 +43,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="mobile-phone" color={color} />
           ),
-          // headerRight: () => (
-          //   <Link href="/modal" asChild>
-          //     <Pressable>
-          //       {({ pressed }) => (
-          //         <FontAwesome
-          //           name="info-circle"
-          //           size={25}
-          //           color={Colors[colorScheme ?? "light"].text}
-          //           style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-          //         />
-          //       )}
-          //     </Pressable>
-          //   </Link>
-          // ),
         }}
       />
       <Tabs.Screen
