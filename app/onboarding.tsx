@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,8 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  ActivityIndicator,
   Platform,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 import { useAuth } from "@/components/auth/auth-provider";
 
 // Responsive scaling helpers
@@ -26,7 +23,7 @@ const slides = [
     key: "1",
     title: "Unbreakable Security",
     description: "eSIM + dVPN.\nNo trackers, no logs.",
-    image: require("../../assets/onboarding/shield.png"),
+    image: require("@/assets/onboarding/shield.png"),
     buttonText: "Next",
   },
   {
@@ -34,7 +31,7 @@ const slides = [
     title: "Speed Meets Freedom",
     description:
       "Global 5G in 138+ countries, fast servers.\nSentinel dVPN boosts speed with privacy.",
-    image: require("../../assets/onboarding/rocket.png"),
+    image: require("@/assets/onboarding/rocket.png"),
     buttonText: "Next",
   },
   {
@@ -42,7 +39,7 @@ const slides = [
     title: "Your Web3 Gateway",
     description:
       "No KYC, crypto-ready, from $1.95 or $99/yr.\nInstant eSIM + dVPN for secure global use.",
-    image: require("../../assets/onboarding/solana.png"),
+    image: require("@/assets/onboarding/solana.png"),
     buttonText: "Get Started",
   },
 ];

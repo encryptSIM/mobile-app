@@ -48,20 +48,15 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
+  if (isLoading) return null
   return (
     <ThemeProvider
       value={colorScheme === "dark" ? DarkThemeCustom : LightTheme}
     >
       <Stack>
         <Stack.Protected guard={!isAuthenticated}>
-          <Stack.Screen
-            name="onboarding/index"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="login/index" options={{ headerShown: false }} />
-          <Stack.Screen name="login/account" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
