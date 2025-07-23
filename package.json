@@ -12,6 +12,21 @@
   "jest": {
     "preset": "jest-expo"
   },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@solana-mobile/mobile-wallet-adapter-protocol",
+          "@solana-mobile/mobile-wallet-adapter-protocol-web3js",
+          "@solana/spl-token",
+          "@solana/web3.js",
+          "@wallet-standard/core",
+          "deepmerge",
+          "js-base64"
+        ]
+      }
+    }
+  },
   "dependencies": {
     "@expo/plist": "^0.3.5",
     "@expo/vector-icons": "^14.0.2",
@@ -21,6 +36,7 @@
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.2",
     "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.2.2",
     "@solana/web3.js": "^1.98.2",
+    "@tanstack/react-query": "^5.83.0",
     "axios": "^1.9.0",
     "bip39": "^3.1.0",
     "buffer": "^6.0.3",
@@ -56,6 +72,11 @@
     "react-native-svg": "15.11.2",
     "react-native-web": "^0.20.0",
     "tailwind-merge": "^3.2.0",
+    "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.2",
+    "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.2.2",
+    "@solana/spl-token": "^0.4.13",
+    "react-native-paper": "^5.14.5",
+    "@react-native-clipboard/clipboard": "^1.16.2",
     "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
