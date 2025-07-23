@@ -7,14 +7,12 @@ import * as SplashScreenAPI from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 
+import { AppProviders } from "@/components/app-providers";
+import { useAuth } from "@/components/auth/auth-provider";
 import { useColorScheme } from "@/components/useColorScheme";
 import { DarkThemeCustom, LightTheme } from "@/constants/custom-theme";
-import { useAsyncStorage } from "@/hooks/asyn-storage-hook";
-import { useRouter } from "expo-router";
 import "../global.css";
 import SplashScreen from "./splash-screen";
-import { AuthProvider, useAuth } from "@/context/auth-context";
-import { createDevice } from "@/service/vpnService";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -27,15 +25,9 @@ export const unstable_settings = {
 SplashScreenAPI.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  const [fontsLoaded] = useFonts({ ...FontAwesome.font });
+  const [splashFinished, setSplashFinished] = useState(false);
+  const ready = fontsLoaded && splashFinished;
 
   useEffect(() => {
     if (loaded) {
@@ -48,38 +40,32 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
+    <AppProviders>
       <RootLayoutNav />
-    </AuthProvider>
+    </AppProviders>
   );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { publicKey, loading, deviceToken, setDeviceToken } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading) {
-      if (publicKey) {
-        router.replace("/(tabs)/esim/package");
-      }
-    }
-  }, [publicKey, loading, router, deviceToken]);
-
+  const { isAuthenticated } = useAuth()
   return (
     <ThemeProvider
       value={colorScheme === "dark" ? DarkThemeCustom : LightTheme}
     >
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="onboarding/index"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="login/index" options={{ headerShown: false }} />
-        <Stack.Screen name="login/account" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        <Stack.Protected guard={!isAuthenticated}>
+          <Stack.Screen
+            name="onboarding/index"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="login/index" options={{ headerShown: false }} />
+          <Stack.Screen name="login/account" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        </Stack.Protected>
+        <Stack.Protected guard={isAuthenticated}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack.Protected>
       </Stack>
     </ThemeProvider>
   );

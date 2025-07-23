@@ -15,10 +15,10 @@ import { PowerButton } from "../../components/PowerButton";
 import { PromoCard } from "../../components/PromoCard";
 import { TopBar } from "../../components/TopBar";
 import { useWireGuardVpn } from "../../hooks/use-wireguard-vpn";
-import { useAuth } from "../../context/auth-context";
 import { createDevice } from "../../service/vpnService";
 import { ServerSelectionModal } from "../../components/ServerSelectionModal";
 import VPNServerTester from "../../components/VPNServerTester";
+import { useAuth } from "@/components/auth/auth-provider";
 // import { useV2RayVpn } from "../../hooks/use-v2ray-vpn";
 // import V2RayTestComponent from "../../components/V2RayTestComponent";
 
@@ -318,7 +318,7 @@ export default function DVpnScreen() {
                   style={[
                     styles.configButtonText,
                     selectedConfigIndex === 0 &&
-                      styles.configButtonTextSelected,
+                    styles.configButtonTextSelected,
                   ]}
                 >
                   Your Server
@@ -336,7 +336,7 @@ export default function DVpnScreen() {
                   style={[
                     styles.configButtonText,
                     selectedConfigIndex === 1 &&
-                      styles.configButtonTextSelected,
+                    styles.configButtonTextSelected,
                   ]}
                 >
                   Test 1 (US)
@@ -354,7 +354,7 @@ export default function DVpnScreen() {
                   style={[
                     styles.configButtonText,
                     selectedConfigIndex === 2 &&
-                      styles.configButtonTextSelected,
+                    styles.configButtonTextSelected,
                   ]}
                 >
                   Test 2 (Alt)

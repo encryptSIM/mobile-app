@@ -7,13 +7,13 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-import { useAuth } from "@/context/auth-context";
 import {
   getCountries,
   getCities,
   getServers,
   createCredentials,
 } from "@/service/vpnService";
+import { useAuth } from "./auth/auth-provider";
 
 export default function VPNServerTester() {
   const { deviceToken } = useAuth();

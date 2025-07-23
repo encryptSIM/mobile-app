@@ -14,14 +14,14 @@ import {
   View,
 } from "react-native";
 import { useBalance } from "@/hooks/balance";
-import { useAuth } from "@/context/auth-context";
-import { WalletConnectionButton } from "@/components/WalletConnectionButton";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
 
 export default function ProfileScreen() {
-  const { publicKey, setValue, deviceToken } = useAuth();
-  const { balance, error, refreshBalance } = useBalance();
+  const { account } = useWalletUi()
+  const { signOut } = useAuth()
+  const { balance, error, refreshBalance } = useBalance(account?.publicKey.toString() || "");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  console.log("deviceToken", deviceToken);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.screen}>
@@ -38,7 +38,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={async () => {
-              await Clipboard.setStringAsync(publicKey || "");
+              await Clipboard.setStringAsync(account?.publicKey.toString() || "");
               ToastAndroid.show("Address copied!", ToastAndroid.SHORT);
             }}
             style={styles.addressButton}
@@ -46,7 +46,7 @@ export default function ProfileScreen() {
             <View style={styles.addressRow}>
               <Feather name="copy" size={16} color="#4ade80" />
               <Text style={styles.addressText}>
-                {addressFormatter(publicKey || "")}
+                {addressFormatter(account?.publicKey.toString() || "")}
               </Text>
             </View>
           </TouchableOpacity>
@@ -78,7 +78,7 @@ export default function ProfileScreen() {
               label="Edit Profile"
               iconName="user"
               variant="moonlight"
-              onPress={() => {}}
+              onPress={() => { }}
             />
             <AppButton
               label="Logout"
@@ -118,9 +118,8 @@ export default function ProfileScreen() {
 
               <TouchableOpacity
                 onPress={async () => {
-                  await setValue("");
                   setShowLogoutConfirm(false);
-                  router.replace("/login");
+                  await signOut()
                 }}
                 style={[styles.modalButton, { backgroundColor: "#EF4444" }]}
               >

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/components/auth/auth-provider";
 
 // Responsive scaling helpers
 const { width, height } = Dimensions.get("window");
@@ -48,37 +49,17 @@ const slides = [
 
 export default function Onboarding() {
   const [index, setIndex] = useState(0);
-  const [loading, setLoading] = useState(false); // Default: show onboarding, not loader
-  const router = useRouter();
+  const { signIn } = useAuth()
 
-  useEffect(() => {
-    const checkFirstTime = async () => {
-      const isFirstTime = await AsyncStorage.getItem("isFirstTime");
-      if (isFirstTime === "false") {
-        router.replace("/login");
-      } else {
-        setLoading(false);
-      }
-    };
-    checkFirstTime();
-  }, []);
 
   const handleNext = async () => {
     if (index < slides.length - 1) {
       setIndex((prev) => prev + 1);
     } else {
-      await AsyncStorage.setItem("isFirstTime", "false");
-      router.replace("/login");
+      await signIn()
+
     }
   };
-
-  if (loading) {
-    return (
-      <View style={[styles.container, { justifyContent: "center" }]}>
-        <ActivityIndicator size="large" color="#7BE596" />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
