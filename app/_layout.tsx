@@ -1,3 +1,4 @@
+import "react-native-get-random-values"; // Must be first import for crypto support
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -18,25 +19,32 @@ import { createDevice } from "@/service/vpnService";
 export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)/esim/package",
+  // Ensure that reloading on `/modal` keeps a back button present.
+  initialRouteName: "(tabs)",
 };
 
+// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreenAPI.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ ...FontAwesome.font });
-  const [splashFinished, setSplashFinished] = useState(false);
+  const [loaded, error] = useFonts({
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    ...FontAwesome.font,
+  });
 
-  const ready = fontsLoaded && splashFinished;
+  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+  useEffect(() => {
+    if (error) throw error;
+  }, [error]);
 
   useEffect(() => {
-    if (ready) {
+    if (loaded) {
       SplashScreenAPI.hideAsync();
     }
-  }, [ready]);
+  }, [loaded]);
 
-  if (!ready) {
-    return <SplashScreen onFinish={() => setSplashFinished(true)} />;
+  if (!loaded) {
+    return null;
   }
 
   return (

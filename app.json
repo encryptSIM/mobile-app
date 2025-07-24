@@ -16,6 +16,7 @@
     },
     "ios": {
       "supportsTablet": true,
+      "deploymentTarget": "15.1",
       "splash": {
         "image": "./assets/splash/logo.png",
         "resizeMode": "contain",
@@ -23,7 +24,17 @@
       },
       "bundleIdentifier": "com.giachan2002.encryptsim",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": [
+          "https",
+          "solana-wallet",
+          "phantom",
+          "solflare",
+          "glow",
+          "trust",
+          "backpack",
+          "mathwallet"
+        ]
       }
     },
     "android": {
@@ -32,7 +43,33 @@
         "resizeMode": "contain",
         "backgroundColor": "#0A0F1C"
       },
-      "package": "com.giachan2002.encryptsim"
+      "package": "com.giachan2002.encryptsim",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 23,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
+          "data": {
+            "scheme": "https",
+            "host": "encryptsim.com"
+          }
+        },
+        {
+          "action": "VIEW",
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
+          "data": {
+            "scheme": "encryptSIM"
+          }
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -41,9 +78,19 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font",
-      "expo-web-browser",
-      "expo-secure-store"
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          },
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 23
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
