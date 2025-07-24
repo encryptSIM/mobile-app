@@ -1,163 +1,151 @@
-import { Header } from "@/components/Header";
-import { Text, View } from "@/components/Themed";
-import { errorLog } from "@/service/error-log";
+import EvilIcons from "@react-native-vector-icons/fontawesome";
+import React, { useState, useCallback, useMemo } from "react";
+import { Image, FlatList, StyleSheet, View } from "react-native";
+import { TextInput } from "react-native-paper";
+import Fuse from "fuse.js";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import SlidingTabs from "@/components/Tab";
 import {
-  getPackages,
-  type EsimPackage,
-  type RegionPackage,
-} from "@/service/package";
-import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { SafeAreaView, Switch } from "react-native";
+  PackageCardData,
+  countries,
+  regions,
+  transformCountriesToCardData,
+  transformRegionsToCardData,
+} from "@/constants/countries";
+import { PackageCard } from "@/components/packageCard";
+import PackageLocationListHeader from "@/components/PackageLocationListHeader";
 
-type DropdownOption = { label: string; value: string };
-
-const PackageTypeSwitch = React.memo(
-  ({
-    type,
-    onTypeChange,
-  }: {
-    type: "global" | "local";
-    onTypeChange: (value: boolean) => void;
-  }) => (
-    <View className="flex-row justify-between items-center mb-4">
-      <Text className="text-lg font-medium">Show Local Packages</Text>
-      <Switch value={type === "local"} onValueChange={onTypeChange} />
-    </View>
-  )
-);
-
-const PriceDisplay = React.memo(({ price }: { price: number | undefined }) => (
-  <View className="mt-4">
-    <Text className="text-lg font-semibold mb-2">Price</Text>
-    <Text className="text-center text-green-600 text-xl font-bold">
-      {price ? `$${price}` : "Not available"}
-    </Text>
-  </View>
-));
+const tabs = ["Countries", "Regional plan"];
 
 export default function HomeScreen() {
-  const [packages, setPackages] = useState<RegionPackage[]>([]);
-  const [region, setRegion] = useState<string>("");
-  const [selectedDataSize, setSelectedDataSize] = useState<string | null>(null);
-  const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
-  const [type, setType] = useState<"global" | "local">("global");
-  const [packageId, setPackageId] = useState<string | null>(null);
-  const router = useRouter();
+  const { account } = useWalletUi();
+  const [tabIndex, setTabIndex] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const capitalize = useCallback(
-    (str: string) =>
-      str
-        .split("-")
-        .map((w) => w[0].toUpperCase() + w.slice(1))
-        .join(" "),
+  const handleTabChange = useCallback((index: number) => {
+    setTabIndex(index);
+  }, []);
+
+  const rawData = useMemo((): PackageCardData[] => {
+    if (tabIndex === 0) {
+      return transformCountriesToCardData(countries).filter(
+        (item) => !item.disabled
+      );
+    } else {
+      return transformRegionsToCardData(regions);
+    }
+  }, [tabIndex]);
+
+  const fuse = useMemo(() => {
+    return new Fuse(rawData, {
+      keys: ["label"],
+      threshold: 0.3,
+    });
+  }, [rawData]);
+
+  const filteredData = useMemo(() => {
+    if (!searchQuery) {
+      return rawData;
+    }
+    return fuse.search(searchQuery).map((result) => result.item);
+  }, [searchQuery, rawData, fuse]);
+
+  const renderCard = useCallback(
+    ({ item }: { item: PackageCardData }) => (
+      <View style={styles.cardContainer}>
+        <PackageCard
+          onPress={() => console.log("Card pressed", item)}
+          label={item.label}
+          countryCode={item.countryCode}
+          imageUri={item.imageUri}
+        />
+      </View>
+    ),
     []
   );
 
-  useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        const res = await getPackages({ type });
-        const data: RegionPackage[] = res.data;
-        setPackages(data);
-        if (data.length > 0) setRegion(data[0].region);
-      } catch (error) {
-        await errorLog(error as Error);
-        console.error("Failed to fetch packages:", error);
-      }
-    };
-
-    fetchPackages();
-  }, [type]);
-
-  const regionOptions = useMemo<DropdownOption[]>(
-    () =>
-      packages.map((r) => ({
-        label: capitalize(r.region),
-        value: r.region,
-      })),
-    [packages, capitalize]
-  );
-
-  const validPackages = useMemo<EsimPackage[]>(() => {
-    const selected = packages.find((r) => r.region === region);
-    return selected
-      ? selected.operators
-        .flatMap((op) => op.packages)
-        .filter((p) => typeof p.price === "number" && !isNaN(p.price))
-      : [];
-  }, [region, packages]);
-
-  const dataSizes = useMemo<string[]>(
-    () => Array.from(new Set(validPackages.map((p) => p.data))),
-    [validPackages]
-  );
-
-  const durations = useMemo<string[]>(
-    () =>
-      Array.from(
-        new Set(
-          validPackages
-            .filter((p) => p.data === selectedDataSize)
-            .map((p) => `${p.day}`)
-        )
-      ),
-    [validPackages, selectedDataSize]
-  );
-
-  const currentPrice = useMemo(() => {
-    const selectedPackage = validPackages.find(
-      (p) => p.data === selectedDataSize && `${p.day}` === selectedDuration
-    );
-    setPackageId(selectedPackage?.id ?? null);
-    return selectedPackage?.price;
-  }, [validPackages, selectedDataSize, selectedDuration]);
-
-  useEffect(() => {
-    if (dataSizes.length > 0) {
-      setSelectedDataSize(dataSizes[0]);
-    } else {
-      setSelectedDataSize(null);
-      setSelectedDuration(null);
-    }
-  }, [dataSizes]);
-
-  useEffect(() => {
-    if (durations.length > 0) {
-      setSelectedDuration(durations[0]);
-    } else {
-      setSelectedDuration(null);
-    }
-  }, [durations]);
-
-  const handleCreateOrder = useCallback(() => {
-    if (!packageId || !currentPrice) {
-      console.error("Missing required data for order creation");
-      return;
-    }
-    console.log("packageId", packageId);
-    console.log("currentPrice", currentPrice);
-
-    router.push({
-      pathname: "/esim/order-processing",
-      params: {
-        packageId: packageId,
-        price: currentPrice.toString(),
-        type: type,
-      },
-    });
-  }, [packageId, currentPrice, router]);
-
-  const handleTypeChange = useCallback((value: boolean) => {
-    setType(value ? "local" : "global");
-  }, []);
-
   return (
-    <View className="h-full">
-      <SafeAreaView className="flex-1">
-        <Header showBackButton={false} title="eSIM Home" />
-      </SafeAreaView>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Image
+            source={require("../../assets/app-logo-light.png")}
+            style={styles.logo}
+          />
+          <Image source={{ uri: account?.icon }} style={styles.icon} />
+        </View>
+        <TextInput
+          placeholder="Search your destination"
+          mode="outlined"
+          value={searchQuery}
+          textColor="white"
+          onChangeText={setSearchQuery}
+          left={
+            <TextInput.Icon
+              icon={() => <EvilIcons name="search" size={24} color="gray" />}
+            />
+          }
+        />
+        <View style={styles.searchSpacing} />
+        <FlatList
+          data={filteredData}
+          keyExtractor={(item) => item.id}
+          renderItem={renderCard}
+          numColumns={2}
+          columnWrapperStyle={styles.columnWrapper}
+          ListHeaderComponent={<PackageLocationListHeader tabs={tabs} activeTab={tabIndex} onTabChange={handleTabChange} />}
+          stickyHeaderIndices={[0]}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        />
+      </View>
     </View>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 36,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingBottom: 32,
+  },
+  logo: {
+    width: 48,
+    height: 48,
+  },
+  icon: {
+    width: 48,
+    height: 48,
+  },
+  searchSpacing: {
+    height: 16,
+  },
+  tabsContainer: {
+    position: "relative",
+    zIndex: 1000,
+    width: "100%",
+    backgroundColor: "#111926",
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  listContent: {
+    paddingBottom: 16,
+  },
+  columnWrapper: {
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  },
+  cardContainer: {
+    flex: 1,
+    marginHorizontal: 8,
+  },
+});

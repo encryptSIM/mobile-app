@@ -29,7 +29,6 @@ export default function TabLayout() {
         name="index"
         options={{
           headerShown: false,
-          title: "eSim Home",
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="mobile-phone" color={color} />
           ),
