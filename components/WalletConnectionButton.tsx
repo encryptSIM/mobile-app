@@ -30,6 +30,7 @@ export const WalletConnectionButton: React.FC<WalletConnectionButtonProps> = ({
   const { colors } = useTheme();
   const { wallet, isWalletConnected, currentPublicKey } = useAuth();
   const [connecting, setConnecting] = useState(false);
+  console.log("wallet", wallet);
 
   const handleConnect = async () => {
     if (connecting) return;

@@ -43,15 +43,15 @@ export const useBalance = (): UseBalanceReturn => {
 
             console.log('🔄 Fetching balance for:', currentPublicKey);
 
-            // Initialize connection to Solana network with commitment level
+            // Initialize connection to Solana testnet
             const connection = new Connection(
-                process.env.EXPO_PUBLIC_RPC_URL || clusterApiUrl("mainnet-beta"),
+                clusterApiUrl('testnet'),
                 {
                     commitment: 'confirmed',
                     confirmTransactionInitialTimeout: 60000,
                 }
             );
-            console.log('✅ Connection established');
+            console.log('✅ Connection established (testnet)');
 
             // Get balance in lamports using the PublicKey object
             const balanceInLamports = await connection.getBalance(currentPublicKeyObject);

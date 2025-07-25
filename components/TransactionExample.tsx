@@ -32,13 +32,10 @@ export const TransactionExample: React.FC<TransactionExampleProps> = ({
   const { signTransaction, signAndSendTransaction } = useMobileWallet();
   const [processing, setProcessing] = useState(false);
 
-  const connection = new Connection(
-    process.env.EXPO_PUBLIC_RPC_URL || clusterApiUrl("mainnet-beta"),
-    {
-      commitment: "confirmed",
-      confirmTransactionInitialTimeout: 60000,
-    }
-  );
+  const connection = new Connection(clusterApiUrl("testnet"), {
+    commitment: "confirmed",
+    confirmTransactionInitialTimeout: 60000,
+  });
 
   const handleTestTransaction = async () => {
     if (!isWalletConnected || !currentPublicKeyObject) {
@@ -218,7 +215,8 @@ export const TransactionExample: React.FC<TransactionExampleProps> = ({
           Transaction Examples
         </Text>
         <Text style={[styles.message, { color: colors.text }]}>
-          Please connect your wallet to test transaction signing
+          You are not connected to a wallet. You can still use most features,
+          but wallet-based transactions will be unavailable.
         </Text>
         {onClose && (
           <TouchableOpacity

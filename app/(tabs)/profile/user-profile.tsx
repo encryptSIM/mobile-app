@@ -15,10 +15,11 @@ import {
 } from "react-native";
 import { useBalance } from "@/hooks/balance";
 import { useAuth } from "@/context/auth-context";
+import { WalletConnectionButton } from "@/components/WalletConnectionButton";
 
 export default function ProfileScreen() {
   const { publicKey, setValue, deviceToken } = useAuth();
-  const { balance, error, refreshBalance } = useBalance(publicKey || "");
+  const { balance, error, refreshBalance } = useBalance();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   console.log("deviceToken", deviceToken);
   return (
@@ -87,6 +88,7 @@ export default function ProfileScreen() {
                 setShowLogoutConfirm(true);
               }}
             />
+            <WalletConnectionButton />
           </View>
         </View>
       </View>

@@ -14,8 +14,8 @@ export interface AuthorizedWallet {
 
 export interface Account {
     address: string;
-    publicKey: PublicKey;
     label?: string;
+    // publicKey is no longer needed here
 }
 
 interface UseMobileWalletReturn {
@@ -75,7 +75,7 @@ export const useMobileWallet = (): UseMobileWalletReturn => {
     }, [authorizedWallet]);
 
     const publicKey = useMemo(() => {
-        return selectedAccount?.publicKey || null;
+        return null;
     }, [selectedAccount]);
 
     // Handle app state changes for wallet session management
@@ -106,17 +106,16 @@ export const useMobileWallet = (): UseMobileWalletReturn => {
                     identity: WALLET_ADAPTER_CONFIG.appIdentity,
                 });
 
-                console.log('✅ Wallet authorization successful:', {
-                    accounts: authResult.accounts.length,
-                    walletUriBase: authResult.wallet_uri_base,
-                });
-
-                // Convert accounts to our format
+                console.log('🪪 Raw accounts from wallet:', authResult.accounts);
+                // Convert accounts to our format, filtering out invalid base58 addresses
                 const accounts: Account[] = authResult.accounts.map((account) => ({
                     address: account.address,
-                    publicKey: new PublicKey(account.address),
                     label: account.label,
                 }));
+                console.log("accounts", accounts);
+                if (accounts.length === 0) {
+                    throw new Error('No valid wallet accounts found (invalid base58 public keys)');
+                }
 
                 // Select the first account as the default selected account
                 const selectedAccount = accounts[0];
@@ -127,10 +126,12 @@ export const useMobileWallet = (): UseMobileWalletReturn => {
                     walletUriBase: authResult.wallet_uri_base,
                 };
 
+                console.log('👜 Authorized wallet object:', authorizedWallet);
+
                 setAuthorizedWallet(authorizedWallet);
                 setConnected(true);
 
-                console.log('✅ Wallet connected successfully:', selectedAccount.address);
+                console.log('✅ Wallet connected successfully:', selectedAccount?.address);
             });
         } catch (error: any) {
             console.error('❌ Wallet connection failed:', error);
@@ -178,7 +179,6 @@ export const useMobileWallet = (): UseMobileWalletReturn => {
                 // Update account info if needed
                 const accounts: Account[] = authResult.accounts.map((account) => ({
                     address: account.address,
-                    publicKey: new PublicKey(account.address),
                     label: account.label,
                 }));
 
