@@ -9,8 +9,7 @@ import "react-native-reanimated";
 
 import { AppProviders } from "@/components/app-providers";
 import { useAuth } from "@/components/auth/auth-provider";
-import { useColorScheme } from "@/components/useColorScheme";
-import { DarkThemeCustom, LightTheme } from "@/constants/custom-theme";
+import { DarkThemeCustom } from "@/constants/custom-theme";
 import "../global.css";
 import SplashScreen from "./splash-screen";
 
@@ -47,12 +46,11 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
   const { isAuthenticated, isLoading } = useAuth()
   if (isLoading) return null
   return (
     <ThemeProvider
-      value={colorScheme === "dark" ? DarkThemeCustom : LightTheme}
+      value={DarkThemeCustom}
     >
       <Stack>
         <Stack.Protected guard={!isAuthenticated}>
@@ -60,6 +58,7 @@ function RootLayoutNav() {
         </Stack.Protected>
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="checkout" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
     </ThemeProvider>

@@ -1,15 +1,17 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Tabs } from "expo-router";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import Colors from "@/constants/Colors";
+import { Icon } from "react-native-paper";
 
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>["name"];
+  name: 'dVPN' | 'eSIM' | 'Profile'
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  if (props.name === 'eSIM') return <Icon source={require('@/assets/sim-card.png')} size={24} color={props.color} />
+  if (props.name === 'Profile') return <Icon source={require('@/assets/profile.png')} size={24} color={props.color} />
+  return <Icon source={require('@/assets/dvpn.png')} size={24} color={props.color} />
 }
 
 export default function TabLayout() {
@@ -29,19 +31,8 @@ export default function TabLayout() {
         name="index"
         options={{
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="mobile-phone" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="esim"
-        options={{
-          headerShown: false,
-          title: "eSim",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="mobile-phone" color={color} />
-          ),
+          title: 'eSIM',
+          tabBarIcon: ({ color }) => <TabBarIcon name="eSIM" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -49,7 +40,7 @@ export default function TabLayout() {
         options={{
           headerShown: false,
           title: "dVPN",
-          tabBarIcon: ({ color }) => <TabBarIcon name="lock" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="dVPN" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -57,7 +48,7 @@ export default function TabLayout() {
         options={{
           headerShown: false,
           title: "Profile",
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="Profile" color={color} />,
         }}
       />
     </Tabs>

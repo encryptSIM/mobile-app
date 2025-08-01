@@ -4,6 +4,7 @@ export const transformCountriesToCardData = (countries: Country[]): PackageCardD
     label: country.label,
     disabled: country.disabled,
     countryCode: country.value.toLowerCase(),
+    region: country.value,
   }));
 
 export const transformRegionsToCardData = (regions: Region[]): PackageCardData[] =>
@@ -11,6 +12,7 @@ export const transformRegionsToCardData = (regions: Region[]): PackageCardData[]
     id: region.slug,
     label: region.title,
     imageUri: region.image,
+    region: region.slug
   }));
 
 export type PackageCardData = {
@@ -18,6 +20,7 @@ export type PackageCardData = {
   label: string;
   disabled?: boolean;
   countryCode?: string;
+  region?: string
   imageUri?: string;
 };
 
@@ -268,3 +271,4 @@ export const regions: Region[] = [
     image: "https://cdn.airalo.com/images/601554bc-d478-4afa-9d26-f3cb4ee50fc3.png"
   },
 ]
+

@@ -13,22 +13,22 @@ const theme: ThemeProp = {
   roundness: 30,
   colors: {
     primary: '#32D583',
-    onPrimary: 'red',
-    primaryContainer: 'red',
-    onPrimaryContainer: 'red',
+    onPrimary: 'white',
+    primaryContainer: 'white',
+    onPrimaryContainer: '#202939',
 
-    secondary: 'red',
-    onSecondary: 'red',
-    secondaryContainer: 'red',
-    onSecondaryContainer: 'red',
+    secondary: 'white',
+    onSecondary: 'white',
+    secondaryContainer: '#202939',
+    onSecondaryContainer: '#878787',
 
     onTertiary: 'red',
     tertiary: 'red',
     tertiaryContainer: 'red',
     onTertiaryContainer: 'red',
 
-    surface: 'red',
-    onSurface: 'red',
+    surface: 'white',
+    onSurface: 'white',
     surfaceVariant: 'red',
 
     background: '#202939',
@@ -46,7 +46,9 @@ export function AppProviders({ children }: PropsWithChildren) {
           <SolanaProvider>
             <GestureHandlerRootView>
               <PaperProvider theme={theme}>
-                <AuthProvider>{children}</AuthProvider>
+                <AuthProvider>
+                  {children}
+                </AuthProvider>
               </PaperProvider>
             </GestureHandlerRootView>
           </SolanaProvider>

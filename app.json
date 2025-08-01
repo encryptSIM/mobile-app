@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/app-logo.png",
     "scheme": "encryptsim",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash/logo.png",
@@ -70,6 +70,10 @@
           }
         }
       ]
+      "adaptiveIcon": {
+        "backgroundColor": "#32D583",
+        "foregroundImage": "./assets/app-logo-light.png"
+      }
     },
     "web": {
       "bundler": "metro",

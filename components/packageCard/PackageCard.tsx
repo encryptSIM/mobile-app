@@ -12,7 +12,7 @@ export interface PackageCardProps {
 
 export function PackageCard(props: PackageCardProps) {
   return (
-    <TouchableOpacity onPressIn={props.onPress} style={$styles.root}>
+    <TouchableOpacity onPress={props.onPress} style={$styles.root}>
       <View style={$styles.container}>
         <View style={$styles.label}>
           <Text>{props.label}</Text>

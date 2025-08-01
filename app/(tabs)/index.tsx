@@ -4,7 +4,6 @@ import { Image, FlatList, StyleSheet, View } from "react-native";
 import { TextInput } from "react-native-paper";
 import Fuse from "fuse.js";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
-import SlidingTabs from "@/components/Tab";
 import {
   PackageCardData,
   countries,
@@ -14,6 +13,7 @@ import {
 } from "@/constants/countries";
 import { PackageCard } from "@/components/packageCard";
 import PackageLocationListHeader from "@/components/PackageLocationListHeader";
+import { Link, router } from "expo-router";
 
 const tabs = ["Countries", "Regional plan"];
 
@@ -54,7 +54,16 @@ export default function HomeScreen() {
     ({ item }: { item: PackageCardData }) => (
       <View style={styles.cardContainer}>
         <PackageCard
-          onPress={() => console.log("Card pressed", item)}
+          onPress={() =>
+            router.push({
+              pathname: '/checkout',
+              params: {
+                region: item.region,
+                label: item.label,
+                countryCode: item.countryCode,
+              }
+            })
+          }
           label={item.label}
           countryCode={item.countryCode}
           imageUri={item.imageUri}

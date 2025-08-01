@@ -33,6 +33,8 @@ function useSignInMutation() {
     mutationFn: async () =>
       await signIn({
         uri: AppConfig.uri,
+        domain: AppConfig.domain,
+        statement: "Sign into to get your eSIM now!"
       }),
   })
 }
