@@ -1,4 +1,3 @@
-import "react-native-get-random-values"; // Must be first import for crypto support
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -23,13 +22,13 @@ export default function RootLayout() {
   const ready = fontsLoaded && splashFinished;
 
   useEffect(() => {
-    if (loaded) {
+    if (ready) {
       SplashScreenAPI.hideAsync();
     }
-  }, [loaded]);
+  }, [ready]);
 
-  if (!loaded) {
-    return null;
+  if (!ready) {
+    return <SplashScreen onFinish={() => setSplashFinished(true)} />;
   }
 
   return (
