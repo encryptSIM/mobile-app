@@ -1,4 +1,4 @@
-package com.esim.dev
+package com.giachan2002.encryptsim
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

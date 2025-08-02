@@ -87,11 +87,11 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.esim.preview'
+    namespace 'com.giachan2002.encryptsim'
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 34
-        applicationId 'com.esim.preview'
+        applicationId 'com.giachan2002.encryptsim'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
