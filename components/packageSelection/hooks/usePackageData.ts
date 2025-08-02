@@ -1,7 +1,7 @@
 import { Package } from "@/airalo-api/api";
 import { usePackageDetails } from "@/airalo-api/queries/packages";
 import { useSharedState } from "@/hooks/use-provider";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { PackageDetailsCardField } from "../components";
 
 export interface PackageItem {

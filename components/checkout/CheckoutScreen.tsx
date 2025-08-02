@@ -7,9 +7,6 @@ import { ContinueButton, DiscountCode, PaymentMethod, PlanCard, PriceDetail } fr
 import { useCheckout } from './hooks/useCheckout';
 import { $styles } from './styles';
 
-export interface CheckoutScreenParams {
-
-}
 export function CheckoutScreen() {
   const {
     priceData,

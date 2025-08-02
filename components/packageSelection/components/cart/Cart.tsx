@@ -1,10 +1,9 @@
-import { Appbar, FAB, Text, useTheme, Button } from "react-native-paper";
-import { $styles } from "./styles";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { View } from "@/components/Themed";
 import { ScrollView } from "react-native";
+import { Button, FAB, Text } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { $styles } from "./styles";
 
-const BOTTOM_APPBAR_HEIGHT = 80;
 const MEDIUM_FAB_HEIGHT = 40;
 
 export interface CartItem {

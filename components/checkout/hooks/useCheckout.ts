@@ -4,10 +4,10 @@ import { useWalletUi } from '@/components/solana/use-wallet-ui';
 import { AppConfig } from '@/constants/app-config';
 import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PriceDetailField } from '../components';
 import { useSolanaPrice } from '@/hooks/useSolanaPrice';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { PriceDetailField } from '../components';
 
 export const useCheckout = () => {
   const [selectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key);
