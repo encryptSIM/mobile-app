@@ -9,8 +9,8 @@
     "gen-airalo:schema": "openapi-typescript ./airalo-api/airalo-api.json -o ./airalo-api/schema.ts",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:prev": "infisical run --env staging --path='mobile' -- eas build --platform android --profile preview --local --output './preview.apk'",
-    "build:dev": "infisical run --env dev --path='mobile' -- eas build --platform android --profile development --local --output './development.apk'",
+    "build:prev": "infisical run --env staging --path='/mobile' -- eas build --platform android --profile preview --local --output './preview.apk'",
+    "build:dev": "infisical run --env dev --path='/mobile' -- eas build --platform android --profile development --local --output './development.apk'",
     "test": "jest --watchAll"
   },
   "jest": {
