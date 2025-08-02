@@ -69,7 +69,7 @@
             "scheme": "encryptSIM"
           }
         }
-      ]
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#32D583",
         "foregroundImage": "./assets/app-logo-light.png"
