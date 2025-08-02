@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from "react";
-import { $api } from "../api";
 import { PackageDetailsCardField } from "@/components/packageSelection/components/packageDetailsCard";
+import { useMemo } from "react";
+import { $api } from "../api";
 
 export const useGlobalPackages = (enabled?: boolean) => $api
   .useQuery("get", "/v2/packages", {

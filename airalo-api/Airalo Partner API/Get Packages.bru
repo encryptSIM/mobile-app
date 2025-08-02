@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/v2/packages
+  url: {{baseUrl}}/v2/packages?filter[type]=global
   body: none
   auth: inherit
 }
 
 params:query {
-  ~filter[type]: local
+  filter[type]: global
   ~filter[country]: AU
   ~limit: 
   ~page: 
