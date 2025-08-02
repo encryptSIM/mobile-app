@@ -7,6 +7,7 @@ import { AuthProvider } from '@/components/auth/auth-provider'
 import { PaperProvider } from 'react-native-paper'
 import { ThemeProp } from 'react-native-paper/lib/typescript/types'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { Provider } from '@/hooks/use-provider'
 
 const queryClient = new QueryClient()
 const theme: ThemeProp = {
@@ -47,7 +48,9 @@ export function AppProviders({ children }: PropsWithChildren) {
             <GestureHandlerRootView>
               <PaperProvider theme={theme}>
                 <AuthProvider>
-                  {children}
+                  <Provider>
+                    {children}
+                  </Provider>
                 </AuthProvider>
               </PaperProvider>
             </GestureHandlerRootView>

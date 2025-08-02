@@ -1,18 +1,19 @@
-import { PackageDetailsCard, PackageListHeader, PackageEmptyState, PackageListFooter, PackageErrorState, Cart } from "@/components/packageSelection/components";
-import { usePackageData, PackageItem } from "@/components/packageSelection/hooks";
-import { useLocalSearchParams } from "expo-router";
+import { Cart, PackageDetailsCard, PackageEmptyState, PackageErrorState, PackageFilters, PackageListFooter } from "@/components/packageSelection/components";
+import { PackageItem, usePackageData } from "@/components/packageSelection/hooks";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
 import {
   FlatList,
   ListRenderItem,
   RefreshControl,
-  StyleSheet,
   View,
 } from "react-native";
+import { Appbar, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { $styles } from "./styles";
 
 const MAX_PACKAGES = 1
-export default function CheckoutScreen() {
+export function SelectPackageScreen() {
   const local = useLocalSearchParams();
 
   const {
@@ -39,7 +40,7 @@ export default function CheckoutScreen() {
     ({ item }) => (
       <PackageDetailsCard
         disabled={selectedPackages.length >= MAX_PACKAGES && !selectedPackages.includes(item.id)}
-        price={item.price}
+        price={item.localPackage?.prices?.net_price?.USD!}
         id={item.id}
         fields={item.packageDetails}
         selected={selectedPackages.includes(item.id)}
@@ -47,20 +48,6 @@ export default function CheckoutScreen() {
       />
     ),
     [selectedPackages, handlePackagePress]
-  );
-
-  const renderHeader = useCallback(
-    () => (
-      <PackageListHeader
-        days={filters}
-        title={local.label as string}
-        selectedFilters={filter}
-        onFilterPress={handleFilterPress}
-        packageCount={filteredPackages.length}
-        isLoading={isLoading}
-      />
-    ),
-    [local.label, filter, handleFilterPress, filteredPackages.length, isLoading]
   );
 
   const renderEmpty = useCallback(
@@ -88,11 +75,26 @@ export default function CheckoutScreen() {
 
   return (
     <SafeAreaView className="h-full w-full bg-[#111926]">
+      <Appbar.Header style={$styles.header}>
+        <Appbar.BackAction onPress={router.back} />
+        <Appbar.Content title={local.label} />
+      </Appbar.Header>
+      <View style={$styles.listHeader}>
+        <PackageFilters
+          isLoading={isLoading}
+          days={filters}
+          selectedFilters={filter}
+          onFilterPress={handleFilterPress}
+          packageCount={filteredPackages.length}
+        />
+        <Text variant="headlineSmall" style={$styles.text}>
+          Available Plans
+        </Text>
+      </View>
       <FlatList
         data={filteredPackages}
         renderItem={renderPackageItem}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={selectedPackages.length < 1 ? renderFooter : null}
         refreshControl={
@@ -112,33 +114,42 @@ export default function CheckoutScreen() {
       <Cart
         items={filteredPackages.filter(t => selectedPackages.includes(t.id)).map(selectedPackage => ({
           description: String(selectedPackage.localPackage?.title),
-          value: selectedPackage.price,
-          qty: selectedPackageQtyMap[selectedPackage.id],
+          value: selectedPackage.localPackage?.prices?.net_price?.USD!,
+          qty: selectedPackageQtyMap[selectedPackage.id].qty,
           id: selectedPackage.id,
           increment: () => {
             console.log(selectedPackage.id)
             console.log(selectedPackageQtyMap)
             setSeletedPackageQtyMap(prev => ({
               ...prev,
-              [selectedPackage.id]: prev[selectedPackage.id] ? prev[selectedPackage.id] + 1 : 1
+              [selectedPackage.id]: {
+                ...prev[selectedPackage.id],
+                qty: prev[selectedPackage.id] ? prev[selectedPackage.id].qty + 1 : 1
+              }
             }))
           },
           decrement: () => {
             setSeletedPackageQtyMap(prev => ({
               ...prev,
-              [selectedPackage.id]: prev[selectedPackage.id] ? prev[selectedPackage.id] - 1 : 1
+              [selectedPackage.id]: {
+                ...prev[selectedPackage.id],
+                qty: prev[selectedPackage.id] ? prev[selectedPackage.id].qty - 1 : 1,
+              }
             }))
           },
         }))}
-        onCheckout={() => { }}
+        onCheckout={() => {
+          router.push({
+            pathname: "/checkoutStack/checkout",
+            params: {
+              title: local.label,
+              countryCode: local.countryCode,
+              region: local.region,
+            },
+          })
+        }}
       />
     </SafeAreaView>
   );
 }
 
-const $styles = StyleSheet.create({
-  listContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-});

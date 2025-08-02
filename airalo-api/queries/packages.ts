@@ -25,7 +25,6 @@ export const usePackageDetails = (params?: {
   countryCode?: string;
   region?: string;
 }) => {
-  console.log(params)
   const { countryCode, region } = params || {};
 
   const localPackagesQuery = useLocalPackages(

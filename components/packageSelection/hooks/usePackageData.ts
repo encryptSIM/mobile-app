@@ -1,19 +1,29 @@
+import { Package } from "@/airalo-api/api";
 import { usePackageDetails } from "@/airalo-api/queries/packages";
-import { useCallback, useMemo, useState } from "react";
+import { useSharedState } from "@/hooks/use-provider";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { PackageDetailsCardField } from "../components";
 
 export interface PackageItem {
   id: string;
-  localPackage: any;
-  packageDetails: any;
+  localPackage?: Package;
+  packageDetails: PackageDetailsCardField[];
   price: number;
 }
 
+export type SelectedPackageQtyMap = Record<string, {
+  qty: number,
+  pkg: Package
+}>
+
+export const SELECTED_PACKAGES = { key: 'SELECTED_PACKAGES_KEY', initialState: [] }
+export const SELECTED_PACKAGE_QTY_MAP = { key: 'SELECTED_PACKAGE_QTY_MAP_KEY', initialState: {} }
+
 export const usePackageData = ({ countryCode, region }: { countryCode?: string, region?: string }) => {
   const [filter, setFilter] = useState<number[]>([]);
-  const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedPackageQtyMap, setSeletedPackageQtyMap] = useState<Record<string, number>>({})
-
+  const [selectedPackages, setSelectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key, SELECTED_PACKAGES.initialState);
+  const [selectedPackageQtyMap, setSeletedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(SELECTED_PACKAGE_QTY_MAP.key, SELECTED_PACKAGE_QTY_MAP.initialState)
   const packageDetails = usePackageDetails({ countryCode, region });
 
   const filters = useMemo(() => {
@@ -72,11 +82,16 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
       }
       return [...prev, packageId];
     });
+    const packages = packageDetails.packageDetails.flatMap(t => t.localPackage)
+    const pkg = packages.find(t => t?.id === packageId)
     setSeletedPackageQtyMap(prev => ({
       ...prev,
-      [packageId]: prev[packageId] ? prev[packageId]++ : 1
+      [packageId]: {
+        pkg: pkg!,
+        qty: prev[packageId] ? prev[packageId].qty + 1 : 1
+      }
     }))
-  }, []);
+  }, [packageDetails.packageDetails, selectedPackageQtyMap, selectedPackageQtyMap]);
 
   const handleFilterPress = useCallback((filterValue: number) => {
     setFilter((prev) => {

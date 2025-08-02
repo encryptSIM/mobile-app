@@ -1,8 +1,5 @@
-import EvilIcons from "@react-native-vector-icons/fontawesome";
-import React, { useState, useCallback, useMemo } from "react";
-import { Image, FlatList, StyleSheet, View } from "react-native";
-import { TextInput } from "react-native-paper";
-import Fuse from "fuse.js";
+import { PackageCard } from "@/components/packageCard";
+import PackageLocationListHeader from "@/components/PackageLocationListHeader";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import {
   PackageCardData,
@@ -11,9 +8,12 @@ import {
   transformCountriesToCardData,
   transformRegionsToCardData,
 } from "@/constants/countries";
-import { PackageCard } from "@/components/packageCard";
-import PackageLocationListHeader from "@/components/PackageLocationListHeader";
-import { Link, router } from "expo-router";
+import EvilIcons from "@react-native-vector-icons/fontawesome";
+import { router } from "expo-router";
+import Fuse from "fuse.js";
+import React, { useCallback, useMemo, useState } from "react";
+import { FlatList, Image, StyleSheet, View } from "react-native";
+import { TextInput } from "react-native-paper";
 
 const tabs = ["Countries", "Regional plan"];
 
@@ -56,7 +56,7 @@ export default function HomeScreen() {
         <PackageCard
           onPress={() =>
             router.push({
-              pathname: '/checkout',
+              pathname: '/checkoutStack',
               params: {
                 region: item.region,
                 label: item.label,

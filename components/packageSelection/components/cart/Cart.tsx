@@ -18,6 +18,7 @@ export interface CartItem {
 
 export interface CartProps {
   items: CartItem[];
+  loading?: boolean
   onCheckout: () => void;
 }
 
@@ -83,6 +84,8 @@ export function Cart(props: CartProps) {
 
         <Button
           mode="contained"
+          loading={props.loading}
+          disabled={props.loading}
           onPress={props.onCheckout}
           style={$styles.checkoutButton}
           labelStyle={$styles.checkoutButtonText}

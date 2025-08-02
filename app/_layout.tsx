@@ -15,12 +15,6 @@ import SplashScreen from "./splash-screen";
 
 export { ErrorBoundary } from "expo-router";
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: "(tabs)",
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreenAPI.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -58,7 +52,7 @@ function RootLayoutNav() {
         </Stack.Protected>
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="checkout" options={{ headerShown: false }} />
+          <Stack.Screen name="checkoutStack" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
     </ThemeProvider>

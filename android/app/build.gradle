@@ -87,11 +87,11 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.esim.dev'
+    namespace 'com.esim.preview'
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 34
-        applicationId 'com.esim.dev'
+        applicationId 'com.esim.preview'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

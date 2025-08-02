@@ -4,6 +4,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { paths } from "./schema";
 import { fetchClient } from "@/api/api";
 
+export type GetPackagesResponse = paths['/v2/packages']['get']['responses']['200']['content']['application/json']
+export type Operator = NonNullable<NonNullable<GetPackagesResponse['data']>[number]['operators']>[number]
+export type Coverage = NonNullable<Operator['coverages']>[number]
+export type Country = NonNullable<Operator['countries']>[number]
+export type Package = NonNullable<Operator['packages']>[number]
+export type Prices = NonNullable<Package['prices']>
+
+
 export const airaloFetchClient = createFetchClient<paths>({
   baseUrl: "https://partners-api.airalo.com",
 });

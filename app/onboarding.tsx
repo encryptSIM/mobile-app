@@ -9,9 +9,10 @@ import {
   Platform,
 } from "react-native";
 import { useAuth } from "@/components/auth/auth-provider";
+import { getDimensions } from "@/utils/dimensions";
 
 // Responsive scaling helpers
-const { width, height } = Dimensions.get("window");
+const { width, height } = getDimensions();
 const guidelineBaseWidth = 375; // iPhone 11/12/13/14 width
 const guidelineBaseHeight = 812;
 

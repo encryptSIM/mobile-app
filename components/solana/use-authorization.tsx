@@ -18,7 +18,11 @@ import { WalletIcon } from '@wallet-standard/core'
 import { ellipsify } from '@/utils/ellipsify'
 import { AppConfig } from '@/constants/app-config'
 
-const identity: AppIdentity = { name: AppConfig.name, uri: AppConfig.uri }
+const identity: AppIdentity = {
+  name: AppConfig.name,
+  uri: AppConfig.uri,
+  icon: "../../assets/app-logo-light.png"
+}
 
 export type Account = Readonly<{
   address: Base64EncodedAddress
