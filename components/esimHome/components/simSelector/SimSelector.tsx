@@ -67,7 +67,7 @@ export function SimSelector(props: SimSelectorProps) {
               fontWeight: 500,
             }
 
-          ]}>30 days - 10 GB</Text>
+          ]}>{props.selectedSim.package_title}</Text>
           {props.sims.length > 1 && <List.Icon icon={'chevron-down'} />}
         </View>
       </TouchableOpacity>
