@@ -15,6 +15,7 @@ export function SimsHome() {
     tabIndex,
     selectedSim,
     sims,
+    usageStats,
     setSelectedSim,
     handleTabChange,
   } = useEsimHomeScreen();
@@ -35,9 +36,8 @@ export function SimsHome() {
           selectedSim={selectedSim}
           onSelectSim={(sim) => setSelectedSim(sim)}
         />
-        <SimUsagePanel />
+        <SimUsagePanel stats={usageStats} />
       </View>
     </View>
   );
 }
-

@@ -36,6 +36,7 @@ const exampleStats: UsageStat[] = [
   },
 ];
 
+
 export interface UsageStat {
   total: number;
   used: number;
@@ -93,9 +94,9 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
 
 export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedStat = stats[selectedIndex];
-  const remaining = selectedStat.total - selectedStat.used;
-  const percentage = (remaining / selectedStat.total) * 100;
+  const selectedStat = stats?.[selectedIndex] ?? exampleStats[0]; // Add null check here
+  const remaining = (selectedStat.total ?? 1) - (selectedStat.used ?? 1);
+  const percentage = (remaining / (selectedStat.total ?? 1)) * 100;
 
   // Determine color based on remaining percentage
   const progressColor =

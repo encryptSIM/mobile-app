@@ -11,6 +11,8 @@ import { useSharedState } from "@/hooks/use-provider";
 import { $api, Sim } from "@/api/api";
 import { SIMS } from "@/components/checkout/hooks/useCheckout";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { useMultiUsage } from "@/airalo-api/queries/usage";
+import { UsageStat } from "../components/simUsagePanel";
 
 export const SELECTED_SIM = {
   key: 'SELECTED_SIM',
@@ -23,6 +25,65 @@ export function useEsimHomeScreen() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
   const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key, SELECTED_SIM.initialState)
+  const usageQuery = useMultiUsage(sims.map(s => s.iccid))
+
+  const usageStats = useMemo(() => {
+    const stats: UsageStat[] = []
+    if (!usageQuery.data) return stats
+    for (const iccid of Object.keys(usageQuery.data)) {
+      const usage = usageQuery.data[iccid]
+      console.log("usage", JSON.stringify(usage, null, 2))
+      if (usage.total_text) {
+        console.log("adding sms", usage.total_text)
+        stats.push({
+          total: usage.total_text,
+          used: usage.total_text - usage.remaining_text!,
+          label: "SMS",
+          icon: "message",
+          unit: "messages",
+        })
+      }
+      if (usage.total) {
+        console.log("adding data")
+        stats.push({
+          total: usage.total,
+          used: usage.total - usage.remaining!,
+          label: "Data",
+          icon: "wifi",
+          unit: "MB",
+        })
+      }
+      if (usage.total_voice) {
+        console.log("adding voice")
+        stats.push({
+          total: usage.total_voice,
+          used: usage.total_voice - usage.remaining_voice!,
+          label: "Call",
+          icon: "phone",
+          unit: "mins",
+        })
+      }
+
+      const sim = sims.find(s => s.iccid === iccid)
+      console.log("sim", sim?.created_at_ms)
+      if (sim) {
+        const total = getDaysBetweenInclusive(sim.created_at_ms, sim.expiration_ms)
+        const remaining = getDaysRemaining(sim.expiration_ms)
+        console.log("total", total)
+        console.log("remaining", remaining)
+        stats.push({
+          total: total,
+          used: total - remaining,
+          label: "Validity",
+          icon: "calendar-month",
+          unit: "days",
+          formatValue: () => "7 days left",
+        })
+      }
+    }
+    console.log("stats", JSON.stringify(stats, null, 2))
+    return stats
+  }, [usageQuery.data, sims])
 
   const simsQuery = $api.useQuery('get', '/fetch-sims/{id}',
     {
@@ -86,8 +147,48 @@ export function useEsimHomeScreen() {
     sims,
     selectedSim,
     simsQuery,
+    usageStats,
     setSelectedSim,
     setSearchQuery,
     handleTabChange,
   };
+}
+
+function getDaysRemaining(targetTimestamp: number): number {
+  // Get current date at midnight (start of today)
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+
+  // Calculate difference in milliseconds
+  const diffMs = targetTimestamp - today.getTime();
+
+  // Convert to days and round up
+  const daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  // Ensure we don't return negative days
+  return Math.max(0, daysRemaining);
+}
+
+function getDaysBetweenInclusive(startTimestamp: number, endTimestamp: number): number {
+  // Ensure start is before end (swap if needed)
+  const [start, end] = startTimestamp <= endTimestamp
+    ? [startTimestamp, endTimestamp]
+    : [endTimestamp, startTimestamp];
+
+  // Round start down to midnight (beginning of day)
+  const startDate = new Date(start);
+  startDate.setHours(0, 0, 0, 0);
+  const roundedStart = startDate.getTime();
+
+  // Round end up to 23:59:59.999 (end of day)
+  const endDate = new Date(end);
+  endDate.setHours(23, 59, 59, 999);
+  const roundedEnd = endDate.getTime();
+
+  // Calculate difference in days (inclusive)
+  const diffMs = roundedEnd - roundedStart;
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+  return days;
 }
