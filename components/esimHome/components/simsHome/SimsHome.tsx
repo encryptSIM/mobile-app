@@ -5,6 +5,7 @@ import { Image, View } from "react-native";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
 import { SimSelector } from "../simSelector/SimSelector";
 import { $styles } from "./styles";
+import { SimUsagePanel } from "../simUsagePanel/SimUsagePanel";
 
 const tabs = ["Current", "Expired"];
 
@@ -34,6 +35,7 @@ export function SimsHome() {
           selectedSim={selectedSim}
           onSelectSim={(sim) => setSelectedSim(sim)}
         />
+        <SimUsagePanel />
       </View>
     </View>
   );
