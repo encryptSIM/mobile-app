@@ -103,8 +103,8 @@ paths:
                   message:
                     type: string
                   data:
-                    type: object
-                    additionalProperties:
+                    type: array
+                    items:
                       $ref: '#/components/schemas/SIM'
         '400':
           description: Missing or invalid ID in request parameters

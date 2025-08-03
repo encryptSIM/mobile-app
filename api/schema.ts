@@ -112,9 +112,7 @@ export interface paths {
                         "application/json": {
                             success?: boolean;
                             message?: string;
-                            data?: {
-                                [key: string]: components["schemas"]["SIM"];
-                            };
+                            data?: components["schemas"]["SIM"][];
                         };
                     };
                 };
