@@ -15,7 +15,7 @@ export const SIMS = { key: 'SIMS', initialState: [] }
 export const useCheckout = () => {
   const [selectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key);
   const [selectedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(SELECTED_PACKAGE_QTY_MAP.key)
-  const [, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
+  const [, setSims] = useSharedState<Sim[]>(SIMS.key)
   const [selectedMethodId, setSelectedMethodId] = useState<string>('solana')
   const [discountCode, setDiscountCode] = useState('');
   const local = useLocalSearchParams();
@@ -36,9 +36,13 @@ export const useCheckout = () => {
     },
     onSuccess: () => {
       console.log("Succesfully transfered sol")
+      const id = account?.address!
+      if (!id) {
+        console.error("No address found", JSON.stringify(account, null, 2))
+      }
       completeOrder.mutate({
         body: {
-          id: account?.address!,
+          id,
           orders: selectedPackages.map(packageId => ({
             package_id: packageId,
             quantity: selectedPackageQtyMap[packageId].qty,
