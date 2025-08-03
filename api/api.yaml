@@ -10,6 +10,137 @@ servers:
     description: Local development server
 
 paths:
+  /complete-order:
+    post:
+      summary: Complete an order and save SIMs to the database
+      description: Places orders for SIMs and saves them to the database for a given user ID.
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orders:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/OrderDetails'
+                id:
+                  type: string
+              required:
+                - orders
+                - id
+      responses:
+        '200':
+          description: Order completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  sims:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/SIM'
+        '400':
+          description: Bad request due to invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: object
+        '500':
+          description: Failed to place orders or save SIMs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /fetch-sims/{id}:
+    get:
+      summary: Fetch SIMs for a given user ID
+      description: Retrieves all SIMs associated with the specified user ID.
+      tags:
+        - SIMs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The user ID for which SIMs are being fetched
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SIMs fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/SIM'
+        '400':
+          description: Missing or invalid ID in request parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          description: No SIMs found for the given ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '500':
+          description: Failed to fetch SIMs from the database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: string
   /airalo/token:
     get:
       summary: Obtain an Airalo access token
@@ -711,6 +842,24 @@ paths:
 
 components:
   schemas:
+    OrderDetails:
+      type: object
+      properties:
+        iccid:
+          type: string
+        otherData:
+          type: string
+      required:
+        - iccid
+    SIM:
+      type: object
+      properties:
+        iccid:
+          type: string
+        otherData:
+          type: string
+      required:
+        - iccid
     # VPN Schemas
     DeviceInfo:
       type: object
