@@ -1694,7 +1694,38 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": Record<string, never>;
+                        "application/json": {
+                            data?: {
+                                /** @example 767 */
+                                remaining?: number;
+                                /** @example 2048 */
+                                total?: number;
+                                /**
+                                 * Format: date-time
+                                 * @example 2022-01-01 00:00:00
+                                 */
+                                expired_at?: string;
+                                /** @example true */
+                                is_unlimited?: boolean;
+                                /**
+                                 * @example ACTIVE
+                                 * @enum {string}
+                                 */
+                                status?: "NOT_ACTIVE" | "ACTIVE" | "FINISHED" | "UNKNOWN" | "EXPIRED";
+                                /** @example 0 */
+                                remaining_voice?: number;
+                                /** @example 0 */
+                                remaining_text?: number;
+                                /** @example 0 */
+                                total_voice?: number;
+                                /** @example 0 */
+                                total_text?: number;
+                            };
+                            meta?: {
+                                /** @example api.succes */
+                                message?: string;
+                            };
+                        };
                     };
                 };
                 /** @description Get Usage: 404 (Invalid ICCID) */

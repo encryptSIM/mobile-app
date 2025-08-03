@@ -3713,13 +3713,13 @@
                 "schema": {
                   "type": "integer"
                 },
-                "example": "60"
+                "example": 60
               },
               "X-RateLimit-Remaining": {
                 "schema": {
                   "type": "integer"
                 },
-                "example": "59"
+                "example": 59
               },
               "Content-Encoding": {
                 "schema": {
@@ -3732,7 +3732,67 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "remaining": {
+                          "type": "integer",
+                          "example": 767
+                        },
+                        "total": {
+                          "type": "integer",
+                          "example": 2048
+                        },
+                        "expired_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2022-01-01 00:00:00"
+                        },
+                        "is_unlimited": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "NOT_ACTIVE",
+                            "ACTIVE",
+                            "FINISHED",
+                            "UNKNOWN",
+                            "EXPIRED"
+                          ],
+                          "example": "ACTIVE"
+                        },
+                        "remaining_voice": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "remaining_text": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "total_voice": {
+                          "type": "integer",
+                          "example": 0
+                        },
+                        "total_text": {
+                          "type": "integer",
+                          "example": 0
+                        }
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "api.succes"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
