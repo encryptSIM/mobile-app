@@ -28,9 +28,10 @@ export function useEsimHomeScreen() {
   const usageQuery = useMultiUsage(sims.map(s => s.iccid))
 
   const usageStats = useMemo(() => {
-    const stats: UsageStat[] = []
-    if (!usageQuery.data) return stats
+    const statsMap: Record<string, UsageStat[]> = {}
+    if (!usageQuery.data) return {}
     for (const iccid of Object.keys(usageQuery.data)) {
+      const stats: UsageStat[] = []
       const usage = usageQuery.data[iccid]
       console.log("usage", JSON.stringify(usage, null, 2))
       if (usage.total_text) {
@@ -80,9 +81,9 @@ export function useEsimHomeScreen() {
           formatValue: () => "7 days left",
         })
       }
+      statsMap[iccid] = stats
     }
-    console.log("stats", JSON.stringify(stats, null, 2))
-    return stats
+    return statsMap
   }, [usageQuery.data, sims])
 
   const simsQuery = $api.useQuery('get', '/fetch-sims/{id}',

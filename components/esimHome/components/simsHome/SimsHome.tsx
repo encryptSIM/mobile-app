@@ -38,7 +38,7 @@ export function SimsHome() {
           selectedSim={selectedSim}
           onSelectSim={(sim) => setSelectedSim(sim)}
         />
-        <SimUsagePanel stats={usageStats} />
+        <SimUsagePanel stats={usageStats[selectedSim?.iccid!]} />
         <BuyEsim onBuyPress={() => router.push('/checkoutStack/addSim')} />
       </View>
     </View>
