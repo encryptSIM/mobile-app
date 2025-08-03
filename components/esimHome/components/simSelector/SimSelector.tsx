@@ -92,7 +92,10 @@ export function SimSelector(props: SimSelectorProps) {
                     $styles.simItem,
                     props.selectedSim!.iccid === sim.iccid && $styles.selectedSim,
                   ]}
-                  onPress={() => props.onSelectSim(sim)}
+                  onPress={() => {
+                    setModalVisible(false)
+                    props.onSelectSim(sim)
+                  }}
                 >
                   {props.selectedSim!.country_code ? (
                     <CountryFlag
