@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Svg, { Circle } from "react-native-svg";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { $styles } from "./styles";
@@ -51,39 +52,35 @@ interface CircularProgressProps {
 function CircularProgress({ percentage, size }: CircularProgressProps) {
   const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
-
-  // Create multiple small segments to simulate a circle
-  const segments = 60;
-  const segmentAngle = 360 / segments;
-  const filledSegments = Math.round((percentage / 100) * segments);
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <View style={[$styles.circularProgress, { width: size, height: size }]}>
-      {/* Background circle */}
-      <View style={[
-        $styles.progressCircle,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: strokeWidth,
-          borderColor: '#DADADA',
-        }
-      ]} />
-
-      {/* Progress indicator using a simpler approach */}
-      <View style={[
-        $styles.progressIndicator,
-        {
-          width: size - strokeWidth * 2,
-          height: size - strokeWidth * 2,
-          borderRadius: (size - strokeWidth * 2) / 2,
-          borderWidth: strokeWidth,
-          borderColor: 'transparent',
-          borderTopColor: '#4CAF50',
-          transform: [{ rotate: `${(percentage / 100) * 360 - 90}deg` }]
-        }
-      ]} />
+    <View style={{ width: size, height: size }}>
+      <Svg width={size} height={size}>
+        {/* Background Circle */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#DADADA"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* Progress Circle */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#32D583"
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`} // Rotate the circle to start at the top
+        />
+      </Svg>
     </View>
   );
 }
