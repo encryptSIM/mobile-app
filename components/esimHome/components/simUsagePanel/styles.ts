@@ -23,7 +23,7 @@ export const $styles = StyleSheet.create({
     justifyContent: "center",
   },
   selectedIconContainer: {
-    backgroundColor: "rgba(20, 213, 131, 0.2)",
+    backgroundColor: "rgba(192, 223, 244, 0.2)",
   },
   iconLabel: {
     color: "#666",
@@ -32,7 +32,7 @@ export const $styles = StyleSheet.create({
     fontWeight: "500",
   },
   selectedIconLabel: {
-    color: "#4CAF50",
+    color: "white",
   },
   progressContainer: {
     alignItems: "center",

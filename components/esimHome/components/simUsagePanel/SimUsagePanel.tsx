@@ -118,7 +118,7 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
             <MaterialIcons
               name={stat.icon as any}
               size={24}
-              color={selectedIndex === index ? "#4CAF50" : "#666"}
+              color={selectedIndex === index ? "white" : "#666"}
             />
             <Text
               style={[
