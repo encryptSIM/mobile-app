@@ -94,7 +94,7 @@ export const $styles = StyleSheet.create({
   },
   simDropdown: {
     marginTop: 18,
-    marginBottom: 4,
+    marginBottom: 8,
     justifyContent: 'space-between',
     paddingRight: 20,
     paddingVertical: 12,
