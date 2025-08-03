@@ -39,7 +39,7 @@ export function SimsHome() {
           onSelectSim={(sim) => setSelectedSim(sim)}
         />
         <SimUsagePanel stats={usageStats} />
-        <BuyEsim onBuyPress={() => router.replace('/')} />
+        <BuyEsim onBuyPress={() => router.push('/checkoutStack/addSim')} />
       </View>
     </View>
   );
