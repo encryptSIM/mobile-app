@@ -42,6 +42,18 @@
     <string>1</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+      <string>https</string>
+      <string>solana-wallet</string>
+      <string>phantom</string>
+      <string>solflare</string>
+      <string>glow</string>
+      <string>trust</string>
+      <string>backpack</string>
+      <string>mathwallet</string>
+      <string>metamask</string>
+    </array>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
