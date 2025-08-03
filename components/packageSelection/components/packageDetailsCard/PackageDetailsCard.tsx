@@ -11,8 +11,9 @@ export interface PackageDetailsCardField {
 export interface PackageDetailsCardProps {
   fields: PackageDetailsCardField[]
   id: string
-  selected: boolean
-  price: number
+  selected?: boolean
+  title?: string
+  price?: number
   disabled?: boolean
   onPress: () => void
 }
@@ -23,8 +24,10 @@ export function PackageDetailsCard(props: PackageDetailsCardProps) {
     <TouchableOpacity disabled={props.disabled} onPress={props.onPress} className="w-full rounded-3xl bg-[#202939]">
       <Surface elevation={4} style={props.selected ? $styles.cardActive : $styles.card}>
         <View style={$styles.priceContainer}>
-          <Checkbox uncheckedColor="#DADADA" color="#32D583" status={props.selected ? "checked" : 'unchecked'} />
-          <Text variant="titleLarge" style={$styles.price}>{formatPrice(props.price)}</Text>
+
+          {props.title && <Text variant="titleLarge" style={$styles.title}>{props.title}</Text>}
+          {props.selected !== undefined && <Checkbox uncheckedColor="#DADADA" color="#32D583" status={props.selected ? "checked" : 'unchecked'} />}
+          {props.price && <Text variant="titleLarge" style={$styles.price}>{formatPrice(props.price)}</Text>}
         </View>
         {
           props.fields.map(field => (

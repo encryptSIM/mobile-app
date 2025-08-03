@@ -9,6 +9,10 @@ export const $styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  title: {
+    fontWeight: 800
+  },
+
   price: {
     fontWeight: 800
   },

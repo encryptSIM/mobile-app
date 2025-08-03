@@ -13,6 +13,7 @@ import { SIMS } from "@/components/checkout/hooks/useCheckout";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { useMultiUsage } from "@/airalo-api/queries/usage";
 import { UsageStat } from "../components/simUsagePanel";
+import { PackageDetailsCardField } from "@/components/packageSelection/components";
 
 export const SELECTED_SIM = {
   key: 'SELECTED_SIM',
@@ -26,6 +27,55 @@ export function useEsimHomeScreen() {
   const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
   const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key, SELECTED_SIM.initialState)
   const usageQuery = useMultiUsage(sims.map(s => s.iccid))
+
+  const simDetails = useMemo(() => {
+    if (!sims || sims.length === 0) {
+      return [];
+    }
+
+    const addDetail = (
+      key: string,
+      icon: string,
+      value: any,
+      detailsArray: PackageDetailsCardField[]
+    ) => {
+      if (value !== undefined && value !== null) {
+        detailsArray.push({
+          key,
+          icon,
+          value: String(value),
+        });
+      }
+    };
+
+    return sims.map((sim) => {
+      const packageDetails: PackageDetailsCardField[] = [];
+
+      const total = getDaysBetweenInclusive(sim.created_at_ms, sim.expiration_ms)
+      const stats = usageQuery.data!
+      addDetail("Calls (min)", "phone", stats[sim.iccid].total_voice, packageDetails);
+      addDetail("SMS", "sms", stats[sim.iccid].total_text, packageDetails);
+      addDetail("Data", "wifi", stats[sim.iccid].total, packageDetails);
+      addDetail(
+        "Validity",
+        "calendar-month",
+        total,
+        packageDetails
+      );
+
+      return { sim, packageDetails };
+    });
+  }, [sims, usageQuery]);
+
+  // const packageDetailFields = useMemo(() => {
+  //   for (const sim of sims) {
+  //     let fields: PackageDetailsCardField[] = []
+  //     fields.push({
+  //       key: "Calls"
+  //     })
+  //
+  //   }
+  // }, [])
 
   const usageStats = useMemo(() => {
     const statsMap: Record<string, UsageStat[]> = {}
@@ -148,6 +198,7 @@ export function useEsimHomeScreen() {
     sims,
     selectedSim,
     simsQuery,
+    simDetails,
     usageStats,
     setSelectedSim,
     setSearchQuery,
