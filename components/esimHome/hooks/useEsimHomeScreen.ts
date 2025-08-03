@@ -8,13 +8,35 @@ import {
   transformRegionsToCardData,
 } from "@/constants/countries";
 import { useSharedState } from "@/hooks/use-provider";
-import { Sim } from "@/api/api";
+import { $api, Sim } from "@/api/api";
 import { SIMS } from "@/components/checkout/hooks/useCheckout";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
 
 export function useEsimHomeScreen() {
   const [tabIndex, setTabIndex] = useState<number>(0);
+  const { account } = useWalletUi()
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sims] = useSharedState<Sim[]>(SIMS.key)
+  const simsQuery = $api.useQuery('get', '/fetch-sims/{id}',
+    {
+      params: {
+        path: {
+          id: account?.address ?? ""
+        }
+      }
+    },
+    {
+      enabled: !!account?.address,
+    },
+  )
+  const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
+  console.log("account", JSON.stringify(account, null, 2))
+
+  useEffect(() => {
+    const data = simsQuery?.data?.data
+    if (data && data.length > 0) {
+      setSims(prev => [...prev, ...data])
+    }
+  }, [simsQuery.data])
   useEffect(() => {
     console.log("sims", JSON.stringify(sims, null, 2))
   }, [sims])
@@ -51,6 +73,7 @@ export function useEsimHomeScreen() {
     tabIndex,
     searchQuery,
     filteredData,
+    sims,
     setSearchQuery,
     handleTabChange,
   };
