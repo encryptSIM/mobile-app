@@ -5,6 +5,7 @@ const { height } = getDimensions()
 
 export const $styles = StyleSheet.create({
   flagImage: {
+    paddingRight: 16,
     width: 30,
     height: 30,
     borderRadius: 50,
@@ -26,12 +27,6 @@ export const $styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  methodIcon: {
-    width: 44,
-    height: 44,
-    marginRight: 12,
-    resizeMode: 'contain',
   },
   title: {
     color: '#ffffff',
@@ -104,7 +99,7 @@ export const $styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#202939',
     paddingVertical: 8,
-    paddingLeft: 16,
+    paddingHorizontal: 16,
     marginBottom: 8,
     borderRadius: 29,
   },
@@ -113,12 +108,6 @@ export const $styles = StyleSheet.create({
     backgroundColor: '#202939',
     borderWidth: 2,
     borderColor: '#32D583',
-  },
-  methodItemIcon: {
-    width: 34,
-    height: 44,
-    marginRight: 12,
-    resizeMode: 'contain',
   },
   disabledTextWrapper: {
     position: 'absolute',

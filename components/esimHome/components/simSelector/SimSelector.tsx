@@ -100,16 +100,16 @@ export function SimSelector(props: SimSelectorProps) {
                   {props.selectedSim!.country_code ? (
                     <CountryFlag
                       style={$styles.flagImage}
-                      isoCode={props.selectedSim!.country_code}
+                      isoCode={sim!.country_code!}
                       size={40}
                     />
                   ) : (
                     <Image
-                      source={{ uri: getSimImage(props.selectedSim!)! }}
+                      source={{ uri: getSimImage(sim)! }}
                       style={$styles.flagImage}
                     />
                   )}
-                  <View>
+                  <View style={{ paddingLeft: 16 }}>
                     <Text style={$styles.simLabel}>{getSimCountryOrRegion(sim)}</Text>
                     <Text style={$styles.simLabel}>{sim.package_title}</Text>
                   </View>
