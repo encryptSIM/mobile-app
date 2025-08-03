@@ -10,6 +10,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { PriceDetailField } from '../components';
 import { $api, Sim } from '@/api/api';
 
+
 export const SIMS = { key: 'SIMS', initialState: [] }
 
 export const useCheckout = () => {
@@ -45,6 +46,7 @@ export const useCheckout = () => {
           id,
           orders: selectedPackages.map(packageId => ({
             package_id: packageId,
+            package_title: selectedPackageQtyMap[packageId].pkg.title!,
             quantity: selectedPackageQtyMap[packageId].qty,
             country_code: local.countryCode ? String(local.countryCode) : undefined,
             region: local.region ? String(local.region) : undefined,
