@@ -1,4 +1,4 @@
-package com.giachan2002.encryptsim
+package com.esim.dev
 
 import android.app.Activity
 import android.content.Intent
