@@ -4,6 +4,155 @@
  */
 
 export interface paths {
+    "/sim-usage/{iccid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get SIM usage data
+         * @description Retrieves the usage data for a SIM card identified by its ICCID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The ICCID of the SIM card. */
+                    iccid: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Data successfully retrieved. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example true */
+                            success?: boolean;
+                            /** @description The usage data for the SIM card. */
+                            data?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Bad request due to invalid ICCID. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success?: boolean;
+                            /** @example Bad request */
+                            message?: string;
+                            /** @description Validation error details. */
+                            error?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Internal server error. */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success?: boolean;
+                            /** @example Internal server error */
+                            message?: string;
+                            /** @example Unexpected error occurred. */
+                            error?: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Set SIM usage data
+         * @description Sets the usage data for a SIM card identified by its ICCID.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The ICCID of the SIM card. */
+                    iccid: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description The usage data to set for the SIM card. */
+                        data: Record<string, never>;
+                    };
+                };
+            };
+            responses: {
+                /** @description Data successfully set. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example true */
+                            success?: boolean;
+                            /** @example Data successfully set */
+                            message?: string;
+                        };
+                    };
+                };
+                /** @description Bad request due to invalid ICCID or request body. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success?: boolean;
+                            /** @example Bad request */
+                            message?: string;
+                            /** @description Validation error details. */
+                            error?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Internal server error. */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success?: boolean;
+                            /** @example Internal server error */
+                            message?: string;
+                            /** @example Unexpected error occurred. */
+                            error?: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/complete-order": {
         parameters: {
             query?: never;
@@ -1292,12 +1441,21 @@ export interface components {
             package_id: string;
             region?: string;
             country_code?: string;
+            package_title: string;
+            expiration_ms: number;
+            created_at_ms: number;
         };
         SIM: {
             iccid: string;
             qrcode: string;
             qrcode_url: string;
             created_at: string;
+            region?: string;
+            country_code?: string;
+            package_id: string;
+            package_title: string;
+            expiration_ms: number;
+            created_at_ms: number;
         };
         DeviceInfo: {
             /** @description Device token for authentication */

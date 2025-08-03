@@ -10,6 +10,138 @@ servers:
     description: Local development server
 
 paths:
+  /sim-usage/{iccid}:
+    post:
+      summary: Set SIM usage data
+      description: Sets the usage data for a SIM card identified by its ICCID.
+      tags:
+        - SIM Usage
+      parameters:
+        - name: iccid
+          in: path
+          required: true
+          description: The ICCID of the SIM card.
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  description: The usage data to set for the SIM card.
+              required:
+                - data
+      responses:
+        '200':
+          description: Data successfully set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Data successfully set
+        '400':
+          description: Bad request due to invalid ICCID or request body.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Bad request
+                  error:
+                    type: object
+                    description: Validation error details.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal server error
+                  error:
+                    type: string
+                    example: Unexpected error occurred.
+
+    get:
+      summary: Get SIM usage data
+      description: Retrieves the usage data for a SIM card identified by its ICCID.
+      tags:
+        - SIM Usage
+      parameters:
+        - name: iccid
+          in: path
+          required: true
+          description: The ICCID of the SIM card.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Data successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    description: The usage data for the SIM card.
+        '400':
+          description: Bad request due to invalid ICCID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Bad request
+                  error:
+                    type: object
+                    description: Validation error details.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal server error
+                  error:
+                    type: string
+                    example: Unexpected error occurred.
   /complete-order:
     post:
       summary: Complete an order and save SIMs to the database
@@ -853,9 +985,18 @@ components:
           type: string
         country_code:
           type: string
+        package_title:
+          type: string
+        expiration_ms:
+          type: number
+        created_at_ms:
+          type: number
       required:
         - quantity
         - package_id
+        - package_title
+        - expiration_ms
+        - created_at_ms
     SIM:
       type: object
       properties:
@@ -867,11 +1008,27 @@ components:
           type: string
         created_at:
           type: string
+        region:
+          type: string
+        country_code:
+          type: string
+        package_id:
+          type: string
+        package_title:
+          type: string
+        expiration_ms:
+          type: number
+        created_at_ms:
+          type: number
       required:
         - iccid
         - qrcode
         - qrcode_url
         - created_at
+        - package_id
+        - package_title
+        - expiration_ms
+        - created_at_ms
     # VPN Schemas
     DeviceInfo:
       type: object
