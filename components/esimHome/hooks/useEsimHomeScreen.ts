@@ -12,10 +12,18 @@ import { $api, Sim } from "@/api/api";
 import { SIMS } from "@/components/checkout/hooks/useCheckout";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
 
+export const SELECTED_SIM = {
+  key: 'SELECTED_SIM',
+  initialState: null
+}
+
 export function useEsimHomeScreen() {
   const [tabIndex, setTabIndex] = useState<number>(0);
   const { account } = useWalletUi()
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
+  const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key, SELECTED_SIM.initialState)
+
   const simsQuery = $api.useQuery('get', '/fetch-sims/{id}',
     {
       params: {
@@ -28,17 +36,19 @@ export function useEsimHomeScreen() {
       enabled: !!account?.address,
     },
   )
-  const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
-  console.log("account", JSON.stringify(account, null, 2))
 
   useEffect(() => {
     const data = simsQuery?.data?.data
     if (data && data.length > 0) {
-      setSims(prev => [...prev, ...data])
+      setSims(prev => [...prev.filter(t => !data.find(s => t.iccid === s.iccid)), ...data])
+      setSelectedSim(sims[0])
     }
   }, [simsQuery.data])
+
   useEffect(() => {
-    console.log("sims", JSON.stringify(sims, null, 2))
+    if (!selectedSim && sims.length > 0) {
+      setSelectedSim(sims[0])
+    }
   }, [sims])
 
   const handleTabChange = useCallback((index: number) => {
@@ -74,6 +84,9 @@ export function useEsimHomeScreen() {
     searchQuery,
     filteredData,
     sims,
+    selectedSim,
+    simsQuery,
+    setSelectedSim,
     setSearchQuery,
     handleTabChange,
   };

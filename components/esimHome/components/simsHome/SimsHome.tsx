@@ -1,15 +1,10 @@
-import { PackageCard } from "@/components/packageCard";
-import PackageLocationListHeader from "@/components/PackageLocationListHeader";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
-import { PackageCardData } from "@/constants/countries";
-import EvilIcons from "@react-native-vector-icons/fontawesome";
-import { router } from "expo-router";
-import React, { useCallback } from "react";
-import { FlatList, Image, View } from "react-native";
-import { TextInput } from "react-native-paper";
-import { $styles } from "./styles";
-import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
 import SlidingTabs from "@/components/Tab";
+import React from "react";
+import { Image, View } from "react-native";
+import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
+import { SimSelector } from "../simSelector/SimSelector";
+import { $styles } from "./styles";
 
 const tabs = ["Current", "Expired"];
 
@@ -17,31 +12,11 @@ export function SimsHome() {
   const { account } = useWalletUi();
   const {
     tabIndex,
+    selectedSim,
+    sims,
+    setSelectedSim,
     handleTabChange,
   } = useEsimHomeScreen();
-
-  const renderCard = useCallback(
-    ({ item }: { item: PackageCardData }) => (
-      <View style={$styles.cardContainer}>
-        <PackageCard
-          onPress={() =>
-            router.push({
-              pathname: "/checkoutStack",
-              params: {
-                region: item.region,
-                label: item.label,
-                countryCode: item.countryCode,
-              },
-            })
-          }
-          label={item.label}
-          countryCode={item.countryCode}
-          imageUri={item.imageUri}
-        />
-      </View>
-    ),
-    []
-  );
 
   return (
     <View style={$styles.container}>
@@ -54,6 +29,11 @@ export function SimsHome() {
           <Image source={{ uri: account?.icon }} style={$styles.icon} />
         </View>
         <SlidingTabs tabs={tabs} activeTab={tabIndex} onTabChange={handleTabChange} />
+        <SimSelector
+          sims={sims}
+          selectedSim={selectedSim}
+          onSelectSim={(sim) => setSelectedSim(sim)}
+        />
       </View>
     </View>
   );
