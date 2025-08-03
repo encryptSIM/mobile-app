@@ -7,9 +7,9 @@ import {
   ListRenderItem,
   RefreshControl,
   View,
+  SafeAreaView
 } from "react-native";
 import { Appbar, Text } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { $styles } from "./styles";
 
 const MAX_PACKAGES = 1
@@ -74,7 +74,7 @@ export function SelectPackageScreen() {
   }
 
   return (
-    <SafeAreaView className="h-full w-full bg-[#111926]">
+    <SafeAreaView style={$styles.root}>
       <Appbar.Header style={$styles.header}>
         <Appbar.BackAction onPress={router.back} />
         <Appbar.Content title={local.label} />
@@ -91,24 +91,25 @@ export function SelectPackageScreen() {
           Available Plans
         </Text>
       </View>
-      <FlatList
-        data={filteredPackages}
-        renderItem={renderPackageItem}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={renderEmpty}
-        ListFooterComponent={selectedPackages.length < 1 ? renderFooter : null}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#32D583"]}
-            tintColor="#32D583"
-          />
-        }
-        contentContainerStyle={$styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-      />
+      <View style={$styles.listContainer}>
+        <FlatList
+          data={filteredPackages}
+          renderItem={renderPackageItem}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={renderEmpty}
+          ListFooterComponent={selectedPackages.length < 1 ? renderFooter : null}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#32D583"]}
+              tintColor="#32D583"
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        />
+      </View>
 
       <View style={{ height: 150 * selectedPackages.length }} />
       <Cart
@@ -149,6 +150,7 @@ export function SelectPackageScreen() {
           })
         }}
       />
+
     </SafeAreaView>
   );
 }
