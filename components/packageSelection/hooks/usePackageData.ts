@@ -42,7 +42,10 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
   }, [packageDetails.data])
 
   const filteredPackages = useMemo(() => {
-    if (!packageDetails.packageDetails) return [];
+    if (!packageDetails.packageDetails) {
+      console.warn('no package details found')
+      return [];
+    }
 
     return packageDetails.packageDetails
       .map((packageDetails) => ({
