@@ -48,6 +48,8 @@ export const useCheckout = () => {
             package_id: packageId,
             package_title: selectedPackageQtyMap[packageId].pkg.title!,
             quantity: selectedPackageQtyMap[packageId].qty,
+            expiration_ms: getEndOfFutureDayTimestamp(selectedPackageQtyMap[packageId].pkg.day!),
+            created_at_ms: Date.now(),
             country_code: local.countryCode ? String(local.countryCode) : undefined,
             region: local.region ? String(local.region) : undefined,
           }))
@@ -191,3 +193,20 @@ export const useCheckout = () => {
     handleContinuePayment,
   };
 };
+
+function getEndOfFutureDayTimestamp(days: number): number {
+  if (!Number.isInteger(days) || days < 0) {
+    throw new Error('Input must be a non-negative integer');
+  }
+
+  // Get current date and set to midnight
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  // Add the requested number of days plus one more day
+  const futureDate = new Date(now);
+  futureDate.setDate(now.getDate() + days + 1);
+
+  // Subtract 1 millisecond to get 23:59:59.999 of the target day
+  return futureDate.getTime() - 1;
+}
