@@ -1,4 +1,4 @@
-package com.esim.dev
+package com.giachan2002.encryptsim
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.ReactApplicationContext
