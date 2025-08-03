@@ -27,9 +27,10 @@ export function useEsimHomeScreen() {
   const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
   const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key, SELECTED_SIM.initialState)
   const usageQuery = useMultiUsage(sims.map(s => s.iccid))
+  const expiredSims = useMemo(() => sims.filter(s => s.expiration_ms < Date.now()), [sims])
 
   const simDetails = useMemo(() => {
-    if (!sims || sims.length === 0) {
+    if (!expiredSims || expiredSims.length === 0) {
       return [];
     }
 
@@ -48,7 +49,7 @@ export function useEsimHomeScreen() {
       }
     };
 
-    return sims.map((sim) => {
+    return expiredSims.map((sim) => {
       const packageDetails: PackageDetailsCardField[] = [];
 
       const total = getDaysBetweenInclusive(sim.created_at_ms, sim.expiration_ms)
@@ -65,7 +66,7 @@ export function useEsimHomeScreen() {
 
       return { sim, packageDetails };
     });
-  }, [sims, usageQuery]);
+  }, [expiredSims, usageQuery]);
 
   // const packageDetailFields = useMemo(() => {
   //   for (const sim of sims) {
@@ -164,6 +165,7 @@ export function useEsimHomeScreen() {
   }, [sims])
 
   const handleTabChange = useCallback((index: number) => {
+    if (expiredSims.length < 1) return
     setTabIndex(index);
   }, []);
 
@@ -193,6 +195,7 @@ export function useEsimHomeScreen() {
 
   return {
     tabIndex,
+    expiredSims,
     searchQuery,
     filteredData,
     sims,

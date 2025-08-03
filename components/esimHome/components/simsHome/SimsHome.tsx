@@ -35,7 +35,7 @@ export function SimsHome() {
           <Image source={{ uri: account?.icon }} style={$styles.icon} />
         </View>
         <SlidingTabs tabs={tabs} activeTab={tabIndex} onTabChange={handleTabChange} />
-        <View style={{ width: '100%', height: 16 }} />
+        <View style={{ width: '100%', height: 4 }} />
         {tabIndex === 1 ? (
           <FlatList
             data={simDetails}
