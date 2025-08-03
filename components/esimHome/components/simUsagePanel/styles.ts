@@ -43,17 +43,6 @@ export const $styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  circularProgress: {
-    position: "relative",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  progressCircle: {
-    position: "absolute",
-  },
-  progressIndicator: {
-    position: "absolute",
-  },
   progressTextContainer: {
     position: "absolute",
     alignItems: "center",
@@ -62,7 +51,13 @@ export const $styles = StyleSheet.create({
   progressValue: {
     color: "white",
     fontSize: 30,
-    fontWeight: 700,
+    fontWeight: "700",
+  },
+  progressSubtitle: {
+    color: "#DADADA",
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: "center",
   },
   topUpButton: {
     borderWidth: 2,

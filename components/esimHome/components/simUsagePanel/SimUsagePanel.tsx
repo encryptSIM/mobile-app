@@ -9,47 +9,53 @@ const exampleStats: UsageStat[] = [
     total: 50,
     used: 24,
     label: "Call",
-    icon: 'phone',
+    icon: "phone",
+    unit: "mins",
   },
   {
     total: 50,
-    used: 35,
+    used: 10,
     label: "Data",
-    icon: 'wifi',
+    icon: "wifi",
+    unit: "MB",
   },
   {
     total: 50,
     used: 12,
     label: "SMS",
-    icon: 'message',
+    icon: "message",
+    unit: "messages",
   },
   {
     total: 10,
     used: 3,
     label: "Validity",
-    icon: 'calendar-month',
-    formatValue: () => '3 days'
+    icon: "calendar-month",
+    unit: "days",
+    formatValue: () => "7 days left",
   },
-]
+];
 
 export interface UsageStat {
-  total: number
-  used: number
-  label: string
-  icon: string
-  formatValue?: () => string
+  total: number;
+  used: number;
+  label: string;
+  icon: string;
+  unit: string;
+  formatValue?: () => string;
 }
 
 export interface SimUsagePanelProps {
-  stats?: UsageStat[]
+  stats?: UsageStat[];
 }
 
 interface CircularProgressProps {
-  percentage: number
-  size: number
+  percentage: number;
+  size: number;
+  color: string;
 }
 
-function CircularProgress({ percentage, size }: CircularProgressProps) {
+function CircularProgress({ percentage, size, color }: CircularProgressProps) {
   const strokeWidth = 12;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -72,7 +78,7 @@ function CircularProgress({ percentage, size }: CircularProgressProps) {
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#32D583"
+          stroke={color}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
@@ -88,7 +94,12 @@ function CircularProgress({ percentage, size }: CircularProgressProps) {
 export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const selectedStat = stats[selectedIndex];
-  const percentage = (selectedStat.used / selectedStat.total) * 100;
+  const remaining = selectedStat.total - selectedStat.used;
+  const percentage = (remaining / selectedStat.total) * 100;
+
+  // Determine color based on remaining percentage
+  const progressColor =
+    percentage > 50 ? "#32D583" : percentage > 20 ? "#FFC107" : "#F44336";
 
   return (
     <View style={$styles.root}>
@@ -98,19 +109,22 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
             key={index}
             style={[
               $styles.iconContainer,
-              selectedIndex === index && $styles.selectedIconContainer
+              selectedIndex === index && $styles.selectedIconContainer,
             ]}
             onPress={() => setSelectedIndex(index)}
+            accessibilityLabel={`Select ${stat.label}`}
           >
             <MaterialIcons
               name={stat.icon as any}
               size={24}
               color={selectedIndex === index ? "#4CAF50" : "#666"}
             />
-            <Text style={[
-              $styles.iconLabel,
-              selectedIndex === index && $styles.selectedIconLabel
-            ]}>
+            <Text
+              style={[
+                $styles.iconLabel,
+                selectedIndex === index && $styles.selectedIconLabel,
+              ]}
+            >
               {stat.label}
             </Text>
           </TouchableOpacity>
@@ -122,18 +136,27 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         <View style={$styles.circularProgressWrapper}>
           <CircularProgress
             percentage={percentage}
-            size={200}
+            size={230}
+            color={progressColor}
           />
           <View style={$styles.progressTextContainer}>
             <Text style={$styles.progressValue}>
-              {selectedStat.formatValue ? selectedStat.formatValue() : selectedStat.used}
+              {selectedStat.formatValue
+                ? selectedStat.formatValue()
+                : `${remaining} ${selectedStat.unit}`}
+            </Text>
+            <Text style={$styles.progressSubtitle}>
+              {`Remaining out of ${selectedStat.total}`}
             </Text>
           </View>
         </View>
       </View>
 
       {/* Top up button */}
-      <TouchableOpacity style={$styles.topUpButton}>
+      <TouchableOpacity
+        style={$styles.topUpButton}
+        accessibilityLabel="Top up your plan"
+      >
         <Text style={$styles.topUpButtonText}>Top up the plan</Text>
       </TouchableOpacity>
     </View>
