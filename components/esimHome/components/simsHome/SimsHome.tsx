@@ -6,6 +6,8 @@ import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
 import { SimSelector } from "../simSelector/SimSelector";
 import { $styles } from "./styles";
 import { SimUsagePanel } from "../simUsagePanel/SimUsagePanel";
+import { BuyEsim } from "../buyEsim";
+import { router } from "expo-router";
 
 const tabs = ["Current", "Expired"];
 
@@ -37,6 +39,7 @@ export function SimsHome() {
           onSelectSim={(sim) => setSelectedSim(sim)}
         />
         <SimUsagePanel stats={usageStats} />
+        <BuyEsim onBuyPress={() => router.replace('/')} />
       </View>
     </View>
   );
