@@ -15,6 +15,7 @@ export function CheckoutScreen() {
     local,
     plans,
     transferSol,
+    completeOrder,
     setSelectedMethodId,
     handleDiscountApply,
     handleContinuePayment,
@@ -42,7 +43,7 @@ export function CheckoutScreen() {
           value={discountCode}
           onApply={handleDiscountApply}
         />
-        <ContinueButton loading={transferSol.isPending} onPress={handleContinuePayment} />
+        <ContinueButton loading={transferSol.isPending || completeOrder.isPending} onPress={handleContinuePayment} />
       </ScrollView>
     </SafeAreaView>
   );

@@ -8,18 +8,46 @@ import { useSolanaPrice } from '@/hooks/useSolanaPrice';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { PriceDetailField } from '../components';
+import { $api, Sim } from '@/api/api';
+
+export const SIMS = { key: 'SIMS', initialState: [] }
 
 export const useCheckout = () => {
   const [selectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key);
   const [selectedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(SELECTED_PACKAGE_QTY_MAP.key)
+  const [, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
   const [selectedMethodId, setSelectedMethodId] = useState<string>('solana')
   const [discountCode, setDiscountCode] = useState('');
   const local = useLocalSearchParams();
   const { account } = useWalletUi()
   const solanaPrice = useSolanaPrice()
+  const completeOrder = $api.useMutation('post', '/complete-order', {
+    onSuccess: (response) => {
+      console.log("successfully completed order", JSON.stringify(response, null, 2))
+      router.replace("/(tabs)")
+      if (response.sims)
+        setSims(prev => [...prev, ...response.sims!])
+    }
+  })
   const transferSol = useTransferSol({
     address: account?.publicKey!,
-    onSuccess: () => router.replace("/(tabs)")
+    onError: () => {
+      console.error("Failed to transfer sol")
+    },
+    onSuccess: () => {
+      console.log("Succesfully transfered sol")
+      completeOrder.mutate({
+        body: {
+          id: account?.address!,
+          orders: selectedPackages.map(packageId => ({
+            package_id: packageId,
+            quantity: selectedPackageQtyMap[packageId].qty,
+            country_code: local.countryCode ? String(local.countryCode) : undefined,
+            region: local.region ? String(local.region) : undefined,
+          }))
+        }
+      })
+    }
   })
   const plans = useMemo(() => {
     if (!selectedPackages) return []
@@ -126,6 +154,10 @@ export const useCheckout = () => {
     };
   }, [solanaPrice.data, selectedPackages, selectedPackageQtyMap]);
 
+  const solAmount = useMemo(() => {
+    return parseFloat(priceData.priceInSol.toFixed(6))
+  }, [priceData])
+
 
   const handleDiscountApply = useCallback((code: string) => {
     setDiscountCode(code);
@@ -133,8 +165,8 @@ export const useCheckout = () => {
   }, []);
 
   const handleContinuePayment = useCallback(() => {
-    transferSol.mutate({ amount: parseFloat(priceData.priceInSol.toFixed(6)), destination: AppConfig.masterSolAccount })
-  }, []);
+    transferSol.mutate({ amount: solAmount, destination: AppConfig.masterSolAccount })
+  }, [solAmount, transferSol, AppConfig.masterSolAccount]);
 
 
   return {
@@ -147,6 +179,7 @@ export const useCheckout = () => {
     plans,
     solanaPrice,
     transferSol,
+    completeOrder,
     setSelectedMethodId,
     handleDiscountApply,
     handleContinuePayment,
