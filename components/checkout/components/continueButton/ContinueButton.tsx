@@ -18,6 +18,7 @@ export const ContinueButton: React.FC<ContinueButtonProps> = ({
         mode="contained"
         onPress={onPress}
         loading={loading}
+        disabled={loading}
         style={$styles.button}
         labelStyle={$styles.buttonText}
         contentStyle={$styles.buttonContent}
