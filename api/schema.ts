@@ -42,6 +42,7 @@ export interface paths {
                         "application/json": {
                             success?: boolean;
                             message?: string;
+                            sims?: components["schemas"]["SIM"][];
                         };
                     };
                 };
@@ -1289,12 +1290,16 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         OrderDetails: {
-            iccid: string;
-            otherData?: string;
+            quantity: number;
+            package_id: string;
+            region?: string;
+            country_code?: string;
         };
         SIM: {
             iccid: string;
-            otherData?: string;
+            qrcode: string;
+            qrcode_url: string;
+            created_at: string;
         };
         DeviceInfo: {
             /** @description Device token for authentication */

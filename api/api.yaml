@@ -45,8 +45,8 @@ paths:
                   message:
                     type: string
                   sims:
-                    type: object
-                    additionalProperties:
+                    type: array
+                    items:
                       $ref: '#/components/schemas/SIM'
         '400':
           description: Bad request due to invalid input
@@ -845,21 +845,33 @@ components:
     OrderDetails:
       type: object
       properties:
-        iccid:
+        quantity:
+          type: number
+        package_id:
           type: string
-        otherData:
+        region:
+          type: string
+        country_code:
           type: string
       required:
-        - iccid
+        - quantity
+        - package_id
     SIM:
       type: object
       properties:
         iccid:
           type: string
-        otherData:
+        qrcode:
+          type: string
+        qrcode_url:
+          type: string
+        created_at:
           type: string
       required:
         - iccid
+        - qrcode
+        - qrcode_url
+        - created_at
     # VPN Schemas
     DeviceInfo:
       type: object
