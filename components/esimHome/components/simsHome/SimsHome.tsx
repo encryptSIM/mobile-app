@@ -21,7 +21,7 @@ export function SimsHome() {
     simDetails,
     usageStats,
     setSelectedSim,
-    handleTabChange,
+    handleSimHomeTabChange,
   } = useEsimHomeScreen();
 
   return (
@@ -34,7 +34,7 @@ export function SimsHome() {
           />
           <Image source={{ uri: account?.icon }} style={$styles.icon} />
         </View>
-        <SlidingTabs tabs={tabs} activeTab={tabIndex} onTabChange={handleTabChange} />
+        <SlidingTabs tabs={tabs} activeTab={tabIndex} onTabChange={handleSimHomeTabChange} />
         <View style={{ width: '100%', height: 4 }} />
         {tabIndex === 1 ? (
           <FlatList

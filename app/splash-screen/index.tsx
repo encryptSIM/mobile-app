@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Image, Text, StyleSheet, Platform } from "react-native";
+import { View, Image, Text, StyleSheet } from "react-native";
 
 const SplashScreen = ({ onFinish }: { onFinish: () => void }) => {
   const [visible, setVisible] = useState(true);
@@ -31,8 +31,10 @@ export default SplashScreen;
 
 const styles = StyleSheet.create({
   container: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
     flex: 1,
-    backgroundColor: "#0A0F1C",
     alignItems: "center",
     justifyContent: "center",
   },

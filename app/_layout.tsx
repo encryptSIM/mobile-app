@@ -10,7 +10,6 @@ import { AppProviders } from "@/components/app-providers";
 import { useAuth } from "@/components/auth/auth-provider";
 import { DarkThemeCustom } from "@/constants/custom-theme";
 import "../global.css";
-import SplashScreen from "./splash-screen";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -18,7 +17,7 @@ SplashScreenAPI.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ ...FontAwesome.font });
-  const [splashFinished, setSplashFinished] = useState(false);
+  const [splashFinished,] = useState(false);
   const ready = fontsLoaded && splashFinished;
 
   useEffect(() => {
@@ -26,10 +25,6 @@ export default function RootLayout() {
       SplashScreenAPI.hideAsync();
     }
   }, [ready]);
-
-  if (!ready) {
-    return <SplashScreen onFinish={() => setSplashFinished(true)} />;
-  }
 
   return (
     <AppProviders>

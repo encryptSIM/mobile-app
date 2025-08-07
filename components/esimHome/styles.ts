@@ -1,6 +1,43 @@
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
+  progress: {
+    position: 'relative',
+    top: 100,
+  },
+  splashLogo: {
+    width: 120,
+    height: 120,
+    resizeMode: "contain",
+  },
+  title: {
+    marginTop: 20,
+    fontSize: 40,
+    color: "white",
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "white",
+    textAlign: "center",
+    marginTop: 12,
+  },
+  background: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  loading: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
   container: {
     flex: 1,
   },

@@ -78,7 +78,7 @@ export function SimSelector(props: SimSelectorProps) {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={$styles.modalOverlay}>
+        <TouchableOpacity activeOpacity={1} onPress={() => setModalVisible(false)} style={$styles.modalOverlay}>
           <View style={$styles.modalContent}>
             <View style={$styles.modalHeader}>
               <View style={$styles.dragHandle} />
@@ -117,7 +117,7 @@ export function SimSelector(props: SimSelectorProps) {
               ))}
             </ScrollView>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </>
   );

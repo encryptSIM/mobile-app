@@ -5,15 +5,14 @@ import { PackageCardData } from "@/constants/countries";
 import EvilIcons from "@react-native-vector-icons/fontawesome";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
-import { FlatList, Image, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { Appbar, TextInput } from "react-native-paper";
-import { $styles } from "./styles";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
+import { $styles } from "./styles";
 
 const tabs = ["Countries", "Regional plan"];
 
 export function AddSim() {
-  const { account } = useWalletUi();
   const {
     tabIndex,
     searchQuery,
@@ -52,13 +51,6 @@ export function AddSim() {
           <Appbar.BackAction onPress={router.back} />
           <Appbar.Content title={"Add new eSIM"} />
         </Appbar.Header>
-        {/* <View style={$styles.header}> */}
-        {/*   <Image */}
-        {/*     source={require("@/assets/app-logo-light.png")} */}
-        {/*     style={$styles.logo} */}
-        {/*   /> */}
-        {/*   <Image source={{ uri: account?.icon }} style={$styles.icon} /> */}
-        {/* </View> */}
         <TextInput
           placeholder="Search your destination"
           mode="outlined"
@@ -72,20 +64,18 @@ export function AddSim() {
           }
         />
         <View style={$styles.searchSpacing} />
+        <PackageLocationListHeader
+          tabs={tabs}
+          activeTab={tabIndex}
+          onTabChange={handleTabChange}
+        />
         <FlatList
           data={filteredData}
           keyExtractor={(item) => item.id}
           renderItem={renderCard}
           numColumns={2}
+          ListHeaderComponent={<View style={$styles.listHeader} />}
           columnWrapperStyle={$styles.columnWrapper}
-          ListHeaderComponent={
-            <PackageLocationListHeader
-              tabs={tabs}
-              activeTab={tabIndex}
-              onTabChange={handleTabChange}
-            />
-          }
-          stickyHeaderIndices={[0]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={$styles.listContent}
         />
