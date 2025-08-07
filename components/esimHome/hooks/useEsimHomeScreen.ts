@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import {
   PackageCardData,
@@ -28,6 +28,10 @@ export function useEsimHomeScreen() {
   const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key, SELECTED_SIM.initialState)
   const usageQuery = useMultiUsage(sims.map(s => s.iccid))
   const expiredSims = useMemo(() => sims.filter(s => s.expiration_ms < Date.now()), [sims])
+  const [progress, setProgress] = useState<number>(0.0);
+  const [showContent, setShowContent] = useSharedState('SHOW_CONTENT')
+  const intervalRef = useRef<number | null>(null);
+
 
   const simDetails = useMemo(() => {
     if (!expiredSims || expiredSims.length === 0) {
@@ -68,25 +72,13 @@ export function useEsimHomeScreen() {
     });
   }, [expiredSims, usageQuery]);
 
-  // const packageDetailFields = useMemo(() => {
-  //   for (const sim of sims) {
-  //     let fields: PackageDetailsCardField[] = []
-  //     fields.push({
-  //       key: "Calls"
-  //     })
-  //
-  //   }
-  // }, [])
-
   const usageStats = useMemo(() => {
     const statsMap: Record<string, UsageStat[]> = {}
     if (!usageQuery.data) return {}
     for (const iccid of Object.keys(usageQuery.data)) {
       const stats: UsageStat[] = []
       const usage = usageQuery.data[iccid]
-      console.log("usage", JSON.stringify(usage, null, 2))
       if (usage.total_text) {
-        console.log("adding sms", usage.total_text)
         stats.push({
           total: usage.total_text,
           used: usage.total_text - usage.remaining_text!,
@@ -96,7 +88,6 @@ export function useEsimHomeScreen() {
         })
       }
       if (usage.total) {
-        console.log("adding data")
         stats.push({
           total: usage.total,
           used: usage.total - usage.remaining!,
@@ -106,7 +97,6 @@ export function useEsimHomeScreen() {
         })
       }
       if (usage.total_voice) {
-        console.log("adding voice")
         stats.push({
           total: usage.total_voice,
           used: usage.total_voice - usage.remaining_voice!,
@@ -117,12 +107,9 @@ export function useEsimHomeScreen() {
       }
 
       const sim = sims.find(s => s.iccid === iccid)
-      console.log("sim", sim?.created_at_ms)
       if (sim) {
         const total = getDaysBetweenInclusive(sim.created_at_ms, sim.expiration_ms)
         const remaining = getDaysRemaining(sim.expiration_ms)
-        console.log("total", total)
-        console.log("remaining", remaining)
         stats.push({
           total: total,
           used: total - remaining,
@@ -156,7 +143,41 @@ export function useEsimHomeScreen() {
       setSims(prev => [...prev.filter(t => !data.find(s => t.iccid === s.iccid)), ...data])
       setSelectedSim(sims[0])
     }
-  }, [simsQuery.data])
+
+    if (simsQuery.isPending) {
+      setShowContent(false);
+      setProgress(0.0);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = window.setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 0.9) return +(prev + 0.01).toFixed(2);
+          return prev;
+        });
+      }, 30);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      const finishInterval = window.setInterval(() => {
+        setProgress((prev) => {
+          if (prev < 1.0) return +(prev + 0.05).toFixed(2);
+          return 1.0;
+        });
+      }, 16);
+
+      const timeout = window.setTimeout(() => {
+        clearInterval(finishInterval);
+        setShowContent(true);
+        setProgress(0);
+      }, 400);
+
+      return () => {
+        clearInterval(finishInterval);
+        clearTimeout(timeout);
+      };
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [simsQuery.isPending]);
 
   useEffect(() => {
     if (!selectedSim && sims.length > 0) {
@@ -164,8 +185,12 @@ export function useEsimHomeScreen() {
     }
   }, [sims])
 
-  const handleTabChange = useCallback((index: number) => {
+  const handleSimHomeTabChange = useCallback((index: number) => {
     if (expiredSims.length < 1) return
+    setTabIndex(index);
+  }, []);
+
+  const handleTabChange = useCallback((index: number) => {
     setTabIndex(index);
   }, []);
 
@@ -203,9 +228,12 @@ export function useEsimHomeScreen() {
     simsQuery,
     simDetails,
     usageStats,
+    progress,
+    showContent,
     setSelectedSim,
     setSearchQuery,
     handleTabChange,
+    handleSimHomeTabChange,
   };
 }
 

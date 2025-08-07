@@ -4,6 +4,7 @@ import React from "react";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import Colors from "@/constants/Colors";
 import { Icon } from "react-native-paper";
+import { useSharedState } from "@/hooks/use-provider";
 
 function TabBarIcon(props: {
   name: 'dVPN' | 'eSIM' | 'Profile'
@@ -15,6 +16,7 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
+  const [showContent,] = useSharedState('SHOW_CONTENT', false)
   return (
     <Tabs
       screenOptions={{
@@ -32,6 +34,7 @@ export default function TabLayout() {
         options={{
           headerShown: false,
           title: 'eSIM',
+          tabBarStyle: { opacity: showContent ? 1 : 0 },
           tabBarIcon: ({ color }) => <TabBarIcon name="eSIM" color={color} />,
         }}
       />
@@ -40,6 +43,7 @@ export default function TabLayout() {
         options={{
           headerShown: false,
           title: "dVPN",
+          tabBarStyle: { opacity: showContent ? 1 : 0 },
           tabBarIcon: ({ color }) => <TabBarIcon name="dVPN" color={color} />,
         }}
       />
@@ -47,6 +51,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           headerShown: false,
+          tabBarStyle: { opacity: showContent ? 1 : 0 },
           title: "Profile",
           tabBarIcon: ({ color }) => <TabBarIcon name="Profile" color={color} />,
         }}
