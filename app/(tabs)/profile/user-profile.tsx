@@ -54,14 +54,18 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={() => {
+              balanceQuery.refetch()
             }}
             style={styles.balanceCard}
           >
             <Text style={styles.balanceLabel}>Current Balance</Text>
             <Text style={styles.balanceValue}>
               {balanceQuery.error && "Error"}
-              {balanceQuery.isPending && <ActivityIndicator />}
-              {balanceQuery.data && `${lamportsToSol(balanceQuery.data).toFixed(6)} SOL`}
+              {
+                balanceQuery.isFetching
+                  ? <ActivityIndicator />
+                  : `${lamportsToSol(balanceQuery.data!).toFixed(6)} SOL`
+              }
             </Text>
           </TouchableOpacity>
         </View>
