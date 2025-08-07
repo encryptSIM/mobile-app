@@ -6,6 +6,7 @@ export const $styles = StyleSheet.create({
     height: 100,
   },
   label: {
+    color: 'white',
     paddingTop: 16,
     paddingLeft: 16,
     width: 100,

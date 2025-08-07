@@ -1,12 +1,12 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  View,
-  TouchableOpacity,
   Animated,
   Dimensions,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Text } from './Themed';
 
 interface SlidingTabsProps {
   tabs: string[];

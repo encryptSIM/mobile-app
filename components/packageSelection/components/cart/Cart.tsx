@@ -1,5 +1,4 @@
-import { View } from "@/components/Themed";
-import { ScrollView } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Button, FAB, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { $styles } from "./styles";
