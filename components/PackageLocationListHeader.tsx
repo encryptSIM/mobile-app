@@ -22,8 +22,6 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     width: "100%",
     backgroundColor: "transparent",
-    paddingTop: 8,
-    paddingBottom: 8,
   },
 });
 

@@ -51,7 +51,7 @@ export const $styles = StyleSheet.create({
     paddingTop: 20,
     borderWidth: 2,
     borderBottomWidth: 0,
-    borderColor: 'white',
+    borderColor: '#878787',
     borderLeftWidth: 0.01,
     borderRightWidth: 0.01,
   },

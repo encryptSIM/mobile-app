@@ -9,9 +9,13 @@ export const $styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 36,
   },
+  listHeader: {
+    width: '100%',
+    height: 16
+  },
   header: {
     flexDirection: "row",
-    backgroundColor: "#111926",
+    backgroundColor: "transparent",
     justifyContent: "space-between",
     paddingBottom: 32,
   },
