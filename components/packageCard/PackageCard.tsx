@@ -1,7 +1,7 @@
-import CountryFlag from "react-native-country-flag";
-import { Text } from "../Themed";
-import { $styles } from "./styles";
 import { Image, TouchableOpacity, View } from "react-native";
+import CountryFlag from "react-native-country-flag";
+import { $styles } from "./styles";
+import { Text } from "react-native-paper";
 
 export interface PackageCardProps {
   label: string;
