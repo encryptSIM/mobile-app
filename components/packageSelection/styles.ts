@@ -4,11 +4,10 @@ export const $styles = StyleSheet.create({
   root: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#111926',
   },
   header: {
     width: '100%',
-    backgroundColor: '#111926',
+    backgroundColor: 'transparent',
     elevation: 0,
   },
   text: {
