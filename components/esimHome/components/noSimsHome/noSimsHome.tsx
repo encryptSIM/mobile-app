@@ -68,6 +68,11 @@ export function NoSimsHome() {
           }
         />
         <View style={$styles.searchSpacing} />
+        <PackageLocationListHeader
+          tabs={tabs}
+          activeTab={tabIndex}
+          onTabChange={handleTabChange}
+        />
         <FlatList
           data={filteredData}
           keyExtractor={(item) => item.id}
@@ -75,11 +80,7 @@ export function NoSimsHome() {
           numColumns={2}
           columnWrapperStyle={$styles.columnWrapper}
           ListHeaderComponent={
-            <PackageLocationListHeader
-              tabs={tabs}
-              activeTab={tabIndex}
-              onTabChange={handleTabChange}
-            />
+            <View style={$styles.searchSpacing} />
           }
           stickyHeaderIndices={[0]}
           showsVerticalScrollIndicator={false}
