@@ -6,8 +6,8 @@ meta {
 
 get {
   url: {{baseUrl}}/v1/sims/:iccid/topups
-  body: none
-  auth: none
+  body: formUrlEncoded
+  auth: inherit
 }
 
 headers {

@@ -7,7 +7,11 @@ meta {
 get {
   url: {{baseUrl}}/v1/sims/:sim_iccid/usage
   body: none
-  auth: none
+  auth: inherit
+}
+
+params:path {
+  sim_iccid: 89852350625220449845
 }
 
 headers {

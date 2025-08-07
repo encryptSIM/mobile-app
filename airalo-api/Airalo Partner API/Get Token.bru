@@ -1,0 +1,21 @@
+meta {
+  name: Get Token
+  type: http
+  seq: 26
+}
+
+post {
+  url: {{baseUrl}}/v2/token
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  client_id: {{client_id}}
+  client_secret: {{client_secret}}
+  grant_type: client_credentials
+}
+
+settings {
+  encodeUrl: true
+}
