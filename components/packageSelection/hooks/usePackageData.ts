@@ -23,7 +23,7 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
   const [filter, setFilter] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPackages, setSelectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key, SELECTED_PACKAGES.initialState);
-  const [selectedPackageQtyMap, setSeletedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(SELECTED_PACKAGE_QTY_MAP.key, SELECTED_PACKAGE_QTY_MAP.initialState)
+  const [selectedPackageQtyMap, setSelectedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(SELECTED_PACKAGE_QTY_MAP.key, SELECTED_PACKAGE_QTY_MAP.initialState)
   const packageDetails = usePackageDetails({ countryCode, region });
 
   const filters = useMemo(() => {
@@ -78,23 +78,33 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
     }
   }, [packageDetails.refetch]);
 
-  const handlePackagePress = useCallback((packageId: string) => {
-    setSelectedPackages((prev) => {
-      if (prev.includes(packageId)) {
-        return prev.filter((id) => id !== packageId);
-      }
-      return [...prev, packageId];
-    });
-    const packages = packageDetails.packageDetails.flatMap(t => t.localPackage)
-    const pkg = packages.find(t => t?.id === packageId)
-    setSeletedPackageQtyMap(prev => ({
-      ...prev,
-      [packageId]: {
-        pkg: pkg!,
-        qty: prev[packageId] ? prev[packageId].qty + 1 : 1
-      }
-    }))
-  }, [packageDetails.packageDetails, selectedPackageQtyMap, selectedPackageQtyMap]);
+  const handlePackagePress = useCallback(
+    (packageId: string) => {
+      setSelectedPackages((prev) => {
+        if (prev.includes(packageId)) {
+          setSelectedPackageQtyMap((qtyPrev) => {
+            const { [packageId]: _, ...rest } = qtyPrev;
+            return rest;
+          });
+          return prev.filter((id) => id !== packageId);
+        } else {
+          const packages = packageDetails.packageDetails.flatMap(
+            (t) => t.localPackage
+          );
+          const pkg = packages.find((t) => t?.id === packageId);
+          setSelectedPackageQtyMap((qtyPrev) => ({
+            ...qtyPrev,
+            [packageId]: {
+              pkg: pkg!,
+              qty: qtyPrev[packageId] ? qtyPrev[packageId].qty + 1 : 1,
+            },
+          }));
+          return [...prev, packageId];
+        }
+      });
+    },
+    [packageDetails.packageDetails]
+  );
 
   const handleFilterPress = useCallback((filterValue: number) => {
     setFilter((prev) => {
@@ -121,7 +131,7 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
     clearFilters,
     onRefresh,
     selectedPackageQtyMap,
-    setSeletedPackageQtyMap,
+    setSeletedPackageQtyMap: setSelectedPackageQtyMap,
     filters,
     packageDetails,
   };
