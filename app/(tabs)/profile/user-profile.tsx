@@ -17,6 +17,7 @@ import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { useGetBalance } from "@/components/solana/use-get-balance";
 import { ActivityIndicator } from "react-native-paper";
 import { lamportsToSol } from "@/utils/lamports-to-sol";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
   const { account } = useWalletUi()
@@ -113,6 +114,7 @@ export default function ProfileScreen() {
                 onPress={async () => {
                   setShowLogoutConfirm(false);
                   await signOut()
+                  await AsyncStorage.clear()
                 }}
                 style={[styles.modalButton, { backgroundColor: "#EF4444" }]}
               >
