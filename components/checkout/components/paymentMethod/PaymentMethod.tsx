@@ -96,27 +96,25 @@ export const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
   return (
     <>
-      <TouchableOpacity disabled={disabled} onPress={openModal} >
-        <Card style={$styles.card}>
-          <Card.Content style={$styles.content}>
-            <View style={$styles.header}>
-              <View style={$styles.titleContainer}>
-                <Image source={selectedMethod.icon} style={$styles.methodIcon} />
-                <Text style={$styles.title}>Payment method</Text>
-              </View>
-              <IconButton
-                icon="pencil"
-                iconColor="#888"
-                size={20}
-              />
+      <Card style={$styles.card}>
+        <Card.Content style={$styles.content}>
+          <TouchableOpacity style={$styles.header} disabled={disabled} onPress={openModal} >
+            <View style={$styles.titleContainer}>
+              <Image source={selectedMethod.icon} style={$styles.methodIcon} />
+              <Text style={$styles.title}>Payment method</Text>
             </View>
+            <IconButton
+              icon="pencil"
+              iconColor="#888"
+              size={20}
+            />
+          </TouchableOpacity>
 
-            <Text style={$styles.description}>
-              You can choose or change the payment method to complete your order.
-            </Text>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
+          <Text style={$styles.description}>
+            You can choose or change the payment method to complete your order.
+          </Text>
+        </Card.Content>
+      </Card>
 
       <Modal
         animationType="slide"
