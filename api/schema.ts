@@ -4,6 +4,93 @@
  */
 
 export interface paths {
+    "/mark-sim-installed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark SIM as installed
+         * @description Updates the installation status of a SIM card by ICCID.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Whether the SIM is installed */
+                        installed: boolean;
+                        /** @description The ICCID of the SIM card */
+                        iccid: string;
+                        /** @description The current address of the signed in wallet */
+                        id?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description SIM updated successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example true */
+                            success?: boolean;
+                            /** @example Success */
+                            message?: string;
+                        };
+                    };
+                };
+                /** @description Bad request (validation error) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success?: boolean;
+                            /** @example Bad request */
+                            message?: string;
+                            /** @description Validation error details */
+                            error?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description Internal server error (database update failed) */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success?: boolean;
+                            /** @example Failed to update SIM's installation status in the database */
+                            message?: string;
+                            /** @description Database error details */
+                            error?: Record<string, never>;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cache/{key}": {
         parameters: {
             query?: never;
