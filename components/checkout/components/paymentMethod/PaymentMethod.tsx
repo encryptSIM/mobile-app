@@ -70,11 +70,13 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
 
 interface PaymentMethodProps {
   selectedMethodId?: string;
+  disabled?: boolean
   onMethodChange?: (methodId: string) => void;
 }
 
 export const PaymentMethod: React.FC<PaymentMethodProps> = ({
   selectedMethodId = 'apple-pay',
+  disabled,
   onMethodChange,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -94,7 +96,7 @@ export const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
   return (
     <>
-      <TouchableOpacity onPress={openModal} >
+      <TouchableOpacity disabled={disabled} onPress={openModal} >
         <Card style={$styles.card}>
           <Card.Content style={$styles.content}>
             <View style={$styles.header}>
@@ -122,7 +124,7 @@ export const PaymentMethod: React.FC<PaymentMethodProps> = ({
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={$styles.modalOverlay}>
+        <TouchableOpacity activeOpacity={1} onPress={() => setModalVisible(false)} style={$styles.modalOverlay}>
           <View style={$styles.modalContent}>
             <View style={$styles.modalHeader}>
               <View style={$styles.dragHandle} />
@@ -157,7 +159,7 @@ export const PaymentMethod: React.FC<PaymentMethodProps> = ({
               ))}
             </ScrollView>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </>
   );
