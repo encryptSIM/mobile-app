@@ -14,18 +14,27 @@ export const wrapWithMetadata = <T>(
   ttl,
 });
 
+
 export const generateCacheKey = (
   baseKey: string,
   params?: Record<string, any>
 ): string => {
   if (!params) return baseKey;
 
-  const sortedParams = Object.keys(params)
-    .sort()
-    .reduce((result, key) => {
-      result[key] = params[key];
-      return result;
-    }, {} as Record<string, any>);
+  const sortedKeys = Object.keys(params).sort();
+  const paramString = sortedKeys
+    .map((key) => {
+      const value =
+        params[key] !== undefined && params[key] !== null
+          ? String(params[key])
+          : '';
+      return (
+        encodeURIComponent(key).replace(/[.#$[\]]/g, '_') +
+        '=' +
+        encodeURIComponent(value).replace(/[.#$[\]]/g, '_')
+      );
+    })
+    .join('&');
 
-  return `${baseKey}:${JSON.stringify(sortedParams)}`;
+  return paramString ? `${baseKey}:${paramString}` : baseKey;
 };
