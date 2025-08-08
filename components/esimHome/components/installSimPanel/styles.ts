@@ -23,4 +23,9 @@ export const $styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
+  installedText: {
+    color: "#9CA1AB",
+    fontSize: 14,
+    fontWeight: "400",
+  },
 });

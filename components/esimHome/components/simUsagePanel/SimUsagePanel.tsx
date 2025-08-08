@@ -3,6 +3,12 @@ import Svg, { Circle } from "react-native-svg";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { $styles } from "./styles";
+import { useSharedState } from "@/hooks/use-provider";
+import { $api, Sim } from "@/api/api";
+import { SIMS } from "@/components/checkout/hooks/useCheckout";
+import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
+import { ActivityIndicator } from "react-native-paper";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
 
 const exampleStats: UsageStat[] = [
   {
@@ -97,6 +103,30 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
   const selectedStat = stats?.[selectedIndex] ?? exampleStats[0]; // Add null check here
   const remaining = (selectedStat.total ?? 1) - (selectedStat.used ?? 1);
   const percentage = (remaining / (selectedStat.total ?? 1)) * 100;
+  const [, setSims] = useSharedState<Sim[]>(SIMS.key)
+  const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key)
+  const { account } = useWalletUi();
+  const setSimInstalledMut = $api.useMutation('post', '/mark-sim-installed', {
+    onSuccess: () => {
+      setSims(prev => prev.map(sim => {
+        if (selectedSim && sim.iccid === selectedSim.iccid) {
+          return ({
+            ...sim,
+            installed: false,
+          })
+        }
+        return sim
+      }))
+      setSelectedSim(prev => ({
+        ...prev!,
+        installed: false
+      }))
+
+    },
+    onError: (error) => {
+      console.error(error)
+    }
+  })
 
   // Determine color based on remaining percentage
   const progressColor =
@@ -159,6 +189,25 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         accessibilityLabel="Top up your plan"
       >
         <Text style={$styles.topUpButtonText}>Top up the plan</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={$styles.textButton}
+        onPress={
+          () => setSimInstalledMut.mutate({
+            body: {
+              installed: false,
+              iccid: selectedSim!.iccid,
+              id: account?.address
+            }
+          })
+        }
+      >
+        {
+          !setSimInstalledMut.isPending
+            ? <Text style={$styles.installedText}>I haven't installed this SIM yet</Text>
+            : <ActivityIndicator />
+        }
       </TouchableOpacity>
     </View>
   );

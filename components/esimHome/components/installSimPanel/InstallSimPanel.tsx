@@ -1,14 +1,19 @@
-import { Sim } from "@/api/api";
+import { $api, Sim } from "@/api/api";
 import * as Clipboard from "expo-clipboard";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
 import { Alert, Image, TouchableOpacity, View } from "react-native";
-import { Text } from "react-native-paper";
+import { ActivityIndicator, Text } from "react-native-paper";
 import QRCode from "react-native-qrcode-skia";
 import { captureRef } from "react-native-view-shot";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
 import { $styles } from "./styles";
+import { useSharedState } from "@/hooks/use-provider";
+import { SIMS } from "@/components/checkout/hooks/useCheckout";
+import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { useMobileWallet } from "@/components/solana/use-mobile-wallet";
 
 export interface InstallSimPanelProps {
   sim: Sim;
@@ -20,6 +25,30 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const esimCode = `LPA:1$lpa.airalo.com$TEST`;
+  const [, setSims] = useSharedState<Sim[]>(SIMS.key)
+  const [, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key)
+  const { account } = useWalletUi();
+  const setSimInstalledMut = $api.useMutation('post', '/mark-sim-installed', {
+    onSuccess: () => {
+      setSims(prev => prev.map(sim => {
+        if (sim.iccid === props.sim.iccid) {
+          return ({
+            ...sim,
+            installed: true,
+          })
+        }
+        return sim
+      }))
+      setSelectedSim(prev => ({
+        ...prev!,
+        installed: true
+      }))
+
+    },
+    onError: (error) => {
+      console.error(error)
+    }
+  })
 
   const saveQRCode = async () => {
     try {
@@ -113,6 +142,24 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
         accessibilityLabel="Install eSIM"
       >
         <Text style={$styles.installButtonText}>Install eSIM</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={
+          () => setSimInstalledMut.mutate({
+            body: {
+              installed: true,
+              iccid: props.sim.iccid,
+              id: account?.address
+            }
+          })
+        }
+      >
+        {
+          !setSimInstalledMut.isPending
+            ? <Text style={$styles.installedText}>I've installed this eSIM already</Text>
+            : <ActivityIndicator />
+        }
       </TouchableOpacity>
 
       <InstallModal
