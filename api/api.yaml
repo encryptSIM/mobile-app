@@ -10,6 +10,75 @@ servers:
     description: Local development server
 
 paths:
+  /mark-sim-installed:
+    post:
+      summary: Mark SIM as installed
+      description: Updates the installation status of a SIM card by ICCID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - installed
+                - iccid
+              properties:
+                installed:
+                  type: boolean
+                  description: Whether the SIM is installed
+                iccid:
+                  type: string
+                  description: The ICCID of the SIM card
+                id:
+                  type: string
+                  description: The current address of the signed in wallet
+      responses:
+        '200':
+          description: SIM updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Success
+        '400':
+          description: Bad request (validation error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Bad request
+                  error:
+                    type: object
+                    description: Validation error details
+        '500':
+          description: Internal server error (database update failed)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to update SIM's installation status in the database
+                  error:
+                    type: object
+                    description: Database error details
   /cache/{key}:
     get:
       summary: Get cached data by key
@@ -1156,6 +1225,8 @@ components:
           type: number
         created_at_ms:
           type: number
+        installed:
+          type: boolean
       required:
         - iccid
         - qrcode

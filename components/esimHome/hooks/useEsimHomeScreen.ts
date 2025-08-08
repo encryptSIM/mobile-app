@@ -32,6 +32,11 @@ export function useEsimHomeScreen() {
   const [showContent, setShowContent] = useSharedState('SHOW_CONTENT')
   const intervalRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    const simsSim = simsQuery.data?.data?.find(t => t.iccid === selectedSim?.iccid)
+    if (selectedSim?.installed === simsSim?.installed) return
+    simsQuery.refetch()
+  }, [selectedSim])
 
   const simDetails = useMemo(() => {
     if (!expiredSims || expiredSims.length === 0) {

@@ -12,7 +12,7 @@ export const $styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginBottom: 40,
+    marginBottom: 20,
   },
   iconContainer: {
     alignItems: "center",
@@ -36,7 +36,7 @@ export const $styles = StyleSheet.create({
   },
   progressContainer: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 16,
   },
   circularProgressWrapper: {
     position: "relative",
@@ -71,5 +71,13 @@ export const $styles = StyleSheet.create({
     color: "#32D583",
     fontSize: 16,
     fontWeight: "500",
+  },
+  installedText: {
+    color: "#9CA1AB",
+    fontSize: 14,
+    fontWeight: "400",
+  },
+  textButton: {
+    paddingTop: 16,
   },
 });
