@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { $styles } from "./styles";
+import { background, brandGreen } from "../app-providers";
 
 const MAX_PACKAGES = 1
 export function SelectPackageScreen() {
@@ -67,7 +68,7 @@ export function SelectPackageScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView className="h-full w-full px-5 bg-[#111926]">
+      <SafeAreaView className={`h-full w-full px-5 bg-[${background}]`}>
         <PackageErrorState onRetry={onRefresh} />
       </SafeAreaView>
     );
@@ -102,8 +103,8 @@ export function SelectPackageScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#32D583"]}
-              tintColor="#32D583"
+              colors={[brandGreen]}
+              tintColor={brandGreen}
             />
           }
           showsVerticalScrollIndicator={false}

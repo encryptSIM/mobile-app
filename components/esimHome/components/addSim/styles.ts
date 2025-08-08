@@ -1,3 +1,4 @@
+import { background } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
@@ -34,7 +35,7 @@ export const $styles = StyleSheet.create({
     position: "relative",
     zIndex: 1000,
     width: "100%",
-    backgroundColor: "#111926",
+    backgroundColor: background,
     paddingTop: 8,
     paddingBottom: 8,
   },

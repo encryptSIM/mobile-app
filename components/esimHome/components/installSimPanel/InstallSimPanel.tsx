@@ -14,6 +14,7 @@ import { SIMS } from "@/components/checkout/hooks/useCheckout";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { useMobileWallet } from "@/components/solana/use-mobile-wallet";
+import { brandGreen } from "@/components/app-providers";
 
 export interface InstallSimPanelProps {
   sim: Sim;
@@ -119,7 +120,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
       <View ref={qrRef} collapsable={false}>
         <QRCode
           value={esimCode}
-          color="#32D583"
+          color={brandGreen}
           shapeOptions={{
             shape: "rounded",
             eyePatternShape: "rounded",

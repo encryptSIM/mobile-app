@@ -4,6 +4,7 @@ import * as Progress from "react-native-progress";
 import { NoSimsHome, SimsHome } from "./components";
 import { useEsimHomeScreen } from "./hooks/useEsimHomeScreen";
 import { $styles } from "./styles";
+import { brandGreen } from "../app-providers";
 
 export function EsimHomeScreen() {
   const {
@@ -27,7 +28,7 @@ export function EsimHomeScreen() {
           <Progress.Bar
             progress={progress}
             width={250}
-            color="#32D583"
+            color={brandGreen}
             animated
           />
         </View>

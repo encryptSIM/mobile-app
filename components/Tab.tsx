@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { brandGreen, card } from './app-providers';
 
 interface SlidingTabsProps {
   tabs: string[];
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'relative',
     flexDirection: 'row',
-    backgroundColor: '#202939',
+    backgroundColor: card,
     borderRadius: 24,
     padding: 4,
     minWidth: 320,
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeText: {
-    color: '#32D583',
+    color: brandGreen,
   },
   inactiveText: {
     color: '#9ca3af',

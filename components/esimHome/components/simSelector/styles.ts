@@ -1,3 +1,4 @@
+import { background, brandGreen, card } from "@/components/app-providers";
 import { getDimensions } from "@/utils/dimensions";
 import { StyleSheet } from "react-native";
 
@@ -11,7 +12,7 @@ export const $styles = StyleSheet.create({
     borderRadius: 50,
   },
   card: {
-    backgroundColor: '#202939',
+    backgroundColor: card,
     marginBottom: 16,
     borderRadius: 30,
   },
@@ -44,7 +45,7 @@ export const $styles = StyleSheet.create({
     backgroundColor: 'transparent'
   },
   modalContent: {
-    backgroundColor: '#111926',
+    backgroundColor: background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: height * 0.8,
@@ -97,7 +98,7 @@ export const $styles = StyleSheet.create({
   simItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#202939',
+    backgroundColor: card,
     paddingVertical: 8,
     paddingHorizontal: 16,
     marginBottom: 8,
@@ -105,9 +106,9 @@ export const $styles = StyleSheet.create({
   },
   selectedSim: {
     position: 'relative',
-    backgroundColor: '#202939',
+    backgroundColor: card,
     borderWidth: 2,
-    borderColor: '#32D583',
+    borderColor: brandGreen,
   },
   disabledTextWrapper: {
     position: 'absolute',

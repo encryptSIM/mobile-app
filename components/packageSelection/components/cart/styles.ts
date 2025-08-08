@@ -1,3 +1,4 @@
+import { background, brandGreen } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
@@ -11,7 +12,7 @@ export const $styles = StyleSheet.create({
   },
 
   cartContent: {
-    backgroundColor: '#111926',
+    backgroundColor: background,
     padding: 16,
     maxHeight: 400,
     width: '100%',
@@ -51,7 +52,7 @@ export const $styles = StyleSheet.create({
   },
 
   quantityButton: {
-    backgroundColor: '#32D583',
+    backgroundColor: brandGreen,
     borderRadius: 20,
   },
 
@@ -61,7 +62,7 @@ export const $styles = StyleSheet.create({
 
   plusButton: {
     marginLeft: 12,
-    backgroundColor: '#32D583',
+    backgroundColor: brandGreen,
   },
 
   quantityText: {
@@ -73,7 +74,7 @@ export const $styles = StyleSheet.create({
   },
 
   checkoutButton: {
-    backgroundColor: '#32D583',
+    backgroundColor: brandGreen,
     borderRadius: 12,
     paddingVertical: 4,
   },

@@ -1,6 +1,7 @@
 import { TouchableOpacity, View } from "react-native";
 import { Checkbox, List, Surface, Text } from "react-native-paper";
 import { $styles } from "./styles";
+import { brandGreen, card } from "@/components/app-providers";
 
 export interface PackageDetailsCardField {
   key: string
@@ -21,12 +22,12 @@ export interface PackageDetailsCardProps {
 export function PackageDetailsCard(props: PackageDetailsCardProps) {
   const formatPrice = (price: number) => `$${price.toFixed(2)}`;
   return (
-    <TouchableOpacity disabled={props.disabled} onPress={props.onPress} className="w-full rounded-3xl bg-[#202939]">
+    <TouchableOpacity disabled={props.disabled} onPress={props.onPress} className={`w-full rounded-3xl bg-[${card}]`}>
       <Surface elevation={4} style={props.selected ? $styles.cardActive : $styles.card}>
         <View style={$styles.priceContainer}>
 
           {props.title && <Text variant="titleLarge" style={$styles.title}>{props.title}</Text>}
-          {props.selected !== undefined && <Checkbox uncheckedColor="#DADADA" color="#32D583" status={props.selected ? "checked" : 'unchecked'} />}
+          {props.selected !== undefined && <Checkbox uncheckedColor="#DADADA" color={brandGreen} status={props.selected ? "checked" : 'unchecked'} />}
           {props.price && <Text variant="titleLarge" style={$styles.price}>{formatPrice(props.price)}</Text>}
         </View>
         {

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useAuth } from "@/components/auth/auth-provider";
 import { getDimensions } from "@/utils/dimensions";
+import { card } from "@/components/app-providers";
 
 // Responsive scaling helpers
 const { width, height } = getDimensions();
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
   },
   content: {
     width: "100%",
-    backgroundColor: "#202939",
+    backgroundColor: card,
     borderTopLeftRadius: scale(28),
     borderTopRightRadius: scale(28),
     alignItems: "center",

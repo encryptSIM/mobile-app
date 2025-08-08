@@ -1,3 +1,4 @@
+import { brandGreen } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
@@ -83,7 +84,7 @@ export const $styles = StyleSheet.create({
     marginBottom: 12,
   },
   stepNumber: {
-    color: '#32D583',
+    color: brandGreen,
     fontSize: 16,
     fontWeight: '600',
     width: 24,
@@ -114,10 +115,10 @@ export const $styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#32D583',
+    borderColor: brandGreen,
   },
   codeText: {
-    color: '#32D583',
+    color: brandGreen,
     fontSize: 12,
     fontFamily: 'monospace',
   },
@@ -128,7 +129,7 @@ export const $styles = StyleSheet.create({
   },
   manualButton: {
     flex: 1,
-    backgroundColor: '#32D583',
+    backgroundColor: brandGreen,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
