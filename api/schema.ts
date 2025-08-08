@@ -1637,6 +1637,7 @@ export interface components {
             package_title: string;
             expiration_ms: number;
             created_at_ms: number;
+            installed?: boolean;
         };
         DeviceInfo: {
             /** @description Device token for authentication */

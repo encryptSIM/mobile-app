@@ -1156,6 +1156,8 @@ components:
           type: number
         created_at_ms:
           type: number
+        installed:
+          type: boolean
       required:
         - iccid
         - qrcode
