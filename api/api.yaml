@@ -10,6 +10,142 @@ servers:
     description: Local development server
 
 paths:
+  /cache/{key}:
+    get:
+      summary: Get cached data by key
+      description: Retrieve cached data for a given key from the remote cache.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cache key to retrieve.
+      responses:
+        '200':
+          description: Cached data found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties: 
+                      value:
+                        type: object
+                        description: The cached value.
+                      timestamp:
+                        type: string
+                        description: The timestamp of when the value was cached.
+                  message:
+                    type: string
+        '400':
+          description: Invalid key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Cache key not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Set cached data by key
+      description: Store data in the remote cache for a given key, with optional TTL.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cache key to set.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  description: The value to cache.
+                  type: object
+                ttl:
+                  description: Optional time-to-live in milliseconds.
+                  type: integer
+              required:
+                - value
+      responses:
+        '200':
+          description: Data successfully cached
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Invalid key or body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete cached data by key
+      description: Remove cached data for a given key from the remote cache.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cache key to delete.
+      responses:
+        '200':
+          description: Cache key successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Invalid key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /sim-usage/{iccid}:
     post:
       summary: Set SIM usage data
@@ -1285,3 +1421,13 @@ components:
         message:
           type: string
           example: "Invalid parameter"
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        error:
+          type: string
