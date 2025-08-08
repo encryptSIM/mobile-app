@@ -5,6 +5,7 @@ import { $styles } from './styles';
 
 interface DiscountCodeProps {
   value: string;
+  disabled?: boolean
   onApply: (code: string) => void;
 }
 
