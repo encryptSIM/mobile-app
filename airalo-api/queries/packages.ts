@@ -1,25 +1,80 @@
+import { createAsyncStorage } from "@/components/cache/asyncStorage";
+import { useCachedData } from "@/components/cache/useCachedData";
 import { PackageDetailsCardField } from "@/components/packageSelection/components/packageDetailsCard";
 import { useMemo } from "react";
-import { $api } from "../api";
+import { airaloFetchClient } from "../api";
+import { RemoteCache } from "@/components/cache/types";
+import { fetchClient } from "@/api/api";
 
-export const useGlobalPackages = (enabled?: boolean) => $api
-  .useQuery("get", "/v2/packages", {
-    params: {
-      query: {
-        "filter[type]": "global"
-      }
-    }
-  }, { enabled })
+const localStorage = createAsyncStorage();
 
-export const useLocalPackages = (country?: string) => $api
-  .useQuery("get", "/v2/packages", {
-    params: {
-      query: {
-        "filter[type]": "local",
-        "filter[country]": country
-      }
-    }
-  }, { enabled: !!country })
+const createRemoteCache = (): RemoteCache => ({
+  get: async (key) => {
+    const response = await fetchClient.GET(`/cache/{key}`, { params: { path: { key } } });
+    const data: any | undefined = response.data?.data?.value
+    return data ? data : null;
+  },
+  set: async (key, value, ttl) => {
+    await fetchClient.POST('/cache/{key}', {
+      body: {
+        value: value as any
+      },
+      params: { path: { key } }
+    })
+  },
+  delete: async (key) => {
+    await fetchClient.DELETE(`/cache/{key}`, { params: { path: { key } } });
+  },
+});
+
+export const useGlobalPackages = (enabled?: boolean) => {
+  return useCachedData({
+    queryKey: ["packages", "global"],
+    queryFn: async () => {
+      const response = await airaloFetchClient.GET("/v2/packages", {
+        params: {
+          query: {
+            "filter[type]": "global"
+          }
+        }
+      });
+      return response;
+    },
+    localStorage,
+    remoteCache: createRemoteCache(),
+    localTTL: 65 * 60 * 1000,
+    remoteTTL: 65 * 60 * 1000,
+    staleTime: 65 * 60 * 1000,
+    queryOptions: {
+      enabled: enabled ?? true,
+    },
+  });
+};
+
+export const useLocalPackages = (country?: string) => {
+  return useCachedData({
+    queryKey: ["packages", "local" + country?.toString()],
+    queryFn: async () => {
+      const response = await airaloFetchClient.GET("/v2/packages", {
+        params: {
+          query: {
+            "filter[type]": "local",
+            "filter[country]": country
+          }
+        }
+      });
+      return response;
+    },
+    localStorage,
+    remoteCache: createRemoteCache(),
+    localTTL: 65 * 60 * 1000,
+    remoteTTL: 65 * 60 * 1000,
+    staleTime: 65 * 60 * 1000,
+    queryOptions: {
+      enabled: !!country,
+    },
+  });
+};
 
 export const usePackageDetails = (params?: {
   countryCode?: string;
@@ -36,18 +91,18 @@ export const usePackageDetails = (params?: {
 
   const packages = useMemo(() => {
     if (countryCode) {
-      console.log("Country code")
+      console.log("Country code");
       const queryData = localPackagesQuery.data;
       return (
-        queryData?.data?.flatMap(
+        queryData?.data?.data?.flatMap(
           (i) => i.operators?.flatMap((j) => j.packages) || []
         ) || []
       );
     } else if (region) {
       const queryData = globalPackagesQuery.data;
-      console.log("queryData", queryData)
+      console.log("queryData", queryData);
       return (
-        queryData?.data
+        queryData?.data?.data
           ?.find((t) => t.slug === region)
           ?.operators?.flatMap((j) => j.packages) || []
       );

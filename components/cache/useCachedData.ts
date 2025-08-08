@@ -51,33 +51,51 @@ export const useCachedData = <T, E = Error>({
     try {
       // 1. Check local cache first
       if (enableLocalCache && localStorage) {
+        console.log(`[useCachedData] Checking local cache for key: ${cacheKey}`);
         const localData = await getFromLocalCache<T>(
           localStorage,
           cacheKey
         );
-        if (localData && !isExpired(localData)) {
-          return localData.data;
+        if (localData) {
+          if (!isExpired(localData)) {
+            console.log(`[useCachedData] Local cache hit for key: ${cacheKey}`);
+            return localData.data;
+          } else {
+            console.log(`[useCachedData] Local cache expired for key: ${cacheKey}`);
+          }
+        } else {
+          console.log(`[useCachedData] Local cache miss for key: ${cacheKey}`);
         }
       }
 
       // 2. Check remote cache
       if (enableRemoteCache && remoteCache) {
+        console.log(`[useCachedData] Checking remote cache for key: ${cacheKey}`);
         const remoteData = await remoteCache.get<CachedData<T>>(cacheKey);
-        if (remoteData && !isExpired(remoteData)) {
-          // Update local cache with remote data
-          if (enableLocalCache && localStorage) {
-            await setToLocalCache(
-              localStorage,
-              cacheKey,
-              remoteData,
-              localTTL
-            );
+        if (remoteData) {
+          if (!isExpired(remoteData)) {
+            console.log(`[useCachedData] Remote cache hit for key: ${cacheKey}`);
+            // Update local cache with remote data
+            if (enableLocalCache && localStorage) {
+              await setToLocalCache(
+                localStorage,
+                cacheKey,
+                remoteData,
+                localTTL
+              );
+              console.log(`[useCachedData] Updated local cache from remote for key: ${cacheKey}`);
+            }
+            return remoteData.data;
+          } else {
+            console.log(`[useCachedData] Remote cache expired for key: ${cacheKey}`);
           }
-          return remoteData.data;
+        } else {
+          console.log(`[useCachedData] Remote cache miss for key: ${cacheKey}`);
         }
       }
 
       // 3. Fetch fresh data
+      console.log(`[useCachedData] Fetching fresh data for key: ${cacheKey}`);
       const freshData = await queryFn();
 
       // 4. Update caches
@@ -86,6 +104,7 @@ export const useCachedData = <T, E = Error>({
       // Update local cache
       if (enableLocalCache && localStorage) {
         await setToLocalCache(localStorage, cacheKey, cachedData, localTTL);
+        console.log(`[useCachedData] Set fresh data to local cache for key: ${cacheKey}`);
       }
 
       // Update remote cache
@@ -95,15 +114,20 @@ export const useCachedData = <T, E = Error>({
           wrapWithMetadata(freshData, remoteTTL),
           remoteTTL
         );
+        console.log(`[useCachedData] Set fresh data to remote cache for key: ${cacheKey}`);
       }
 
       return freshData;
     } catch (error) {
       // If all else fails, try to return stale data
+      console.error(`[useCachedData] Error during fetch for key: ${cacheKey}`, error);
       if (enableLocalCache && localStorage) {
         const staleData = await getFromLocalCache<T>(localStorage, cacheKey);
         if (staleData) {
-          console.warn('Returning stale data due to fetch error:', error);
+          console.warn(
+            `[useCachedData] Returning stale data for key: ${cacheKey} due to fetch error:`,
+            error
+          );
           return staleData.data;
         }
       }
@@ -122,20 +146,25 @@ export const useCachedData = <T, E = Error>({
 
   // Cache management functions
   const invalidateCache = useCallback(async () => {
+    console.log(`[useCachedData] Invalidating cache for key: ${cacheKey}`);
     if (enableLocalCache && localStorage) {
       await localStorage.removeItem(cacheKey);
+      console.log(`[useCachedData] Local cache invalidated for key: ${cacheKey}`);
     }
     if (enableRemoteCache && remoteCache) {
       await remoteCache.delete(cacheKey);
+      console.log(`[useCachedData] Remote cache invalidated for key: ${cacheKey}`);
     }
   }, [cacheKey, localStorage, remoteCache, enableLocalCache, enableRemoteCache]);
 
   const preloadCache = useCallback(
     async (data: T) => {
+      console.log(`[useCachedData] Preloading cache for key: ${cacheKey}`);
       const cachedData = wrapWithMetadata(data);
 
       if (enableLocalCache && localStorage) {
         await setToLocalCache(localStorage, cacheKey, cachedData, localTTL);
+        console.log(`[useCachedData] Preloaded local cache for key: ${cacheKey}`);
       }
       if (enableRemoteCache && remoteCache) {
         await remoteCache.set(
@@ -143,6 +172,7 @@ export const useCachedData = <T, E = Error>({
           wrapWithMetadata(data, remoteTTL),
           remoteTTL
         );
+        console.log(`[useCachedData] Preloaded remote cache for key: ${cacheKey}`);
       }
     },
     [
@@ -180,8 +210,14 @@ const getFromLocalCache = async <T>(
 ): Promise<CachedData<T> | null> => {
   try {
     const item = await storage.getItem(key);
+    if (item) {
+      console.log(`[useCachedData] getFromLocalCache: Found item for key: ${key}`);
+    } else {
+      console.log(`[useCachedData] getFromLocalCache: No item for key: ${key}`);
+    }
     return item ? JSON.parse(item) : null;
-  } catch {
+  } catch (error) {
+    console.warn(`[useCachedData] getFromLocalCache: Failed to parse item for key: ${key}`, error);
     return null;
   }
 };
@@ -195,7 +231,8 @@ const setToLocalCache = async <T>(
   try {
     const dataWithTTL = { ...data, ttl };
     await storage.setItem(key, JSON.stringify(dataWithTTL));
+    console.log(`[useCachedData] setToLocalCache: Set item for key: ${key}`);
   } catch (error) {
-    console.warn('Failed to set local cache:', error);
+    console.warn(`[useCachedData] setToLocalCache: Failed to set item for key: ${key}`, error);
   }
 };
