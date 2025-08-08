@@ -10,6 +10,99 @@ servers:
     description: Local development server
 
 paths:
+  /coupon/{code}:
+    get:
+      summary: Get coupon by code
+      description: Retrieve a coupon's details by its code.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Coupon code (3-32 characters)
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 32
+      responses:
+        '200':
+          description: Coupon found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Coupon'
+        '400':
+          description: Bad request (invalid code)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Coupon not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /coupon/{code}/redeem:
+    post:
+      summary: Redeem a coupon
+      description: Redeem a coupon by its code.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Coupon code (3-32 characters)
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 32
+      responses:
+        '200':
+          description: Coupon redeemed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Coupon redeemed successfully
+                  data:
+                    $ref: '#/components/schemas/Coupon'
+        '400':
+          description: Bad request (invalid code, already redeemed, or expired)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Coupon not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /mark-sim-installed:
     post:
       summary: Mark SIM as installed
@@ -1502,3 +1595,34 @@ components:
           type: string
         error:
           type: string
+
+    Coupon:
+      type: object
+      required:
+        - code
+        - discount
+        - redeemable
+        - redeemed
+      properties:
+        code:
+          type: string
+          minLength: 3
+          maxLength: 32
+          example: ABC123
+        discount:
+          type: number
+          minimum: 1
+          maximum: 100
+          example: 20
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2025-12-31T23:59:59Z'
+        redeemable:
+          type: boolean
+          example: true
+        redeemed:
+          type: boolean
+          default: false
+          example: false
