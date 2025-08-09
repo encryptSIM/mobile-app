@@ -72,7 +72,6 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
-        {/* Background Circle */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -81,7 +80,6 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Progress Circle */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -92,7 +90,7 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`} // Rotate the circle to start at the top
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
     </View>
@@ -101,7 +99,7 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
 
 export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedStat = stats?.[selectedIndex] ?? exampleStats[0]; // Add null check here
+  const selectedStat = stats?.[selectedIndex] ?? exampleStats[0];
   const remaining = (selectedStat.total ?? 1) - (selectedStat.used ?? 1);
   const percentage = (remaining / (selectedStat.total ?? 1)) * 100;
   const [, setSims] = useSharedState<Sim[]>(SIMS.key)
@@ -129,7 +127,6 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
     }
   })
 
-  // Determine color based on remaining percentage
   const progressColor =
     percentage > 50 ? brandGreen : percentage > 20 ? "#FFC107" : "#F44336";
 
@@ -143,7 +140,7 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
               $styles.iconContainer,
               selectedIndex === index && $styles.selectedIconContainer,
             ]}
-            onPress={() => setSelectedIndex(index)}
+            onPressIn={() => setSelectedIndex(index)}
             accessibilityLabel={`Select ${stat.label}`}
           >
             <MaterialIcons
@@ -163,7 +160,6 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         ))}
       </View>
 
-      {/* Circular Progress */}
       <View style={$styles.progressContainer}>
         <View style={$styles.circularProgressWrapper}>
           <CircularProgress
@@ -184,7 +180,6 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         </View>
       </View>
 
-      {/* Top up button */}
       <TouchableOpacity
         style={$styles.topUpButton}
         accessibilityLabel="Top up your plan"
@@ -194,7 +189,8 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
 
       <TouchableOpacity
         style={$styles.textButton}
-        onPress={
+        disabled={setSimInstalledMut.isPending}
+        onPressIn={
           () => setSimInstalledMut.mutate({
             body: {
               installed: false,

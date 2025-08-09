@@ -1,12 +1,14 @@
-import { View, Image } from "react-native";
-import { $styles } from "./styles";
+import { useThrottledCallback } from "@/hooks/use-throttled-callback";
+import { Image, View } from "react-native";
 import { FAB, Text } from "react-native-paper";
+import { $styles } from "./styles";
 
 export interface BuyEsimProps {
   onBuyPress: () => void
 }
 
 export function BuyEsim(props: BuyEsimProps) {
+  const debouncedPress = useThrottledCallback(props.onBuyPress, 1000);
   return (
     <View style={$styles.root}>
       <Image style={$styles.image} source={require("@/assets/buy-esim.png")} />
@@ -24,7 +26,7 @@ export function BuyEsim(props: BuyEsimProps) {
         size="small"
         rippleColor={'white'}
         icon="arrow-right"
-        onPress={props.onBuyPress}
+        onPress={debouncedPress}
         style={[$styles.button]}
       />
     </View>
