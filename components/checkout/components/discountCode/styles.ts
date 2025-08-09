@@ -1,4 +1,4 @@
-import { card } from '@/components/app-providers';
+import { brandGreen, card } from '@/components/app-providers';
 import { StyleSheet } from 'react-native';
 
 export const $styles = StyleSheet.create({
@@ -35,6 +35,9 @@ export const $styles = StyleSheet.create({
   },
   inputOutline: {
     borderColor: '#555',
+  },
+  inputOutlineSuccess: {
+    borderColor: brandGreen,
   },
   applyButton: {
     display: 'flex',

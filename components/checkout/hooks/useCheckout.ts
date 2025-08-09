@@ -205,7 +205,6 @@ export const useCheckout = () => {
         setSims(prev => [...prev, ...response.sims!]);
       }
 
-      // Redirect after a brief delay to show success state
       setTimeout(() => {
         router.replace("/(tabs)");
       }, 2000);
@@ -319,89 +318,93 @@ export const useCheckout = () => {
 
   const priceData = useMemo(() => {
     const feePercentage = 0.4;
-    let totalPriceUSD = 0;
-    const fields: PriceDetailField[] = [];
+    let subtotalUSD = 0;
 
+    const lineItems: PriceDetailField[] = [];
     selectedPackages.forEach((pkgId) => {
       const { pkg, qty } = selectedPackageQtyMap[pkgId];
       const netPriceUSD = pkg?.prices?.net_price?.USD || 0;
       const packageTotal = netPriceUSD * qty;
 
-      totalPriceUSD += packageTotal;
+      subtotalUSD += packageTotal;
 
-      fields.push({
+      lineItems.push({
         label: qty > 1 ? `${pkg?.title} x${qty}` : pkg?.title!,
         value: packageTotal,
-        isSubtotal: false,
-        isTotal: false,
-        isDividerAfter: false,
+        type: 'line-item',
       });
     });
 
-    const serviceFeeUSD = totalPriceUSD * feePercentage;
-    const grandTotalUSD = totalPriceUSD + serviceFeeUSD;
-    const discount = checkCouponQuery?.data?.data ? (-1 * (grandTotalUSD * (checkCouponQuery.data.data.discount / 100))) : 0
-    const discountedTotal = grandTotalUSD + discount
+    const adjustments: PriceDetailField[] = [];
 
-    fields.push({
-      label: "Service fee",
+    const serviceFeeUSD = subtotalUSD * feePercentage;
+    adjustments.push({
+      label: 'Service fee',
       value: serviceFeeUSD,
-      isSubtotal: false,
-      isTotal: false,
-      isDividerAfter: false,
-    })
+      type: 'fee',
+    });
+
+    const discount = checkCouponQuery?.data?.data
+      ? -1 * ((subtotalUSD + serviceFeeUSD) * (checkCouponQuery.data.data.discount / 100))
+      : 0;
+
     if (checkCouponQuery.data?.data) {
-      fields.push({
-        label: checkCouponQuery.data.data.code,
+      adjustments.push({
+        label: `Coupon: ${checkCouponQuery.data.data.code}`,
         value: discount,
-        isSubtotal: false,
-        isTotal: false,
-        isDividerAfter: false,
-      })
+        type: 'discount',
+      });
     }
-    // fields.push({
-    //   label: "Subtotal",
-    //   currency: "(USD)",
-    //   value: grandTotalUSD,
-    //   isSubtotal: true,
-    //   isTotal: true,
-    //   isDividerAfter: true,
-    // });
-    fields.push({
-      label: "Total",
-      currency: "(USD)",
-      value: discountedTotal,
-      isSubtotal: false,
-      isTotal: true,
-      isDividerAfter: false,
-    });
 
-    const priceInSol = solanaPrice.data ? (1 / solanaPrice.data) * discountedTotal : 0;
+    const grandTotalUSD = subtotalUSD + serviceFeeUSD + discount;
+    const priceInSol = solanaPrice.data
+      ? (1 / solanaPrice.data) * grandTotalUSD
+      : 0;
 
-    fields.push({
-      label: "Total",
-      currency: "(SOL)",
-      value: priceInSol,
-      isSubtotal: false,
-      formatter: () => priceInSol.toFixed(6),
-      isLoadingValue: solanaPrice.isPending,
-      isTotal: true,
-      isDividerAfter: false,
-    });
+    const totals: PriceDetailField[] = [
+      {
+        label: 'Total',
+        value: grandTotalUSD,
+        currency: 'USD',
+        type: 'total-primary',
+      },
+      {
+        label: 'Total',
+        value: priceInSol,
+        currency: 'SOL',
+        type: 'total-secondary',
+        formatter: () => priceInSol.toFixed(6),
+        isLoadingValue: solanaPrice.isPending,
+      },
+    ];
 
     return {
+      lineItems,
+      adjustments,
+      totals,
+      subtotal: subtotalUSD,
       priceInSol,
-      fields,
     };
-  }, [solanaPrice.data, solanaPrice.isPending, selectedPackages, selectedPackageQtyMap, checkCouponQuery.data]);
+  }, [
+    solanaPrice.data,
+    solanaPrice.isPending,
+    selectedPackages,
+    selectedPackageQtyMap,
+    checkCouponQuery.data
+  ]);
 
   const solAmount = useMemo(() => {
     return parseFloat(priceData.priceInSol.toFixed(6));
   }, [priceData]);
 
   const handleDiscountApply = useCallback((code: string) => {
-    setDiscountCode(code);
+    setDiscountCode(code.trim());
     logPaymentEvent('discount_code_applied', { code });
+  }, [logPaymentEvent]);
+
+  const handleDiscountClear = useCallback((code: string) => {
+    setDiscountCode('');
+    logPaymentEvent('discount_code_cleared', { code });
   }, [logPaymentEvent]);
 
   const clearError = useCallback(() => {
@@ -411,7 +414,6 @@ export const useCheckout = () => {
       stage: 'idle',
       isProcessing: false
     });
-    // Reset idempotency key for retry
     paymentIdempotencyKey.current = null;
   }, [updatePaymentState, logPaymentEvent]);
 
@@ -450,16 +452,59 @@ export const useCheckout = () => {
     try {
       updatePaymentState({ stage: 'transferring' });
 
-      logPaymentEvent('initiating_sol_transfer', {
-        amount: solAmount,
-        destination: AppConfig.masterSolAccount,
-        idempotencyKey: generateIdempotencyKey(),
-      });
+      if (solAmount > 0) {
 
-      transferSol.mutate({
-        amount: solAmount,
-        destination: AppConfig.masterSolAccount
-      });
+        logPaymentEvent('initiating_sol_transfer', {
+          amount: solAmount,
+          destination: AppConfig.masterSolAccount,
+          idempotencyKey: generateIdempotencyKey(),
+        });
+        transferSol.mutate({
+          amount: solAmount,
+          destination: AppConfig.masterSolAccount
+        });
+      } else {
+        logPaymentEvent('skipping_sol_transfer', {
+          amount: solAmount,
+          destination: AppConfig.masterSolAccount,
+          idempotencyKey: generateIdempotencyKey(),
+        });
+
+        updatePaymentState({
+          stage: 'completing',
+          transactionId: null
+        });
+
+        const accountAddress = account?.address;
+        if (!accountAddress) {
+          logPaymentEvent('missing_account_address', { account }, 'error');
+          updatePaymentState({
+            stage: 'idle',
+            isProcessing: false,
+            error: 'Account information missing. Please reconnect your wallet.',
+          });
+          return;
+        }
+
+        const orderData = {
+          id: accountAddress,
+          idempotency_key: generateIdempotencyKey(),
+          orders: selectedPackages.map(packageId => ({
+            package_id: packageId,
+            package_title: selectedPackageQtyMap[packageId].pkg.title!,
+            quantity: selectedPackageQtyMap[packageId].qty,
+            expiration_ms: getEndOfFutureDayTimestamp(
+              selectedPackageQtyMap[packageId].pkg.day!
+            ),
+            created_at_ms: Date.now(),
+            country_code: local.countryCode ? String(local.countryCode) : undefined,
+            region: local.region ? String(local.region) : undefined,
+          }))
+        };
+
+        logPaymentEvent('submitting_order', { orderData });
+        completeOrder.mutate({ body: orderData });
+      }
     } catch (error) {
       logPaymentEvent('payment_initiation_failed', { error }, 'error');
       updatePaymentState({
@@ -490,6 +535,7 @@ export const useCheckout = () => {
     solanaPrice,
     paymentState,
     checkCouponQuery,
+    handleDiscountClear,
     getContinueButtonText: () => getButtonText(paymentState),
     setSelectedMethodId,
     handleDiscountApply,

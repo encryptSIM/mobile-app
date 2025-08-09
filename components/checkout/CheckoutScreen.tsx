@@ -24,6 +24,7 @@ export function CheckoutScreen() {
     paymentState,
     checkCouponQuery,
     getContinueButtonText,
+    handleDiscountClear,
     setSelectedMethodId,
     handleDiscountApply,
     handleContinuePayment,
@@ -42,7 +43,12 @@ export function CheckoutScreen() {
           <PlanCard key={plan?.pkg?.id ?? index} {...plan} />
         ))}
 
-        <PriceDetail fields={priceData.fields} />
+        <PriceDetail
+          lineItems={priceData.lineItems}
+          adjustments={priceData.adjustments}
+          totals={priceData.totals}
+          subtotal={priceData.subtotal}
+        />
 
         <PaymentMethod
           selectedMethodId={selectedMethodId}
@@ -51,6 +57,8 @@ export function CheckoutScreen() {
         />
 
         <DiscountCode
+          onClear={handleDiscountClear}
+          applied={!!checkCouponQuery.data?.data}
           value={discountCode}
           invalid={!!checkCouponQuery.error}
           loading={checkCouponQuery.isFetching}
