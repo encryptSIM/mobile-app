@@ -1,3 +1,4 @@
+import { card } from '@/components/app-providers';
 import { StyleSheet } from 'react-native';
 
 export const $styles = StyleSheet.create({
@@ -13,7 +14,7 @@ export const $styles = StyleSheet.create({
   },
   card: {
     position: 'relative',
-    backgroundColor: '#202939',
+    backgroundColor: card,
     marginBottom: 16,
     borderRadius: 30,
   },

@@ -9,6 +9,7 @@ import { SIMS } from "@/components/checkout/hooks/useCheckout";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { ActivityIndicator } from "react-native-paper";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { brandGreen } from "@/components/app-providers";
 
 const exampleStats: UsageStat[] = [
   {
@@ -130,7 +131,7 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
 
   // Determine color based on remaining percentage
   const progressColor =
-    percentage > 50 ? "#32D583" : percentage > 20 ? "#FFC107" : "#F44336";
+    percentage > 50 ? brandGreen : percentage > 20 ? "#FFC107" : "#F44336";
 
   return (
     <View style={$styles.root}>

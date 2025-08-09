@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
 import { $styles } from "./styles";
+import { brandGreen } from "@/components/app-providers";
 
 interface PackageListFooterProps {
   isLoading: boolean;
@@ -14,7 +15,7 @@ export const PackageListFooter = ({
   if (isLoading) {
     return (
       <View style={$styles.footerLoader}>
-        <ActivityIndicator size="large" color="#32D583" />
+        <ActivityIndicator size="large" color={brandGreen} />
         <Text style={{ marginTop: 8, color: "white" }}>
           Loading packages...
         </Text>

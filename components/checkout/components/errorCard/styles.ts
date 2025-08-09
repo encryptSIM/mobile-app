@@ -1,3 +1,4 @@
+import { card } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
@@ -7,7 +8,7 @@ export const $styles = StyleSheet.create({
   },
   card: {
     marginBottom: 20,
-    backgroundColor: "#202939",
+    backgroundColor: card,
     borderRadius: 16,
     padding: 20,
     borderLeftWidth: 4,

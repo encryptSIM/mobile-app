@@ -3,6 +3,7 @@ import { IconButton, Text } from "react-native-paper";
 import QRCode from "react-native-qrcode-skia";
 import { $styles } from "./styles";
 import { useRef } from "react";
+import { brandGreen } from "@/components/app-providers";
 
 export interface InstallModalProps {
   modalVisible: boolean;
@@ -45,7 +46,7 @@ export function InstallModal(props: InstallModalProps) {
               <View ref={props.qrRef} collapsable={false}>
                 <QRCode
                   value={props.esimCode}
-                  color="#32D583"
+                  color={brandGreen}
                   shapeOptions={{
                     shape: "rounded",
                     eyePatternShape: "rounded",

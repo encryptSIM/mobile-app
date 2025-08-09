@@ -1,12 +1,12 @@
 import 'react-native-get-random-values';
-import 'react-native-reanimated'
+import 'react-native-reanimated';
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreenAPI from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { AppProviders } from "@/components/app-providers";
@@ -20,8 +20,7 @@ SplashScreenAPI.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ ...FontAwesome.font });
-  const [splashFinished,] = useState(false);
-  const ready = fontsLoaded && splashFinished;
+  const ready = fontsLoaded
 
   useEffect(() => {
     if (ready) {

@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
-import { Animated, ScrollView, TouchableOpacity, View } from 'react-native';
-import { Appbar, Text, Card } from 'react-native-paper';
+import React from 'react';
+import { ScrollView } from 'react-native';
+import { Appbar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ContinueButton,
@@ -10,10 +10,9 @@ import {
   PlanCard,
   PriceDetail
 } from './components';
+import { ErrorCard } from './components/errorCard';
 import { useCheckout } from './hooks/useCheckout';
 import { $styles } from './styles';
-import { Ionicons } from '@expo/vector-icons';
-import { ErrorCard } from './components/errorCard';
 
 export function CheckoutScreen() {
   const {
@@ -23,7 +22,9 @@ export function CheckoutScreen() {
     local,
     plans,
     paymentState,
+    checkCouponQuery,
     getContinueButtonText,
+    handleDiscountClear,
     setSelectedMethodId,
     handleDiscountApply,
     handleContinuePayment,
@@ -42,7 +43,12 @@ export function CheckoutScreen() {
           <PlanCard key={plan?.pkg?.id ?? index} {...plan} />
         ))}
 
-        <PriceDetail fields={priceData.fields} />
+        <PriceDetail
+          lineItems={priceData.lineItems}
+          adjustments={priceData.adjustments}
+          totals={priceData.totals}
+          subtotal={priceData.subtotal}
+        />
 
         <PaymentMethod
           selectedMethodId={selectedMethodId}
@@ -51,7 +57,11 @@ export function CheckoutScreen() {
         />
 
         <DiscountCode
+          onClear={handleDiscountClear}
+          applied={!!checkCouponQuery.data?.data}
           value={discountCode}
+          invalid={!!checkCouponQuery.error}
+          loading={checkCouponQuery.isFetching}
           onApply={handleDiscountApply}
           disabled={paymentState.isProcessing}
         />

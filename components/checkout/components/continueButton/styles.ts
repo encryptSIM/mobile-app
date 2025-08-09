@@ -1,3 +1,4 @@
+import { brandGreen } from '@/components/app-providers';
 import { StyleSheet } from 'react-native';
 
 export const $styles = StyleSheet.create({
@@ -6,7 +7,7 @@ export const $styles = StyleSheet.create({
     paddingBottom: 40,
   },
   button: {
-    backgroundColor: '#32D583',
+    backgroundColor: brandGreen,
     borderRadius: 12,
   },
   buttonContent: {

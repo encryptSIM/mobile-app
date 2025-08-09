@@ -1,8 +1,9 @@
+import { brandGreen, card } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
   root: {
-    backgroundColor: "#202939",
+    backgroundColor: card,
     borderRadius: 24,
     padding: 24,
     display: 'flex',
@@ -12,14 +13,14 @@ export const $styles = StyleSheet.create({
   },
   topUpButton: {
     borderWidth: 2,
-    borderColor: "#32D583",
+    borderColor: brandGreen,
     borderRadius: 25,
     paddingHorizontal: 32,
     paddingVertical: 12,
     backgroundColor: "transparent",
   },
   installButtonText: {
-    color: "#32D583",
+    color: brandGreen,
     fontSize: 16,
     fontWeight: "500",
   },

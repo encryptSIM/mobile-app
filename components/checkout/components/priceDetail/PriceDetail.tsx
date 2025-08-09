@@ -1,69 +1,105 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Card, Text, Divider, ActivityIndicator, Chip } from 'react-native-paper';
-import { $styles } from './styles';
+import { $styles, getFieldStyle } from './styles';
 
 export interface PriceDetailField {
   label: string;
   value: number;
-  isSubtotal?: boolean;
-  isTotal?: boolean;
-  isLoadingValue?: boolean
-  isDividerAfter?: boolean;
-  currency?: string
-  formatter?: () => string
+  currency?: string;
+  formatter?: () => string;
+  isLoadingValue?: boolean;
+  type: 'line-item' | 'fee' | 'discount' | 'total-primary' | 'total-secondary';
 }
 
 interface PriceDetailProps {
-  fields: PriceDetailField[];
+  lineItems: PriceDetailField[];
+  adjustments: PriceDetailField[];
+  totals: PriceDetailField[];
+  subtotal: number;
 }
 
-export const PriceDetail: React.FC<PriceDetailProps> = ({ fields }) => {
-  const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+export const PriceDetail: React.FC<PriceDetailProps> = ({
+  lineItems,
+  adjustments,
+  totals,
+  subtotal
+}) => {
+  const formatPrice = (price: number, currency?: string) => {
+    if (currency === 'SOL') return price.toFixed(6);
+    return `$${Math.abs(price).toFixed(2)}`;
+  };
+
+  const renderField = (field: PriceDetailField, showSign = false) => (
+    <View style={$styles.row} key={`${field.label}-${field.currency || 'USD'}`}>
+      <View style={$styles.labelContainer}>
+        <Text style={getFieldStyle(field.type).label}>
+          {field.label}
+        </Text>
+        {field.currency && (
+          <Chip
+            mode="outlined"
+            compact
+            style={$styles.currencyChip}
+            textStyle={$styles.currencyText}
+          >
+            {field.currency}
+          </Chip>
+        )}
+      </View>
+
+      <View style={$styles.valueContainer}>
+        {field.isLoadingValue ? (
+          <ActivityIndicator size="small" />
+        ) : (
+          <Text style={getFieldStyle(field.type).value}>
+            {showSign && field.value < 0 ? '-' : ''}
+            {field.formatter ? field.formatter() : formatPrice(field.value, field.currency)}
+          </Text>
+        )}
+      </View>
+    </View>
+  );
 
   return (
-    <Card style={$styles.card}>
+    <Card style={$styles.card} elevation={2}>
       <Card.Content style={$styles.content}>
-        <Text style={$styles.title}>Price detail</Text>
+        <Text style={$styles.title}>Order Summary</Text>
 
-        {fields.map((field, index) => (
-          <React.Fragment key={index}>
-            <View style={$styles.row}>
-              <View style={$styles.rowInner}>
-                <Text
-                  style={[
-                    $styles.label,
-                    field.isSubtotal && $styles.subtotalLabel,
-                    field.isTotal && $styles.totalLabel,
-                  ]}
-                >
-                  {field.label}
-                </Text>
-                {
-                  field.currency && (
-                    <Chip>{field.currency}</Chip>
-                  )
-                }
-              </View>
-              {
-                field.isLoadingValue ? (
-                  <ActivityIndicator />
-                ) : (
-                  <Text
-                    style={[
-                      $styles.price,
-                      field.isSubtotal && $styles.subtotalPrice,
-                      field.isTotal && $styles.totalPrice,
-                    ]}
-                  >
-                    {field.formatter ? field.formatter() : formatPrice(field.value)}
-                  </Text>
-                )
-              }
+        {/* Line Items */}
+        <View style={$styles.section}>
+          {lineItems.map(field => renderField(field))}
+        </View>
+
+        {/* Subtotal (only show if multiple line items) */}
+        {lineItems.length > 1 && (
+          <>
+            <Divider style={$styles.sectionDivider} />
+            <View style={$styles.section}>
+              {renderField({
+                label: 'Subtotal',
+                value: subtotal,
+                type: 'line-item'
+              })}
             </View>
-            {field.isDividerAfter && <Divider style={$styles.divider} />}
-          </React.Fragment>
-        ))}
+          </>
+        )}
+
+        {/* Adjustments (fees and discounts) */}
+        {adjustments.length > 0 && (
+          <>
+            <Divider style={$styles.sectionDivider} />
+            <View style={$styles.section}>
+              {adjustments.map(field => renderField(field, true))}
+            </View>
+          </>
+        )}
+
+        {/* Totals */}
+        <Divider style={$styles.totalDivider} />
+        <View style={$styles.totalSection}>
+          {totals.map(field => renderField(field))}
+        </View>
       </Card.Content>
     </Card>
   );

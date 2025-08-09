@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
-import React from "react";
+import * as SplashScreenAPI from "expo-splash-screen";
+import React, { useEffect } from "react";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import Colors from "@/constants/Colors";
@@ -17,6 +18,11 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const [showContent,] = useSharedState('SHOW_CONTENT', false)
+
+  useEffect(() => {
+    SplashScreenAPI.hideAsync();
+  }, [])
+
   return (
     <Tabs
       screenOptions={{

@@ -3,6 +3,7 @@ import { StyleSheet, Dimensions, View } from "react-native";
 import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import { path } from "./path";
 import { $styles } from "./styles";
+import { brandGreen } from "../app-providers";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -32,9 +33,9 @@ export function BackgroundWrapper({ children }: { children: ReactNode }) {
               y2="404"
               gradientUnits="userSpaceOnUse"
             >
-              <Stop stopColor="#32D583" stopOpacity="0" />
-              <Stop offset="0" stopColor="#32D583" stopOpacity="0.7" />
-              <Stop offset="1" stopColor="#32D583" stopOpacity="0" />
+              <Stop stopColor={brandGreen} stopOpacity="0" />
+              <Stop offset="0" stopColor={brandGreen} stopOpacity="0.7" />
+              <Stop offset="1" stopColor={brandGreen} stopOpacity="0" />
             </LinearGradient>
           </Defs>
         </Svg>

@@ -1,3 +1,4 @@
+import { brandGreen, card } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 
@@ -18,10 +19,10 @@ export const $styles = StyleSheet.create({
   },
 
   cardActive: {
-    backgroundColor: '#202939',
+    backgroundColor: card,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: '#32D583',
+    borderColor: brandGreen,
     paddingVertical: 14,
     boxSizing: 'content-box',
     paddingHorizontal: 24,
@@ -29,8 +30,8 @@ export const $styles = StyleSheet.create({
     gap: 12
   },
   card: {
-    backgroundColor: '#202939',
-    borderColor: '#202939',
+    backgroundColor: card,
+    borderColor: card,
     boxSizing: 'content-box',
     borderRadius: 30,
     borderWidth: 2,

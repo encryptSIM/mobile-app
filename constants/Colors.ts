@@ -1,9 +1,11 @@
-const tintColorLight = '#32D583';
+import { background, brandGreen } from "@/components/app-providers";
+
+const tintColorLight = brandGreen;
 const tintColorDark = '#2BB069';
 
 export default {
   light: {
-    text: '#111926',
+    text: background,
     background: '#F8FAFC',
     modalBackground: '#FFFFFF',
     tint: tintColorLight,
@@ -13,7 +15,7 @@ export default {
   },
   dark: {
     text: '#F8FAFC',
-    background: '#111926',
+    background: background,
     modalBackground: '#1F2837',
     tint: tintColorDark,
     primary: tintColorDark, // alias
