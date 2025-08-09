@@ -139,7 +139,7 @@ export const usePackageDetails = (params?: {
       const packageDetails: PackageDetailsCardField[] = [];
 
       addDetail("Calls (min)", "phone", localPackage?.voice, packageDetails);
-      addDetail("SMS", "sms", localPackage?.text, packageDetails);
+      addDetail("SMS", "message-processing", localPackage?.text, packageDetails);
       addDetail("Data", "wifi", localPackage?.data, packageDetails);
       addDetail(
         "Validity",
