@@ -1,7 +1,6 @@
 import { AppButton } from "@/components/button";
 import { addressFormatter } from "@/utils";
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import {
@@ -13,15 +12,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useBalance } from "@/hooks/balance";
-import { useAuth } from "@/context/auth-context";
-import { WalletConnectionButton } from "@/components/WalletConnectionButton";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { useGetBalance } from "@/components/solana/use-get-balance";
+import { ActivityIndicator } from "react-native-paper";
+import { lamportsToSol } from "@/utils/lamports-to-sol";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
-  const { publicKey, setValue, deviceToken } = useAuth();
-  const { balance, error, refreshBalance } = useBalance();
+  const { account } = useWalletUi()
+  const balanceQuery = useGetBalance({ address: account?.publicKey! })
+  const { signOut } = useAuth()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  console.log("deviceToken", deviceToken);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.screen}>
@@ -38,7 +40,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={async () => {
-              await Clipboard.setStringAsync(publicKey || "");
+              await Clipboard.setStringAsync(account?.publicKey.toString() || "");
               ToastAndroid.show("Address copied!", ToastAndroid.SHORT);
             }}
             style={styles.addressButton}
@@ -46,20 +48,25 @@ export default function ProfileScreen() {
             <View style={styles.addressRow}>
               <Feather name="copy" size={16} color="#4ade80" />
               <Text style={styles.addressText}>
-                {addressFormatter(publicKey || "")}
+                {addressFormatter(account?.publicKey.toString() || "")}
               </Text>
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => {
-              refreshBalance();
+              balanceQuery.refetch()
             }}
             style={styles.balanceCard}
           >
             <Text style={styles.balanceLabel}>Current Balance</Text>
             <Text style={styles.balanceValue}>
-              {error ? "Error" : `${balance?.toFixed(4)} SOL`}
+              {balanceQuery.error && "Error"}
+              {
+                balanceQuery.isFetching
+                  ? <ActivityIndicator />
+                  : `${lamportsToSol(balanceQuery.data!).toFixed(6)} SOL`
+              }
             </Text>
           </TouchableOpacity>
         </View>
@@ -69,18 +76,6 @@ export default function ProfileScreen() {
           <Text style={styles.optionsTitle}>Options</Text>
           <View style={styles.optionsList}>
             <AppButton
-              label="Order History"
-              iconName="list"
-              variant="moonlight"
-              onPress={() => router.push("/profile/order-history")}
-            />
-            <AppButton
-              label="Edit Profile"
-              iconName="user"
-              variant="moonlight"
-              onPress={() => {}}
-            />
-            <AppButton
               label="Logout"
               iconName="log-out"
               variant="inactive"
@@ -88,7 +83,6 @@ export default function ProfileScreen() {
                 setShowLogoutConfirm(true);
               }}
             />
-            <WalletConnectionButton />
           </View>
         </View>
       </View>
@@ -118,9 +112,9 @@ export default function ProfileScreen() {
 
               <TouchableOpacity
                 onPress={async () => {
-                  await setValue("");
                   setShowLogoutConfirm(false);
-                  router.replace("/login");
+                  await signOut()
+                  await AsyncStorage.clear()
                 }}
                 style={[styles.modalButton, { backgroundColor: "#EF4444" }]}
               >
@@ -139,6 +133,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 16,
     backgroundColor: "#0E1220",
   },
   screen: {

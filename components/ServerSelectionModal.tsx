@@ -9,13 +9,13 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { useAuth } from "@/context/auth-context";
 import {
   getCountries,
   getCities,
   getServers,
   createCredentials,
 } from "@/service/vpnService";
+import { useAuth } from "./auth/auth-provider";
 
 interface Country {
   id: string;

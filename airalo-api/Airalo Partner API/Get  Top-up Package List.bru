@@ -1,0 +1,20 @@
+meta {
+  name: Get  Top-up Package List
+  type: http
+  seq: 33
+}
+
+get {
+  url: {{baseUrl}}/v1/sims/:iccid/topups
+  body: formUrlEncoded
+  auth: inherit
+}
+
+params:path {
+  iccid: 8910300000029128633
+}
+
+headers {
+  ~Accept: 
+  ~Authorization: 
+}

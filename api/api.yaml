@@ -1,0 +1,1504 @@
+openapi: 3.0.3
+info:
+  title: encryptSIM API
+  description: API for VPN services, payment profiles, SIM orders, and package management
+  version: 1.0.0
+servers:
+  - url: https://backend-134243472228.asia-east1.run.app
+    description: Jacks server
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /mark-sim-installed:
+    post:
+      summary: Mark SIM as installed
+      description: Updates the installation status of a SIM card by ICCID.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - installed
+                - iccid
+              properties:
+                installed:
+                  type: boolean
+                  description: Whether the SIM is installed
+                iccid:
+                  type: string
+                  description: The ICCID of the SIM card
+                id:
+                  type: string
+                  description: The current address of the signed in wallet
+      responses:
+        '200':
+          description: SIM updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Success
+        '400':
+          description: Bad request (validation error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Bad request
+                  error:
+                    type: object
+                    description: Validation error details
+        '500':
+          description: Internal server error (database update failed)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to update SIM's installation status in the database
+                  error:
+                    type: object
+                    description: Database error details
+  /cache/{key}:
+    get:
+      summary: Get cached data by key
+      description: Retrieve cached data for a given key from the remote cache.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cache key to retrieve.
+      responses:
+        '200':
+          description: Cached data found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties: 
+                      value:
+                        type: object
+                        description: The cached value.
+                      timestamp:
+                        type: string
+                        description: The timestamp of when the value was cached.
+                  message:
+                    type: string
+        '400':
+          description: Invalid key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Cache key not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Set cached data by key
+      description: Store data in the remote cache for a given key, with optional TTL.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cache key to set.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  description: The value to cache.
+                  type: object
+                ttl:
+                  description: Optional time-to-live in milliseconds.
+                  type: integer
+              required:
+                - value
+      responses:
+        '200':
+          description: Data successfully cached
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Invalid key or body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete cached data by key
+      description: Remove cached data for a given key from the remote cache.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The cache key to delete.
+      responses:
+        '200':
+          description: Cache key successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          description: Invalid key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sim-usage/{iccid}:
+    post:
+      summary: Set SIM usage data
+      description: Sets the usage data for a SIM card identified by its ICCID.
+      tags:
+        - SIM Usage
+      parameters:
+        - name: iccid
+          in: path
+          required: true
+          description: The ICCID of the SIM card.
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  description: The usage data to set for the SIM card.
+              required:
+                - data
+      responses:
+        '200':
+          description: Data successfully set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Data successfully set
+        '400':
+          description: Bad request due to invalid ICCID or request body.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Bad request
+                  error:
+                    type: object
+                    description: Validation error details.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal server error
+                  error:
+                    type: string
+                    example: Unexpected error occurred.
+
+    get:
+      summary: Get SIM usage data
+      description: Retrieves the usage data for a SIM card identified by its ICCID.
+      tags:
+        - SIM Usage
+      parameters:
+        - name: iccid
+          in: path
+          required: true
+          description: The ICCID of the SIM card.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Data successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    description: The usage data for the SIM card.
+        '400':
+          description: Bad request due to invalid ICCID.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Bad request
+                  error:
+                    type: object
+                    description: Validation error details.
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal server error
+                  error:
+                    type: string
+                    example: Unexpected error occurred.
+  /complete-order:
+    post:
+      summary: Complete an order and save SIMs to the database
+      description: Places orders for SIMs and saves them to the database for a given user ID.
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orders:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/OrderDetails'
+                id:
+                  type: string
+              required:
+                - orders
+                - id
+      responses:
+        '200':
+          description: Order completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  sims:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SIM'
+        '400':
+          description: Bad request due to invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: object
+        '500':
+          description: Failed to place orders or save SIMs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /fetch-sims/{id}:
+    get:
+      summary: Fetch SIMs for a given user ID
+      description: Retrieves all SIMs associated with the specified user ID.
+      tags:
+        - SIMs
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The user ID for which SIMs are being fetched
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SIMs fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SIM'
+        '400':
+          description: Missing or invalid ID in request parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          description: No SIMs found for the given ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '500':
+          description: Failed to fetch SIMs from the database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  error:
+                    type: string
+  /airalo/token:
+    get:
+      summary: Obtain an Airalo access token
+      description: >
+        Retrieves an access token from the Airalo API using client credentials.
+        This token is required for subsequent authenticated requests to the Airalo API.
+      operationId: getAiraloToken
+      tags:
+        - Airalo
+      responses:
+        '200':
+          description: Airalo token obtained successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token_type:
+                        type: string
+                        description: Type of the token (e.g., "Bearer")
+                        example: Bearer
+                      expires_in:
+                        type: integer
+                        description: >
+                          Lifetime of the access token in seconds (e.g., 86400
+                          seconds = 24 hours)
+                        example: 86400
+                      access_token:
+                        type: string
+                        description: The access token to be used in subsequent requests
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    required:
+                      - token_type
+                      - expires_in
+                      - access_token
+                  meta:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: success
+                    required:
+                      - message
+                required:
+                  - data
+                  - meta
+        '500':
+          description: Internal server error or Airalo API error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: A message describing the error
+                    example: Failed to obtain Airalo token
+                  details:
+                    type: string
+                    description: More specific error details from the Airalo API or server
+                    example: Airalo client ID or secret not configured in environment variables.
+
+  /vpn/create-device:
+    post:
+      summary: Create VPN device
+      description: Create a new VPN device and return device information
+      responses:
+        '200':
+          description: Device created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DeviceInfo'
+        '500':
+          description: Failed to create device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /vpn/countries/{deviceToken}:
+    get:
+      summary: Get available countries
+      description: Retrieve list of available countries for VPN connection
+      parameters:
+        - name: deviceToken
+          in: path
+          required: true
+          description: Device token from device creation
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Countries retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Country'
+        '404':
+          description: No countries found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to get countries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /vpn/cities/{countryId}:
+    get:
+      summary: Get cities in a country
+      description: Retrieve list of cities available in a specific country
+      parameters:
+        - name: countryId
+          in: path
+          required: true
+          description: Country ID
+          schema:
+            type: string
+        - name: deviceToken
+          in: query
+          required: true
+          description: Device token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cities retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/City'
+        '400':
+          description: Missing deviceToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No cities found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to get cities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /vpn/servers/{cityId}:
+    get:
+      summary: Get servers in a city
+      description: Retrieve list of VPN servers available in a specific city
+      parameters:
+        - name: cityId
+          in: path
+          required: true
+          description: City ID
+          schema:
+            type: string
+        - name: deviceToken
+          in: query
+          required: true
+          description: Device token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Servers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Server'
+        '400':
+          description: Missing deviceToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No servers found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to get servers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /vpn/create-credentials/{serverId}:
+    post:
+      summary: Create server credentials
+      description: Create VPN credentials for a specific server
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          description: Server ID
+          schema:
+            type: string
+        - name: deviceToken
+          in: query
+          required: true
+          description: Device token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Credentials created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credentials:
+                    $ref: '#/components/schemas/Credentials'
+                  config:
+                    type: string
+                    description: WireGuard configuration text
+        '400':
+          description: Missing deviceToken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to create credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /vpn/active:
+    post:
+      summary: Get complete VPN configuration
+      description: Create device and get random VPN configuration ready to use
+      responses:
+        '200':
+          description: VPN configuration created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deviceToken:
+                    type: string
+                  raw:
+                    $ref: '#/components/schemas/Credentials'
+                  configWireGuard:
+                    type: string
+                    description: Complete WireGuard configuration
+        '404':
+          description: No countries, cities, or servers found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to get VPN configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /create-payment-profile:
+    post:
+      summary: Create payment profile
+      description: Create a new Solana wallet-based payment profile
+      responses:
+        '200':
+          description: Payment profile created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publicKey:
+                    type: string
+                    description: Public key of the created wallet
+        '500':
+          description: Failed to create payment profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /order:
+    post:
+      summary: Create order
+      description: Create a new SIM order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '500':
+          description: Failed to create order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /add-order:
+    post:
+      summary: Add order
+      description: Add an additional order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddOrderRequest'
+      responses:
+        '200':
+          description: Order added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '500':
+          description: Failed to add order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /order/{orderId}:
+    get:
+      summary: Query order status
+      description: Get the current status of an order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: Order ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderStatus'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to query order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /topup:
+    post:
+      summary: Create topup order
+      description: Create a new SIM topup order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTopupRequest'
+      responses:
+        '200':
+          description: Topup order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopupResponse'
+        '500':
+          description: Failed to create topup order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /topup/{orderId}:
+    get:
+      summary: Query topup order status
+      description: Get the current status of a topup order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          description: Topup order ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Topup order status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopupStatus'
+        '404':
+          description: Topup order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to query topup order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payment-profile/topup/{ppPublicKey}:
+    get:
+      summary: Query payment profile topup orders
+      description: Get topup orders for a specific payment profile
+      parameters:
+        - name: ppPublicKey
+          in: path
+          required: true
+          description: Payment profile public key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment profile topup orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopupStatus'
+        '500':
+          description: Failed to query payment profile topup orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payment-profile/sim/{ppPublicKey}:
+    get:
+      summary: Query payment profile SIM orders
+      description: Get SIM orders for a specific payment profile
+      parameters:
+        - name: ppPublicKey
+          in: path
+          required: true
+          description: Payment profile public key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment profile SIM orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderStatus'
+        '500':
+          description: Failed to query payment profile SIM orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /sim/{iccid}/topups:
+    get:
+      summary: Get available topup packages for SIM
+      description: Retrieve available topup packages for a specific SIM card
+      parameters:
+        - name: iccid
+          in: path
+          required: true
+          description: SIM card ICCID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Topup packages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopupPackage'
+        '400':
+          description: Missing required parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to retrieve SIM top-ups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /sim/{iccid}/usage:
+    get:
+      summary: Get SIM data usage
+      description: Retrieve data usage information for a specific SIM card
+      parameters:
+        - name: iccid
+          in: path
+          required: true
+          description: SIM card ICCID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usage data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageData'
+        '400':
+          description: Missing required parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to retrieve SIM usage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /packages:
+    get:
+      summary: Get packages by type
+      description: Retrieve packages filtered by type (local, global, or regional)
+      parameters:
+        - name: type
+          in: query
+          required: true
+          description: Type of packages to retrieve
+          schema:
+            type: string
+            enum:
+              - local
+              - global
+              - regional
+        - name: country
+          in: query
+          required: false
+          description: Country code for filtering packages
+          schema:
+            type: string
+            enum:
+              - AU
+              - CN
+              - JP
+              - KR
+              - IN
+              - SG
+              - NZ
+              - US
+              - GB
+              - DE
+              - FR
+              - IT
+              - CA
+              - RU
+              - BR
+              - ZA
+              - VN
+              - PH
+              - TH
+              - MY
+              - ID
+              - HK
+              - TW
+              - NP
+              - VU
+              - WS
+              - FI
+              - SE
+              - CH
+              - MX
+              - AR
+              - EG
+              - ES
+              - PT
+              - PL
+              - TR
+              - QA
+              - SA
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+        '400':
+          description: Bad request - invalid type parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Utility Endpoints
+  /error:
+    post:
+      summary: Log error
+      description: Log errors from frontend or other sources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: Error message to log
+      responses:
+        '200':
+          description: Error logged successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '500':
+          description: Failed to process log request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Failed to process log request"
+
+  /health:
+    get:
+      summary: Health check
+      description: Check if the API is running
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+
+components:
+  schemas:
+    OrderDetails:
+      type: object
+      properties:
+        quantity:
+          type: number
+        package_id:
+          type: string
+        region:
+          type: string
+        country_code:
+          type: string
+        package_title:
+          type: string
+        expiration_ms:
+          type: number
+        created_at_ms:
+          type: number
+      required:
+        - quantity
+        - package_id
+        - package_title
+        - expiration_ms
+        - created_at_ms
+    SIM:
+      type: object
+      properties:
+        iccid:
+          type: string
+        qrcode:
+          type: string
+        qrcode_url:
+          type: string
+        created_at:
+          type: string
+        region:
+          type: string
+        country_code:
+          type: string
+        package_id:
+          type: string
+        package_title:
+          type: string
+        expiration_ms:
+          type: number
+        created_at_ms:
+          type: number
+        installed:
+          type: boolean
+      required:
+        - iccid
+        - qrcode
+        - qrcode_url
+        - created_at
+        - package_id
+        - package_title
+        - expiration_ms
+        - created_at_ms
+    # VPN Schemas
+    DeviceInfo:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Device token for authentication
+        id:
+          type: string
+          description: Device ID
+
+    Country:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Country ID
+        name:
+          type: string
+          description: Country name
+        code:
+          type: string
+          description: Country code
+
+    City:
+      type: object
+      properties:
+        id:
+          type: string
+          description: City ID
+        name:
+          type: string
+          description: City name
+        countryId:
+          type: string
+          description: Parent country ID
+
+    Server:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Server ID
+        name:
+          type: string
+          description: Server name
+        cityId:
+          type: string
+          description: Parent city ID
+
+    Credentials:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Server credentials data
+
+    # Order Schemas
+    CreateOrderRequest:
+      type: object
+      required:
+        - packageId
+        - ppPublicKey
+      properties:
+        packageId:
+          type: string
+          description: Package ID to order
+        ppPublicKey:
+          type: string
+          description: Payment profile public key
+
+    AddOrderRequest:
+      type: object
+      required:
+        - packageId
+        - ppPublicKey
+      properties:
+        packageId:
+          type: string
+          description: Package ID to add
+        ppPublicKey:
+          type: string
+          description: Payment profile public key
+
+    OrderResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: Created order ID
+        status:
+          type: string
+          description: Order status
+
+    OrderStatus:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: Order ID
+        status:
+          type: string
+          description: Current order status
+        packageId:
+          type: string
+          description: Package ID
+        ppPublicKey:
+          type: string
+          description: Payment profile public key
+
+    # Topup Schemas
+    CreateTopupRequest:
+      type: object
+      required:
+        - iccid
+        - topupPackageId
+        - ppPublicKey
+      properties:
+        iccid:
+          type: string
+          description: SIM card ICCID
+        topupPackageId:
+          type: string
+          description: Topup package ID
+        ppPublicKey:
+          type: string
+          description: Payment profile public key
+
+    TopupResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: Created topup order ID
+        status:
+          type: string
+          description: Topup order status
+
+    TopupStatus:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: Topup order ID
+        status:
+          type: string
+          description: Current topup status
+        iccid:
+          type: string
+          description: SIM card ICCID
+        topupPackageId:
+          type: string
+          description: Topup package ID
+
+    TopupPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Topup package ID
+        price:
+          type: number
+          description: Package price
+        data:
+          type: string
+          description: Data allowance
+        validity:
+          type: integer
+          description: Package validity in days
+
+    UsageData:
+      type: object
+      properties:
+        used:
+          type: number
+          description: Data used in MB
+        remaining:
+          type: number
+          description: Data remaining in MB
+        total:
+          type: number
+          description: Total data allowance in MB
+
+    # Package Schemas
+    Region:
+      type: object
+      required:
+        - region
+        - operators
+      properties:
+        region:
+          type: string
+          description: Region identifier
+          example: "europe"
+        operators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Operator'
+
+    Operator:
+      type: object
+      required:
+        - id
+        - title
+        - packages
+      properties:
+        id:
+          type: integer
+          description: Unique operator identifier
+          example: 1031
+        title:
+          type: string
+          description: Operator name
+          example: "Eurolink"
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Package'
+
+    Package:
+      type: object
+      required:
+        - id
+        - price
+        - day
+        - data
+      properties:
+        id:
+          type: string
+          description: Unique package identifier
+          example: "eurolink-10days-unlimited"
+        price:
+          type: number
+          description: Package price
+          example: 35
+        day:
+          type: integer
+          description: Package duration in days
+          example: 10
+        data:
+          type: string
+          description: Data allowance
+          example: "Unlimited"
+
+    # Common Schemas
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Invalid parameter"
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        error:
+          type: string

@@ -1,0 +1,20 @@
+meta {
+  name: Get Data Usage
+  type: http
+  seq: 32
+}
+
+get {
+  url: {{baseUrl}}/v1/sims/:sim_iccid/usage
+  body: none
+  auth: inherit
+}
+
+params:path {
+  sim_iccid: 89852350625220449845
+}
+
+headers {
+  ~Accept: 
+  ~Authorization: 
+}

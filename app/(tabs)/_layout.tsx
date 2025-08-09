@@ -1,18 +1,22 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Tabs } from "expo-router";
 import React from "react";
 
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import Colors from "@/constants/Colors";
+import { Icon } from "react-native-paper";
+import { useSharedState } from "@/hooks/use-provider";
 
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>["name"];
+  name: 'dVPN' | 'eSIM' | 'Profile'
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  if (props.name === 'eSIM') return <Icon source={require('@/assets/sim-card.png')} size={24} color={props.color} />
+  if (props.name === 'Profile') return <Icon source={require('@/assets/profile.png')} size={24} color={props.color} />
+  return <Icon source={require('@/assets/dvpn.png')} size={24} color={props.color} />
 }
 
 export default function TabLayout() {
+  const [showContent,] = useSharedState('SHOW_CONTENT', false)
   return (
     <Tabs
       screenOptions={{
@@ -26,27 +30,12 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="esim"
+        name="index"
         options={{
           headerShown: false,
-          title: "eSim",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="mobile-phone" color={color} />
-          ),
-          // headerRight: () => (
-          //   <Link href="/modal" asChild>
-          //     <Pressable>
-          //       {({ pressed }) => (
-          //         <FontAwesome
-          //           name="info-circle"
-          //           size={25}
-          //           color={Colors[colorScheme ?? "light"].text}
-          //           style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-          //         />
-          //       )}
-          //     </Pressable>
-          //   </Link>
-          // ),
+          title: 'eSIM',
+          tabBarStyle: { opacity: showContent ? 1 : 0 },
+          tabBarIcon: ({ color }) => <TabBarIcon name="eSIM" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -54,15 +43,17 @@ export default function TabLayout() {
         options={{
           headerShown: false,
           title: "dVPN",
-          tabBarIcon: ({ color }) => <TabBarIcon name="lock" color={color} />,
+          tabBarStyle: { opacity: showContent ? 1 : 0 },
+          tabBarIcon: ({ color }) => <TabBarIcon name="dVPN" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           headerShown: false,
+          tabBarStyle: { opacity: showContent ? 1 : 0 },
           title: "Profile",
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="Profile" color={color} />,
         }}
       />
     </Tabs>
