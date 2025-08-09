@@ -78,6 +78,7 @@ export const DiscountCode: React.FC<DiscountCodeProps> = ({
                 <Button
                   mode="outlined"
                   onPress={handleApply}
+                  disabled={loading}
                   style={$styles.applyButton}
                   labelStyle={$styles.applyButtonText}
                 >
