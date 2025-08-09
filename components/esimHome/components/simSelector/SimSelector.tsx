@@ -92,7 +92,7 @@ export function SimSelector(props: SimSelectorProps) {
                     $styles.simItem,
                     props.selectedSim!.iccid === sim.iccid && $styles.selectedSim,
                   ]}
-                  onPressIn={() => {
+                  onPress={() => {
                     setModalVisible(false)
                     props.onSelectSim(sim)
                   }}
@@ -115,6 +115,7 @@ export function SimSelector(props: SimSelectorProps) {
                   </View>
                 </TouchableOpacity>
               ))}
+              <View style={{ height: 20 }} />
             </ScrollView>
           </View>
         </TouchableOpacity>
