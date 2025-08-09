@@ -8,7 +8,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
 import { Alert, Image, TouchableOpacity, View } from "react-native";
-import { ActivityIndicator, Text } from "react-native-paper";
+import { ActivityIndicator, IconButton, Text } from "react-native-paper";
 import QRCode from "react-native-qrcode-skia";
 import { captureRef } from "react-native-view-shot";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
@@ -43,7 +43,6 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
         ...prev!,
         installed: true
       }))
-
     },
     onError: (error) => {
       console.error(error)
@@ -116,6 +115,14 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
   return (
     <View style={$styles.root}>
+      <View style={$styles.header}>
+        <IconButton icon={'sim-outline'} size={40} />
+        <Text style={$styles.headerTitle}>Activate Your eSIM</Text>
+        <Text style={$styles.headerSubtitle}>
+          Quick, secure, and hassle-free installation.
+        </Text>
+      </View>
+
       <View ref={qrRef} collapsable={false}>
         <QRCode
           value={esimCode}
@@ -141,7 +148,9 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
         onPress={() => setModalVisible(true)}
         accessibilityLabel="Install eSIM"
       >
-        <Text style={$styles.installButtonText}>Install eSIM</Text>
+        <Text style={$styles.installButtonText}>
+          Start Installation
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -157,7 +166,9 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
       >
         {
           !setSimInstalledMut.isPending
-            ? <Text style={$styles.installedText}>I've installed this eSIM already</Text>
+            ? <Text style={$styles.installedText}>
+              Already installed? Mark as complete
+            </Text>
             : <ActivityIndicator />
         }
       </TouchableOpacity>
