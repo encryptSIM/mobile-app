@@ -2,6 +2,7 @@ import { ScrollView, View } from "react-native";
 import { Button, FAB, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { $styles } from "./styles";
+import { useThrottledCallback } from "@/hooks/use-throttled-callback";
 
 const MEDIUM_FAB_HEIGHT = 40;
 
@@ -24,6 +25,7 @@ export function Cart(props: CartProps) {
   const { bottom } = useSafeAreaInsets();
   const totalAmount = props.items.reduce((sum, item) => sum + (item.value * item.qty), 0);
   const hasItems = props.items.length > 0 && props.items.some(item => item.qty > 0);
+  const throttledCheckout = useThrottledCallback(props.onCheckout, 1000)
 
   if (!hasItems) return null;
 
@@ -84,7 +86,7 @@ export function Cart(props: CartProps) {
           mode="contained"
           loading={props.loading}
           disabled={props.loading}
-          onPress={props.onCheckout}
+          onPressIn={throttledCheckout}
           style={$styles.checkoutButton}
           labelStyle={$styles.checkoutButtonText}
         >

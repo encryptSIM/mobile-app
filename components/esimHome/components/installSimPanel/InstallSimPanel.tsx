@@ -1,20 +1,19 @@
 import { $api, Sim } from "@/api/api";
+import { brandGreen } from "@/components/app-providers";
+import { SIMS } from "@/components/checkout/hooks/useCheckout";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { useSharedState } from "@/hooks/use-provider";
 import * as Clipboard from "expo-clipboard";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
 import { Alert, Image, TouchableOpacity, View } from "react-native";
-import { ActivityIndicator, Text } from "react-native-paper";
+import { ActivityIndicator, IconButton, Text } from "react-native-paper";
 import QRCode from "react-native-qrcode-skia";
 import { captureRef } from "react-native-view-shot";
+import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
 import { $styles } from "./styles";
-import { useSharedState } from "@/hooks/use-provider";
-import { SIMS } from "@/components/checkout/hooks/useCheckout";
-import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
-import { useMobileWallet } from "@/components/solana/use-mobile-wallet";
-import { brandGreen } from "@/components/app-providers";
 
 export interface InstallSimPanelProps {
   sim: Sim;
@@ -25,7 +24,6 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   const modalQrRef = useRef<View>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const esimCode = `LPA:1$lpa.airalo.com$TEST`;
   const [, setSims] = useSharedState<Sim[]>(SIMS.key)
   const [, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key)
   const { account } = useWalletUi();
@@ -44,7 +42,6 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
         ...prev!,
         installed: true
       }))
-
     },
     onError: (error) => {
       console.error(error)
@@ -108,7 +105,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
   const copyToClipboard = async () => {
     try {
-      await Clipboard.setStringAsync(esimCode);
+      await Clipboard.setStringAsync(props.sim?.qrcode);
       Alert.alert("Copied! 📋", "Activation code copied to clipboard");
     } catch (error) {
       Alert.alert("Error", "Failed to copy to clipboard");
@@ -117,9 +114,17 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
   return (
     <View style={$styles.root}>
+      <View style={$styles.header}>
+        <IconButton icon={'sim-outline'} size={40} />
+        <Text style={$styles.headerTitle}>Activate Your eSIM</Text>
+        <Text style={$styles.headerSubtitle}>
+          Quick, secure, and hassle-free installation.
+        </Text>
+      </View>
+
       <View ref={qrRef} collapsable={false}>
         <QRCode
-          value={esimCode}
+          value={`${props?.sim?.qrcode}`}
           color={brandGreen}
           shapeOptions={{
             shape: "rounded",
@@ -142,7 +147,9 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
         onPress={() => setModalVisible(true)}
         accessibilityLabel="Install eSIM"
       >
-        <Text style={$styles.installButtonText}>Install eSIM</Text>
+        <Text style={$styles.installButtonText}>
+          Start Installation
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -158,13 +165,15 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
       >
         {
           !setSimInstalledMut.isPending
-            ? <Text style={$styles.installedText}>I've installed this eSIM already</Text>
+            ? <Text style={$styles.installedText}>
+              Already installed? Mark as complete
+            </Text>
             : <ActivityIndicator />
         }
       </TouchableOpacity>
 
       <InstallModal
-        esimCode={esimCode}
+        esimCode={props.sim?.qrcode}
         modalVisible={modalVisible}
         showInstructions={showInstructions}
         copyToClipboard={copyToClipboard}

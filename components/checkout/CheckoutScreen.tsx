@@ -1,8 +1,7 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Appbar } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ContinueButton,
   DiscountCode,
@@ -13,6 +12,7 @@ import {
 import { ErrorCard } from './components/errorCard';
 import { useCheckout } from './hooks/useCheckout';
 import { $styles } from './styles';
+import { useThrottledCallback } from '@/hooks/use-throttled-callback';
 
 export function CheckoutScreen() {
   const {
@@ -30,15 +30,16 @@ export function CheckoutScreen() {
     handleContinuePayment,
     clearError,
   } = useCheckout();
+  const throttledContinue = useThrottledCallback(handleContinuePayment, 3000)
 
   return (
-    <SafeAreaView style={$styles.container}>
+    <View style={$styles.container}>
       <Appbar.Header style={$styles.header}>
         <Appbar.BackAction onPress={router.back} />
         <Appbar.Content title={local.title} />
       </Appbar.Header>
 
-      <ScrollView style={$styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView fadingEdgeLength={200} style={$styles.content}>
         {plans.map((plan, index) => (
           <PlanCard key={plan?.pkg?.id ?? index} {...plan} />
         ))}
@@ -73,12 +74,12 @@ export function CheckoutScreen() {
             <ContinueButton
               text={getContinueButtonText()}
               loading={paymentState.isProcessing}
-              onPress={handleContinuePayment}
+              onPress={throttledContinue}
               disabled={paymentState.isProcessing}
             />
           )
         }
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

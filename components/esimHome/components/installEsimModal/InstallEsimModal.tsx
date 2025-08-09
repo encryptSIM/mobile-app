@@ -4,6 +4,7 @@ import QRCode from "react-native-qrcode-skia";
 import { $styles } from "./styles";
 import { useRef } from "react";
 import { brandGreen } from "@/components/app-providers";
+import { useThrottledCallback } from "@/hooks/use-throttled-callback";
 
 export interface InstallModalProps {
   modalVisible: boolean;
@@ -19,6 +20,8 @@ export interface InstallModalProps {
 
 export function InstallModal(props: InstallModalProps) {
   const ref = useRef<ScrollView>(null);
+  const saveQRCode = useThrottledCallback(props.saveQRCode, 1000)
+  const shareQRCode = useThrottledCallback(props.shareQRCode, 1000)
 
   return (
     <Modal
@@ -29,7 +32,6 @@ export function InstallModal(props: InstallModalProps) {
     >
       <View style={$styles.modalOverlay}>
         <View style={$styles.modalContent}>
-          {/* Header */}
           <View style={$styles.modalHeader}>
             <Text style={$styles.modalTitle}>Install eSIM</Text>
             <IconButton
@@ -41,7 +43,6 @@ export function InstallModal(props: InstallModalProps) {
           </View>
 
           <ScrollView ref={ref} showsVerticalScrollIndicator={false}>
-            {/* QR Code Display */}
             <View style={$styles.qrContainer}>
               <View ref={props.qrRef} collapsable={false}>
                 <QRCode
@@ -64,11 +65,10 @@ export function InstallModal(props: InstallModalProps) {
               </View>
             </View>
 
-            {/* Rest of your component remains the same */}
             <View style={$styles.actionButtons}>
               <TouchableOpacity
                 style={$styles.actionButton}
-                onPress={props.saveQRCode}
+                onPressIn={saveQRCode}
               >
                 <View style={$styles.actionButtonContent}>
                   <Text style={$styles.actionButtonIcon}>💾</Text>
@@ -81,7 +81,7 @@ export function InstallModal(props: InstallModalProps) {
 
               <TouchableOpacity
                 style={$styles.actionButton}
-                onPress={props.shareQRCode}
+                onPressIn={shareQRCode}
               >
                 <View style={$styles.actionButtonContent}>
                   <Text style={$styles.actionButtonIcon}>📤</Text>
@@ -94,7 +94,7 @@ export function InstallModal(props: InstallModalProps) {
 
               <TouchableOpacity
                 style={$styles.actionButton}
-                onPress={() => {
+                onPressIn={() => {
                   props.setShowInstructions(!props.showInstructions);
                   ref.current?.scrollToEnd();
                 }}
@@ -109,7 +109,6 @@ export function InstallModal(props: InstallModalProps) {
               </TouchableOpacity>
             </View>
 
-            {/* Manual Instructions */}
             {props.showInstructions && (
               <View style={$styles.instructionsContainer}>
                 <Text style={$styles.instructionsTitle}>
@@ -137,7 +136,6 @@ export function InstallModal(props: InstallModalProps) {
                   </Text>
                 </View>
 
-                {/* Activation Code Display */}
                 <View style={$styles.codeContainer}>
                   <Text style={$styles.codeLabel}>Activation Code:</Text>
                   <View style={$styles.codeBox}>
@@ -147,11 +145,10 @@ export function InstallModal(props: InstallModalProps) {
                   </View>
                 </View>
 
-                {/* Action Buttons for Manual Setup */}
                 <View style={$styles.manualActions}>
                   <TouchableOpacity
                     style={$styles.manualButton}
-                    onPress={props.copyToClipboard}
+                    onPressIn={props.copyToClipboard}
                   >
                     <Text style={$styles.manualButtonText}>📋 Copy Code</Text>
                   </TouchableOpacity>

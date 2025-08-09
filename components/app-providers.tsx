@@ -37,7 +37,7 @@ const theme: ThemeProp = {
     surface: card, // Card backgrounds
     inverseSurface: '#FFFFFF',
     onSurface: '#FFFFFF', // White text on dark surfaces
-    onSurfaceDisabled: '#666666',
+    onSurfaceDisabled: 'white',
     inverseOnSurface: '#000000',
 
     surfaceVariant: '#2A3441', // Slightly lighter than card for variants
