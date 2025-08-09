@@ -1,3 +1,4 @@
+import { $api, Sim } from '@/api/api';
 import {
   SELECTED_PACKAGE_QTY_MAP,
   SELECTED_PACKAGES,
@@ -10,10 +11,9 @@ import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
 import { useSolanaPrice } from '@/hooks/useSolanaPrice';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useState, useRef } from 'react';
+import { err, ok, Result } from 'neverthrow';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { PriceDetailField } from '../components';
-import { $api, Sim } from '@/api/api';
-import { Err, err, ok, Result } from 'neverthrow';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
 
@@ -90,8 +90,16 @@ export const useCheckout = () => {
   const { account } = useWalletUi();
   const solanaPrice = useSolanaPrice();
   const paymentIdempotencyKey = useRef<string | null>(null);
+  const checkCouponQuery = $api.useQuery('get', '/coupon/{code}', {
+    params: {
+      path: {
+        code: discountCode
+      }
+    },
+  }, {
+    enabled: discountCode !== ""
+  })
 
-  // Generate idempotency key for this payment session
   const generateIdempotencyKey = useCallback((): string => {
     if (!paymentIdempotencyKey.current) {
       const timestamp = Date.now();
@@ -332,26 +340,43 @@ export const useCheckout = () => {
 
     const serviceFeeUSD = totalPriceUSD * feePercentage;
     const grandTotalUSD = totalPriceUSD + serviceFeeUSD;
+    const discount = checkCouponQuery?.data?.data ? (-1 * (grandTotalUSD * (checkCouponQuery.data.data.discount / 100))) : 0
+    const discountedTotal = grandTotalUSD + discount
 
-    fields.push(
-      {
-        label: "Service fee",
-        value: serviceFeeUSD,
+    fields.push({
+      label: "Service fee",
+      value: serviceFeeUSD,
+      isSubtotal: false,
+      isTotal: false,
+      isDividerAfter: false,
+    })
+    if (checkCouponQuery.data?.data) {
+      fields.push({
+        label: checkCouponQuery.data.data.code,
+        value: discount,
         isSubtotal: false,
         isTotal: false,
-        isDividerAfter: true,
-      },
-      {
-        label: "Total",
-        currency: "(USD)",
-        value: grandTotalUSD,
-        isSubtotal: false,
-        isTotal: true,
         isDividerAfter: false,
-      }
-    );
+      })
+    }
+    // fields.push({
+    //   label: "Subtotal",
+    //   currency: "(USD)",
+    //   value: grandTotalUSD,
+    //   isSubtotal: true,
+    //   isTotal: true,
+    //   isDividerAfter: true,
+    // });
+    fields.push({
+      label: "Total",
+      currency: "(USD)",
+      value: discountedTotal,
+      isSubtotal: false,
+      isTotal: true,
+      isDividerAfter: false,
+    });
 
-    const priceInSol = solanaPrice.data ? (1 / solanaPrice.data) * grandTotalUSD : 0;
+    const priceInSol = solanaPrice.data ? (1 / solanaPrice.data) * discountedTotal : 0;
 
     fields.push({
       label: "Total",
@@ -368,7 +393,7 @@ export const useCheckout = () => {
       priceInSol,
       fields,
     };
-  }, [solanaPrice.data, solanaPrice.isPending, selectedPackages, selectedPackageQtyMap]);
+  }, [solanaPrice.data, solanaPrice.isPending, selectedPackages, selectedPackageQtyMap, checkCouponQuery.data]);
 
   const solAmount = useMemo(() => {
     return parseFloat(priceData.priceInSol.toFixed(6));
@@ -464,6 +489,7 @@ export const useCheckout = () => {
     plans,
     solanaPrice,
     paymentState,
+    checkCouponQuery,
     getContinueButtonText: () => getButtonText(paymentState),
     setSelectedMethodId,
     handleDiscountApply,

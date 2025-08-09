@@ -6,12 +6,17 @@ import { $styles } from './styles';
 interface DiscountCodeProps {
   value: string;
   disabled?: boolean
+  loading?: boolean
+  invalid: boolean
   onApply: (code: string) => void;
 }
 
 export const DiscountCode: React.FC<DiscountCodeProps> = ({
   value,
-  onApply
+  loading,
+  invalid,
+  onApply,
+
 }) => {
   const [code, setCode] = useState(value);
 
@@ -31,7 +36,14 @@ export const DiscountCode: React.FC<DiscountCodeProps> = ({
           <TextInput
             value={code}
             onChangeText={setCode}
+            label={'Invalid Code'}
             placeholder="Discount code"
+            error={invalid}
+            cursorColor='white'
+            right={
+              (invalid || loading)
+              && <TextInput.Icon color={!loading ? '#FFD480' : undefined} loading={loading} icon="alert" />
+            }
             placeholderTextColor="#888"
             style={$styles.input}
             contentStyle={$styles.inputContent}
