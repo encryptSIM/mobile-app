@@ -1,4 +1,8 @@
 import { $api, Sim } from "@/api/api";
+import { brandGreen } from "@/components/app-providers";
+import { SIMS } from "@/components/checkout/hooks/useCheckout";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { useSharedState } from "@/hooks/use-provider";
 import * as Clipboard from "expo-clipboard";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
@@ -7,14 +11,9 @@ import { Alert, Image, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
 import QRCode from "react-native-qrcode-skia";
 import { captureRef } from "react-native-view-shot";
+import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
 import { $styles } from "./styles";
-import { useSharedState } from "@/hooks/use-provider";
-import { SIMS } from "@/components/checkout/hooks/useCheckout";
-import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
-import { useMobileWallet } from "@/components/solana/use-mobile-wallet";
-import { brandGreen } from "@/components/app-providers";
 
 export interface InstallSimPanelProps {
   sim: Sim;
