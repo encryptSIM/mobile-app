@@ -73,9 +73,9 @@ export function CheckoutScreen() {
           paymentState.error ?? (
             <ContinueButton
               text={getContinueButtonText()}
-              loading={paymentState.isProcessing}
+              loading={paymentState.stage !== 'idle'}
               onPress={throttledContinue}
-              disabled={paymentState.isProcessing}
+              disabled={paymentState.stage !== 'idle'}
             />
           )
         }
