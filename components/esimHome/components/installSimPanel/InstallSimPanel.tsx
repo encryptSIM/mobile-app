@@ -105,7 +105,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
   const copyToClipboard = async () => {
     try {
-      await Clipboard.setStringAsync(props.sim.qrcode);
+      await Clipboard.setStringAsync(props.sim?.qrcode);
       Alert.alert("Copied! 📋", "Activation code copied to clipboard");
     } catch (error) {
       Alert.alert("Error", "Failed to copy to clipboard");
@@ -124,7 +124,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
       <View ref={qrRef} collapsable={false}>
         <QRCode
-          value={props.sim.qrcode}
+          value={`${props?.sim?.qrcode}`}
           color={brandGreen}
           shapeOptions={{
             shape: "rounded",
@@ -173,7 +173,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
       </TouchableOpacity>
 
       <InstallModal
-        esimCode={props.sim.qrcode}
+        esimCode={props.sim?.qrcode}
         modalVisible={modalVisible}
         showInstructions={showInstructions}
         copyToClipboard={copyToClipboard}

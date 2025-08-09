@@ -122,7 +122,7 @@ export const PaymentMethod: React.FC<PaymentMethodProps> = ({
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <TouchableOpacity activeOpacity={1} onPress={() => setModalVisible(false)} style={$styles.modalOverlay}>
+        <TouchableOpacity activeOpacity={1} onPressIn={() => setModalVisible(false)} style={$styles.modalOverlay}>
           <View style={$styles.modalContent}>
             <View style={$styles.modalHeader}>
               <View style={$styles.dragHandle} />
@@ -140,7 +140,7 @@ export const PaymentMethod: React.FC<PaymentMethodProps> = ({
                       opacity: method.disabled ? 0.5 : 1
                     }
                   ]}
-                  onPress={() => handleMethodSelect(method.id)}
+                  onPressIn={() => handleMethodSelect(method.id)}
                 >
                   <Image source={method.icon} style={$styles.methodItemIcon} />
                   <Text style={$styles.methodLabel}>{method.label}</Text>

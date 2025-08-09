@@ -2,6 +2,7 @@ import { Image, TouchableOpacity, View } from "react-native";
 import CountryFlag from "react-native-country-flag";
 import { $styles } from "./styles";
 import { Text } from "react-native-paper";
+import { useThrottledCallback } from "@/hooks/use-throttled-callback";
 
 export interface PackageCardProps {
   label: string;
@@ -11,8 +12,9 @@ export interface PackageCardProps {
 }
 
 export function PackageCard(props: PackageCardProps) {
+  const throttledPress = useThrottledCallback(props.onPress, 1000)
   return (
-    <TouchableOpacity onPress={props.onPress} style={$styles.root}>
+    <TouchableOpacity onPress={throttledPress} style={$styles.root}>
       <View style={$styles.container}>
         <View style={$styles.label}>
           <Text>{props.label}</Text>
