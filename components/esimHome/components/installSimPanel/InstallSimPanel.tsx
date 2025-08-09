@@ -24,7 +24,6 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   const modalQrRef = useRef<View>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const esimCode = `LPA:1$lpa.airalo.com$TEST`;
   const [, setSims] = useSharedState<Sim[]>(SIMS.key)
   const [, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key)
   const { account } = useWalletUi();
@@ -106,7 +105,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
   const copyToClipboard = async () => {
     try {
-      await Clipboard.setStringAsync(esimCode);
+      await Clipboard.setStringAsync(props.sim.qrcode);
       Alert.alert("Copied! 📋", "Activation code copied to clipboard");
     } catch (error) {
       Alert.alert("Error", "Failed to copy to clipboard");
@@ -125,7 +124,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
       <View ref={qrRef} collapsable={false}>
         <QRCode
-          value={esimCode}
+          value={props.sim.qrcode}
           color={brandGreen}
           shapeOptions={{
             shape: "rounded",
@@ -174,7 +173,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
       </TouchableOpacity>
 
       <InstallModal
-        esimCode={esimCode}
+        esimCode={props.sim.qrcode}
         modalVisible={modalVisible}
         showInstructions={showInstructions}
         copyToClipboard={copyToClipboard}
