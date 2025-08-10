@@ -10,7 +10,7 @@ import { TextInput } from "react-native-paper";
 import { $styles } from "./styles";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
 
-const tabs = ["Countries", "Regional plan"];
+const tabs = ["Countries", "Regional"];
 
 export function NoSimsHome() {
   const { account } = useWalletUi();
@@ -79,9 +79,7 @@ export function NoSimsHome() {
           renderItem={renderCard}
           numColumns={2}
           columnWrapperStyle={$styles.columnWrapper}
-          ListHeaderComponent={
-            <View style={$styles.searchSpacing} />
-          }
+          ListHeaderComponent={<View style={$styles.searchSpacing} />}
           stickyHeaderIndices={[0]}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={$styles.listContent}
@@ -90,4 +88,3 @@ export function NoSimsHome() {
     </View>
   );
 }
-

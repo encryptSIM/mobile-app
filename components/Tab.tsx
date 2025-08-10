@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -6,8 +6,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { brandGreen, card } from './app-providers';
+} from "react-native";
+import { brandGreen, card } from "./app-providers";
 
 interface SlidingTabsProps {
   tabs: string[];
@@ -17,14 +17,17 @@ interface SlidingTabsProps {
 }
 
 const SlidingTabs: React.FC<SlidingTabsProps> = ({
-  tabs = ['Countries', 'Regional plan'],
+  tabs = ["Countries", "Regional"],
   activeTab,
   onTabChange,
   style,
 }) => {
   const translateX = useRef(new Animated.Value(0)).current;
-  const screenWidth = Dimensions.get('window').width;
-  const tabWidth = (screenWidth - 64) / 2;
+  const screenWidth = Dimensions.get("window").width;
+  const containerPadding = 32; // Total horizontal padding/margin
+  const tabWrapperPadding = 8; // Internal padding of tabWrapper (4 * 2)
+  const availableWidth = Math.min(screenWidth - containerPadding, 320); // Max width constraint
+  const tabWidth = (availableWidth - tabWrapperPadding) / tabs.length;
 
   useEffect(() => {
     Animated.spring(translateX, {
@@ -41,7 +44,7 @@ const SlidingTabs: React.FC<SlidingTabsProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.tabWrapper}>
+      <View style={[styles.tabWrapper, { width: availableWidth }]}>
         <Animated.View
           style={[
             styles.tabIndicator,
@@ -61,6 +64,8 @@ const SlidingTabs: React.FC<SlidingTabsProps> = ({
           >
             <Text
               disabled={true}
+              numberOfLines={1}
+              ellipsizeMode="tail"
               style={[
                 styles.tabText,
                 activeTab === index ? styles.activeText : styles.inactiveText,
@@ -77,24 +82,23 @@ const SlidingTabs: React.FC<SlidingTabsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 100,
   },
   tabWrapper: {
-    width: '100%',
-    position: 'relative',
-    flexDirection: 'row',
+    position: "relative",
+    flexDirection: "row",
     backgroundColor: card,
     borderRadius: 24,
     padding: 4,
-    minWidth: 320,
+    alignSelf: "center",
   },
   tabIndicator: {
-    position: 'absolute',
+    position: "absolute",
     top: 4,
     left: 4,
     height: 44,
-    backgroundColor: '#373E4C',
+    backgroundColor: "#373E4C",
     borderRadius: 20,
     zIndex: 0,
   },
@@ -102,19 +106,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1,
   },
   tabText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
+    flexShrink: 0,
+    textAlign: "center",
   },
   activeText: {
     color: brandGreen,
   },
   inactiveText: {
-    color: '#9ca3af',
+    color: "#9ca3af",
   },
 });
 

@@ -10,7 +10,7 @@ import { Appbar, TextInput } from "react-native-paper";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
 import { $styles } from "./styles";
 
-const tabs = ["Countries", "Regional plan"];
+const tabs = ["Countries", "Regional"];
 
 export function AddSim() {
   const {
@@ -83,4 +83,3 @@ export function AddSim() {
     </View>
   );
 }
-
