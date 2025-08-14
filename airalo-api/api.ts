@@ -11,6 +11,8 @@ export type Country = NonNullable<Operator["countries"]>[number];
 export type Package = NonNullable<Operator["packages"]>[number];
 export type Prices = NonNullable<Package["prices"]>["recommended_retail_price"];
 export type Usage = NonNullable<NonNullable<paths['/v2/sims/{sim_iccid}/usage']['get']['responses']['200']['content']['application/json']>['data']>
+export type TopupPackage = NonNullable<NonNullable<paths['/v2/sims/{iccid}/topups']['get']['responses']['200']['content']['application/json']['data']>[number]>
+const a = {} as TopupPackage
 
 export const airaloFetchClient = createFetchClient<paths>({
   baseUrl: "https://partners-api.airalo.com",

@@ -9,6 +9,7 @@ import { SimUsagePanel } from "../simUsagePanel/SimUsagePanel";
 import { BuyEsim } from "../buyEsim";
 import { router } from "expo-router";
 import { PackageDetailsCard } from "@/components/packageSelection/components";
+import { InstallSimPanel } from "../installSimPanel";
 
 const tabs = ["Current", "Expired"];
 
@@ -65,7 +66,24 @@ export function SimsHome() {
               selectedSim={selectedSim}
               onSelectSim={(sim) => setSelectedSim(sim)}
             />
-            <SimUsagePanel stats={usageStats[selectedSim?.iccid!]} />
+            {
+              selectedSim?.installed
+                ? <SimUsagePanel
+                  topup={() => {
+                    router.push({
+                      pathname: "/checkoutStack",
+                      params: {
+                        iccid: selectedSim.iccid,
+                        label: "Topups",
+                        region: selectedSim.region,
+                        countryCode: selectedSim.country_code,
+                      }
+                    })
+                  }}
+                  stats={usageStats[selectedSim?.iccid!]}
+                />
+                : <InstallSimPanel sim={selectedSim!} />
+            }
             <BuyEsim onBuyPress={() => router.push('/checkoutStack/addSim')} />
           </>
         )}

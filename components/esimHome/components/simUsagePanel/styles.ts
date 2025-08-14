@@ -1,8 +1,9 @@
+import { brandGreen, card } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
   root: {
-    backgroundColor: "#202939",
+    backgroundColor: card,
     borderRadius: 24,
     padding: 24,
     alignItems: "center",
@@ -12,7 +13,7 @@ export const $styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginBottom: 40,
+    marginBottom: 20,
   },
   iconContainer: {
     alignItems: "center",
@@ -36,7 +37,7 @@ export const $styles = StyleSheet.create({
   },
   progressContainer: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 16,
   },
   circularProgressWrapper: {
     position: "relative",
@@ -61,15 +62,23 @@ export const $styles = StyleSheet.create({
   },
   topUpButton: {
     borderWidth: 2,
-    borderColor: "#32D583",
+    borderColor: brandGreen,
     borderRadius: 25,
     paddingHorizontal: 32,
     paddingVertical: 12,
     backgroundColor: "transparent",
   },
   topUpButtonText: {
-    color: "#32D583",
+    color: brandGreen,
     fontSize: 16,
     fontWeight: "500",
+  },
+  installedText: {
+    color: "#9CA1AB",
+    fontSize: 14,
+    fontWeight: "400",
+  },
+  textButton: {
+    paddingTop: 16,
   },
 });

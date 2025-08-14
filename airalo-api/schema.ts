@@ -1832,7 +1832,7 @@ export interface paths {
             requestBody?: never;
             responses: {
                 /** @description eSIM: List available top-up packages: 200 OK */
-                default: {
+                200: {
                     headers: {
                         /** @example application/json */
                         "Content-Type"?: string;
@@ -1844,14 +1844,15 @@ export interface paths {
                                 id?: string;
                                 type?: string;
                                 price?: number;
+                                net_price?: number;
                                 amount?: number;
                                 day?: number;
                                 is_unlimited?: boolean;
                                 title?: string;
                                 data?: string;
-                                short_info?: string;
-                                voice?: number;
-                                text?: number;
+                                short_info?: string | null;
+                                voice?: number | null;
+                                text?: number | null;
                             }[];
                         };
                     };

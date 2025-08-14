@@ -1,0 +1,143 @@
+import { brandGreen } from "@/components/app-providers";
+import { StyleSheet } from "react-native";
+
+export const $styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1a1f2e',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 16,
+    maxHeight: '90%',
+    minHeight: '60%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a2f3e',
+  },
+  modalTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  qrContainer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  actionButtons: {
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  actionButton: {
+    backgroundColor: '#252a3a',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#2a2f3e',
+  },
+  actionButtonContent: {
+    alignItems: 'center',
+  },
+  actionButtonIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  actionButtonSubtext: {
+    color: '#9CA1AB',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  instructionsContainer: {
+    margin: 24,
+    backgroundColor: '#252a3a',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#2a2f3e',
+  },
+  instructionsTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  instructionStep: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  stepNumber: {
+    color: brandGreen,
+    fontSize: 16,
+    fontWeight: '600',
+    width: 24,
+    height: 24,
+    textAlign: 'center',
+    backgroundColor: 'rgba(50, 213, 131, 0.2)',
+    borderRadius: 12,
+    lineHeight: 24,
+    marginRight: 12,
+  },
+  stepText: {
+    color: '#DADADA',
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
+  },
+  codeContainer: {
+    marginTop: 16,
+  },
+  codeLabel: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  codeBox: {
+    backgroundColor: '#1a1f2e',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: brandGreen,
+  },
+  codeText: {
+    color: brandGreen,
+    fontSize: 12,
+    fontFamily: 'monospace',
+  },
+  manualActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  manualButton: {
+    flex: 1,
+    backgroundColor: brandGreen,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  manualButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+});

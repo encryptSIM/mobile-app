@@ -46,7 +46,7 @@ export function SimSelector(props: SimSelectorProps) {
           $styles.simDropdown
         ]}
         disabled={props.sims.length < 2}
-        onPress={openModal}
+        onPressIn={openModal}
       >
         {props.selectedSim!.country_code ? (
           <CountryFlag
@@ -78,7 +78,7 @@ export function SimSelector(props: SimSelectorProps) {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <TouchableOpacity activeOpacity={1} onPress={() => setModalVisible(false)} style={$styles.modalOverlay}>
+        <TouchableOpacity activeOpacity={1} onPressIn={() => setModalVisible(false)} style={$styles.modalOverlay}>
           <View style={$styles.modalContent}>
             <View style={$styles.modalHeader}>
               <View style={$styles.dragHandle} />
@@ -115,6 +115,7 @@ export function SimSelector(props: SimSelectorProps) {
                   </View>
                 </TouchableOpacity>
               ))}
+              <View style={{ height: 20 }} />
             </ScrollView>
           </View>
         </TouchableOpacity>

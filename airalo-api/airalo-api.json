@@ -3969,7 +3969,7 @@
           }
         ],
         "responses": {
-          "default": {
+          "200": {
             "headers": {
               "Content-Type": {
                 "schema": {
@@ -3996,6 +3996,9 @@
                             "type": "string"
                           },
                           "price": {
+                            "type": "number"
+                          },
+                          "net_price": {
                             "type": "integer"
                           },
                           "amount": {
@@ -4014,13 +4017,16 @@
                             "type": "string"
                           },
                           "short_info": {
-                            "type": "string"
+                            "type": "string",
+                            "nullable": true
                           },
                           "voice": {
-                            "type": "integer"
+                            "type": "integer",
+                            "nullable": true
                           },
                           "text": {
-                            "type": "integer"
+                            "type": "integer",
+                            "nullable": true
                           }
                         }
                       }

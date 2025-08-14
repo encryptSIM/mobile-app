@@ -5,11 +5,15 @@ import { $styles } from './styles';
 
 interface ContinueButtonProps {
   onPress: () => void;
+  text: string
+  disabled?: boolean
   loading?: boolean;
 }
 
 export const ContinueButton: React.FC<ContinueButtonProps> = ({
   onPress,
+  text,
+  disabled,
   loading = false
 }) => {
   return (
@@ -18,12 +22,12 @@ export const ContinueButton: React.FC<ContinueButtonProps> = ({
         mode="contained"
         onPress={onPress}
         loading={loading}
-        disabled={loading}
+        disabled={disabled}
         style={$styles.button}
         labelStyle={$styles.buttonText}
         contentStyle={$styles.buttonContent}
       >
-        Continue to payment
+        {text}
       </Button>
     </View>
   );

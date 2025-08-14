@@ -1,4 +1,9 @@
-import { SELECTED_PACKAGE_QTY_MAP, SELECTED_PACKAGES, SelectedPackageQtyMap } from '@/components/packageSelection/hooks';
+import { $api, Sim } from '@/api/api';
+import {
+  SELECTED_PACKAGE_QTY_MAP,
+  SELECTED_PACKAGES,
+  SelectedPackageQtyMap
+} from '@/components/packageSelection/hooks';
 import { useTransferSol } from '@/components/solana/use-transfer-sol';
 import { useWalletUi } from '@/components/solana/use-wallet-ui';
 import { AppConfig } from '@/constants/app-config';
@@ -6,60 +11,270 @@ import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
 import { useSolanaPrice } from '@/hooks/useSolanaPrice';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { err, ok, Result } from 'neverthrow';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { PriceDetailField } from '../components';
-import { $api, Sim } from '@/api/api';
+
+export const SIMS = { key: 'SIMS', initialState: [] };
+
+type PaymentStage = 'idle' | 'preparing' | 'transferring' | 'completing' | 'success';
+
+export interface PaymentState {
+  stage: PaymentStage;
+  isProcessing: boolean;
+  error: string | null;
+  transactionId: string | null;
+  orderId: string | null;
+}
+
+export interface PaymentError {
+  code: string;
+  message: string;
+  stage: PaymentStage;
+  transactionId?: string;
+}
 
 
-export const SIMS = { key: 'SIMS', initialState: [] }
+const completingState: PaymentState = {
+  stage: 'completing',
+  isProcessing: true,
+  error: null,
+  transactionId: null,
+  orderId: null,
+}
+const preparingState: PaymentState = {
+  stage: 'preparing',
+  isProcessing: true,
+  error: null,
+  transactionId: null,
+  orderId: null,
+}
+
+const errorState: PaymentState = {
+  stage: 'idle',
+  isProcessing: false,
+  error: "Woops",
+  transactionId: null,
+  orderId: null,
+}
+
+const successState: PaymentState = {
+  stage: 'success',
+  isProcessing: false,
+  error: null,
+  transactionId: "123412341234123412341234",
+  orderId: "1234123412341234",
+}
+
+const initialState: PaymentState = {
+  stage: 'idle',
+  isProcessing: false,
+  error: null,
+  transactionId: null,
+  orderId: null,
+}
+
+
 
 export const useCheckout = () => {
   const [selectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key);
-  const [selectedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(SELECTED_PACKAGE_QTY_MAP.key)
-  const [, setSims] = useSharedState<Sim[]>(SIMS.key)
-  const [selectedMethodId, setSelectedMethodId] = useState<string>('solana')
+  const [selectedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(
+    SELECTED_PACKAGE_QTY_MAP.key
+  );
+  const [, setSims] = useSharedState<Sim[]>(SIMS.key);
+  const [selectedMethodId, setSelectedMethodId] = useState<string>('solana');
   const [discountCode, setDiscountCode] = useState('');
+  const [paymentState, setPaymentState] = useState<PaymentState>(initialState);
+
   const local = useLocalSearchParams();
-  const { account } = useWalletUi()
-  const solanaPrice = useSolanaPrice()
+  const { account } = useWalletUi();
+  const solanaPrice = useSolanaPrice();
+  const paymentIdempotencyKey = useRef<string | null>(null);
+  const checkCouponQuery = $api.useQuery('get', '/coupon/{code}', {
+    params: {
+      path: {
+        code: discountCode
+      }
+    },
+  }, {
+    enabled: discountCode !== ""
+  })
+
+  const generateIdempotencyKey = useCallback((): string => {
+    if (!paymentIdempotencyKey.current) {
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2);
+      const accountHash = account?.address?.slice(-8) || 'unknown';
+      paymentIdempotencyKey.current = `payment_${timestamp}_${accountHash}_${random}`;
+    }
+    return paymentIdempotencyKey.current;
+  }, [account?.address]);
+
+  const logPaymentEvent = useCallback((
+    event: string,
+    data?: any,
+    level: 'info' | 'warn' | 'error' = 'info'
+  ) => {
+    const logData = {
+      timestamp: new Date().toISOString(),
+      event,
+      idempotencyKey: paymentIdempotencyKey.current,
+      accountAddress: account?.address,
+      stage: paymentState.stage,
+      ...data,
+    };
+
+    console.log(`[PAYMENT_${level.toUpperCase()}]`, JSON.stringify(logData, null, 2));
+  }, [account?.address, paymentState.stage]);
+
+  const updatePaymentState = useCallback((updates: Partial<PaymentState>) => {
+    setPaymentState(prev => {
+      const newState = { ...prev, ...updates };
+      logPaymentEvent('payment_state_updated', {
+        from: prev,
+        to: newState
+      });
+      return newState;
+    });
+  }, [logPaymentEvent]);
+
+  const createPaymentError = (
+    code: string,
+    message: string,
+    stage: PaymentStage,
+    transactionId?: string
+  ): PaymentError => ({
+    code,
+    message,
+    stage,
+    transactionId,
+  });
+
+  const validatePaymentPreconditions = (): Result<void, PaymentError> => {
+    logPaymentEvent('validating_payment_preconditions');
+
+    if (!account?.address) {
+      return err(createPaymentError(
+        'WALLET_NOT_CONNECTED',
+        'Please connect your wallet to continue',
+        'preparing'
+      ));
+    }
+
+    if (!selectedPackages?.length) {
+      return err(createPaymentError(
+        'NO_PACKAGES_SELECTED',
+        'Please select at least one package',
+        'preparing'
+      ));
+    }
+
+    if (solanaPrice.isPending) {
+      return err(createPaymentError(
+        'PRICE_LOADING',
+        'Please wait for price information to load',
+        'preparing'
+      ));
+    }
+
+    if (!solanaPrice.data || solanaPrice.data <= 0) {
+      return err(createPaymentError(
+        'INVALID_PRICE_DATA',
+        'Unable to get current SOL price. Please try again.',
+        'preparing'
+      ));
+    }
+
+    return ok(undefined);
+  };
+
   const completeOrder = $api.useMutation('post', '/complete-order', {
     onSuccess: (response) => {
-      console.log("successfully completed order", JSON.stringify(response, null, 2))
-      router.replace("/(tabs)")
-      if (response.sims)
-        setSims(prev => [...prev, ...response.sims!])
+      logPaymentEvent('order_completed_successfully', {
+        response,
+        simsCount: response.sims?.length || 0
+      });
+
+      updatePaymentState({
+        stage: 'success',
+        isProcessing: false,
+        error: null
+      });
+
+      if (response.sims) {
+        setSims(prev => [...prev, ...response.sims!]);
+      }
+
+      setTimeout(() => {
+        router.replace("/(tabs)");
+      }, 2000);
+    },
+    onError: (error) => {
+      logPaymentEvent('order_completion_failed', { error }, 'error');
+      updatePaymentState({
+        stage: 'idle',
+        isProcessing: false,
+        error: 'Failed to complete your order. Your payment may have been processed. Please contact support if needed.',
+      });
     }
-  })
+  });
+
   const transferSol = useTransferSol({
     address: account?.publicKey!,
-    onError: () => {
-      console.error("Failed to transfer sol")
+    onError: (error) => {
+      console.error(error)
+      logPaymentEvent('sol_transfer_failed', { error }, 'error');
+      updatePaymentState({
+        stage: 'idle',
+        isProcessing: false,
+        error: 'Payment failed. Please check your wallet and try again.',
+      });
     },
-    onSuccess: () => {
-      console.log("Succesfully transfered sol")
-      const id = account?.address!
-      if (!id) {
-        console.error("No address found", JSON.stringify(account, null, 2))
+    onSuccess: (signature) => {
+      console.log(signature)
+      logPaymentEvent('sol_transfer_successful', { transactionId: signature });
+
+      updatePaymentState({
+        stage: 'completing',
+        transactionId: signature || null
+      });
+
+      const accountAddress = account?.address;
+      if (!accountAddress) {
+        logPaymentEvent('missing_account_address', { account }, 'error');
+        updatePaymentState({
+          stage: 'idle',
+          isProcessing: false,
+          error: 'Account information missing. Please reconnect your wallet.',
+        });
+        return;
       }
-      completeOrder.mutate({
-        body: {
-          id,
-          orders: selectedPackages.map(packageId => ({
-            package_id: packageId,
-            package_title: selectedPackageQtyMap[packageId].pkg.title!,
-            quantity: selectedPackageQtyMap[packageId].qty,
-            expiration_ms: getEndOfFutureDayTimestamp(selectedPackageQtyMap[packageId].pkg.day!),
-            created_at_ms: Date.now(),
-            country_code: local.countryCode ? String(local.countryCode) : undefined,
-            region: local.region ? String(local.region) : undefined,
-          }))
-        }
-      })
+
+      const orderData = {
+        id: accountAddress,
+        idempotency_key: generateIdempotencyKey(),
+        transaction_id: signature,
+        orders: selectedPackages.map(packageId => ({
+          package_id: packageId,
+          package_title: selectedPackageQtyMap[packageId].pkg.title!,
+          quantity: selectedPackageQtyMap[packageId].qty,
+          expiration_ms: getEndOfFutureDayTimestamp(
+            selectedPackageQtyMap[packageId].pkg.day!
+          ),
+          created_at_ms: Date.now(),
+          country_code: local.countryCode ? String(local.countryCode) : undefined,
+          region: local.region ? String(local.region) : undefined,
+        }))
+      };
+
+      logPaymentEvent('submitting_order', { orderData });
+      completeOrder.mutate({ body: orderData });
     }
-  })
+  });
+
   const plans = useMemo(() => {
-    if (!selectedPackages) return []
-    if (!selectedPackageQtyMap) return []
+    if (!selectedPackages || !selectedPackageQtyMap) return [];
+
     return selectedPackages.map((packageName) => {
       const pkgQtyMap = selectedPackageQtyMap[packageName];
 
@@ -93,6 +308,7 @@ export const useCheckout = () => {
       return {
         benefits: planBenefits,
         country: String(local.title),
+        iccid: local.iccid ? String(local.iccid) : undefined,
         countryCode: local.countryCode ? String(local.countryCode) : undefined,
         imageUri: regions.find((r) => r.slug === local.region)?.image,
         pkg: pkgQtyMap?.pkg,
@@ -103,79 +319,211 @@ export const useCheckout = () => {
 
   const priceData = useMemo(() => {
     const feePercentage = 0.4;
-    let totalPriceUSD = 0;
-    const fields: PriceDetailField[] = [];
+    let subtotalUSD = 0;
 
+    const lineItems: PriceDetailField[] = [];
     selectedPackages.forEach((pkgId) => {
       const { pkg, qty } = selectedPackageQtyMap[pkgId];
       const netPriceUSD = pkg?.prices?.net_price?.USD || 0;
       const packageTotal = netPriceUSD * qty;
 
-      totalPriceUSD += packageTotal;
+      subtotalUSD += packageTotal;
 
-      fields.push({
+      lineItems.push({
         label: qty > 1 ? `${pkg?.title} x${qty}` : pkg?.title!,
-        value: totalPriceUSD,
-        isSubtotal: false,
-        isTotal: false,
-        isDividerAfter: false,
+        value: packageTotal,
+        type: 'line-item',
       });
     });
 
-    const serviceFeeUSD = totalPriceUSD * feePercentage;
-    const grandTotalUSD = totalPriceUSD + serviceFeeUSD;
+    const adjustments: PriceDetailField[] = [];
 
-    fields.push(
-      {
-        label: "Service fee",
-        value: serviceFeeUSD,
-        isSubtotal: false,
-        isTotal: false,
-        isDividerAfter: true,
-      },
-      {
-        label: "Total",
-        currency: "(USD)",
-        value: grandTotalUSD,
-        isSubtotal: false,
-        isTotal: true,
-        isDividerAfter: false,
-      }
-    );
-
-    const priceInSol = (1 / solanaPrice.data) * grandTotalUSD;
-
-    fields.push({
-      label: "Total",
-      currency: "(SOL)",
-      value: priceInSol,
-      isSubtotal: false,
-      formatter: () => priceInSol.toFixed(6),
-      isLoadingValue: solanaPrice.isPending,
-      isTotal: true,
-      isDividerAfter: false,
+    const serviceFeeUSD = subtotalUSD * feePercentage;
+    adjustments.push({
+      label: 'Service fee',
+      value: serviceFeeUSD,
+      type: 'fee',
     });
 
+    const discount = checkCouponQuery?.data?.data
+      ? -1 * ((subtotalUSD + serviceFeeUSD) * (checkCouponQuery.data.data.discount / 100))
+      : 0;
+
+    if (checkCouponQuery.data?.data) {
+      adjustments.push({
+        label: `Coupon: ${checkCouponQuery.data.data.code}`,
+        value: discount,
+        type: 'discount',
+      });
+    }
+
+    const grandTotalUSD = subtotalUSD + serviceFeeUSD + discount;
+    const priceInSol = solanaPrice.data
+      ? (1 / solanaPrice.data) * grandTotalUSD
+      : 0;
+
+    const totals: PriceDetailField[] = [
+      {
+        label: 'Total',
+        value: grandTotalUSD,
+        currency: 'USD',
+        type: 'total-primary',
+      },
+      {
+        label: 'Total',
+        value: priceInSol,
+        currency: 'SOL',
+        type: 'total-secondary',
+        formatter: () => priceInSol.toFixed(6),
+        isLoadingValue: solanaPrice.isPending,
+      },
+    ];
+
     return {
+      lineItems,
+      adjustments,
+      totals,
+      subtotal: subtotalUSD,
       priceInSol,
-      fields,
     };
-  }, [solanaPrice.data, selectedPackages, selectedPackageQtyMap]);
+  }, [
+    solanaPrice.data,
+    solanaPrice.isPending,
+    selectedPackages,
+    selectedPackageQtyMap,
+    checkCouponQuery.data
+  ]);
 
   const solAmount = useMemo(() => {
-    return parseFloat(priceData.priceInSol.toFixed(6))
-  }, [priceData])
-
+    return parseFloat(priceData.priceInSol.toFixed(6));
+  }, [priceData]);
 
   const handleDiscountApply = useCallback((code: string) => {
-    setDiscountCode(code);
-    console.log('Applying discount code:', code);
-  }, []);
+    setDiscountCode(code.trim());
+    logPaymentEvent('discount_code_applied', { code });
+  }, [logPaymentEvent]);
 
-  const handleContinuePayment = useCallback(() => {
-    transferSol.mutate({ amount: solAmount, destination: AppConfig.masterSolAccount })
-  }, [solAmount, transferSol, AppConfig.masterSolAccount]);
+  const handleDiscountClear = useCallback((code: string) => {
+    setDiscountCode('');
+    logPaymentEvent('discount_code_cleared', { code });
+  }, [logPaymentEvent]);
 
+  const clearError = useCallback(() => {
+    logPaymentEvent('error_cleared');
+    updatePaymentState({
+      error: null,
+      stage: 'idle',
+      isProcessing: false
+    });
+    paymentIdempotencyKey.current = null;
+  }, [updatePaymentState, logPaymentEvent]);
+
+  const handleContinuePayment = useCallback(async () => {
+    if (paymentState.isProcessing) {
+      logPaymentEvent('payment_already_in_progress', {}, 'warn');
+      return;
+    }
+
+    logPaymentEvent('payment_initiated', {
+      solAmount,
+      packages: selectedPackages,
+      destination: AppConfig.masterSolAccount,
+    });
+
+    updatePaymentState({
+      stage: 'preparing',
+      isProcessing: true,
+      error: null,
+      transactionId: null,
+      orderId: null,
+    });
+
+    const validationResult = validatePaymentPreconditions();
+    if (validationResult.isErr()) {
+      const error = validationResult.error;
+      logPaymentEvent('payment_validation_failed', { error }, 'error');
+      updatePaymentState({
+        stage: 'idle',
+        isProcessing: false,
+        error: error.message,
+      });
+      return;
+    }
+
+    try {
+      updatePaymentState({ stage: 'transferring' });
+
+      if (solAmount > 0) {
+
+        logPaymentEvent('initiating_sol_transfer', {
+          amount: solAmount,
+          destination: AppConfig.masterSolAccount,
+          idempotencyKey: generateIdempotencyKey(),
+        });
+        transferSol.mutate({
+          amount: solAmount,
+          destination: AppConfig.masterSolAccount
+        });
+      } else {
+        logPaymentEvent('skipping_sol_transfer', {
+          amount: solAmount,
+          destination: AppConfig.masterSolAccount,
+          idempotencyKey: generateIdempotencyKey(),
+        });
+
+        updatePaymentState({
+          stage: 'completing',
+          transactionId: null
+        });
+
+        const accountAddress = account?.address;
+        if (!accountAddress) {
+          logPaymentEvent('missing_account_address', { account }, 'error');
+          updatePaymentState({
+            stage: 'idle',
+            isProcessing: false,
+            error: 'Account information missing. Please reconnect your wallet.',
+          });
+          return;
+        }
+
+        const orderData = {
+          id: accountAddress,
+          idempotency_key: generateIdempotencyKey(),
+          orders: selectedPackages.map(packageId => ({
+            package_id: packageId,
+            package_title: selectedPackageQtyMap[packageId].pkg.title!,
+            quantity: selectedPackageQtyMap[packageId].qty,
+            expiration_ms: getEndOfFutureDayTimestamp(
+              selectedPackageQtyMap[packageId].pkg.day!
+            ),
+            created_at_ms: Date.now(),
+            country_code: local.countryCode ? String(local.countryCode) : undefined,
+            region: local.region ? String(local.region) : undefined,
+          }))
+        };
+
+        logPaymentEvent('submitting_order', { orderData });
+        completeOrder.mutate({ body: orderData });
+      }
+    } catch (error) {
+      logPaymentEvent('payment_initiation_failed', { error }, 'error');
+      updatePaymentState({
+        stage: 'idle',
+        isProcessing: false,
+        error: 'Failed to initiate payment. Please try again.',
+      });
+    }
+  }, [
+    paymentState.isProcessing,
+    solAmount,
+    selectedPackages,
+    transferSol,
+    updatePaymentState,
+    validatePaymentPreconditions,
+    generateIdempotencyKey,
+    logPaymentEvent,
+  ]);
 
   return {
     priceData,
@@ -186,27 +534,41 @@ export const useCheckout = () => {
     local,
     plans,
     solanaPrice,
-    transferSol,
-    completeOrder,
+    paymentState,
+    checkCouponQuery,
+    handleDiscountClear,
+    getContinueButtonText: () => getButtonText(paymentState),
     setSelectedMethodId,
     handleDiscountApply,
     handleContinuePayment,
+    clearError,
   };
 };
+
+function getButtonText(state: PaymentState): string {
+  if (state.error) {
+    return "Try Again"
+  }
+  const statusMessages: Record<PaymentStage, string> = {
+    'idle': 'Continue to payment',
+    'preparing': 'Preparing payment...',
+    'transferring': 'Processing SOL transfer...',
+    'completing': 'Finalizing your order...',
+    'success': 'Payment successful! Redirecting...',
+  };
+  return statusMessages[state.stage]
+}
 
 function getEndOfFutureDayTimestamp(days: number): number {
   if (!Number.isInteger(days) || days < 0) {
     throw new Error('Input must be a non-negative integer');
   }
 
-  // Get current date and set to midnight
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
-  // Add the requested number of days plus one more day
   const futureDate = new Date(now);
   futureDate.setDate(now.getDate() + days + 1);
 
-  // Subtract 1 millisecond to get 23:59:59.999 of the target day
   return futureDate.getTime() - 1;
 }

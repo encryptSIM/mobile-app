@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { FlatList, ListRenderItem, View } from "react-native";
 import { Chip, Text } from "react-native-paper";
 import { $styles } from "./styles";
+import { brandGreen } from "@/components/app-providers";
 
 interface PackageFiltersProps {
   selectedFilters: number[];
@@ -21,7 +22,7 @@ export const PackageFilters = ({
       <Chip
         key={item}
         selected={selectedFilters?.includes(item)}
-        selectedColor="#32D583"
+        selectedColor={brandGreen}
         showSelectedCheck={false}
         style={
           selectedFilters?.includes(item) ? $styles.chipActive : $styles.chip

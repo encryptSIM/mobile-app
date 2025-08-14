@@ -1,9 +1,9 @@
+import { Cluster } from '@/components/cluster/cluster'
 import { useConnection } from '@/components/solana/solana-provider'
+import { ellipsify } from '@/utils/ellipsify'
 import { useQuery } from '@tanstack/react-query'
 import React from 'react'
-import { ellipsify } from '@/utils/ellipsify'
-import { Cluster } from '@/components/cluster/cluster'
-import { Text } from '../Themed'
+import { Text } from 'react-native'
 
 export function ClusterUiGenesisHash({ selectedCluster }: { selectedCluster: Cluster }) {
   const connection = useConnection()

@@ -11,6 +11,13 @@ import {
 } from "react-native";
 import { Appbar, Text } from "react-native-paper";
 import { $styles } from "./styles";
+import { background, brandGreen } from "../app-providers";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { loadEnvFile } from "process";
+function maskIccid(iccid: string) {
+  if (!iccid) return "";
+  return `••••••••••••••${iccid.slice(-4)}`;
+}
 
 const MAX_PACKAGES = 1
 export function SelectPackageScreen() {
@@ -33,8 +40,16 @@ export function SelectPackageScreen() {
     setSeletedPackageQtyMap,
   } = usePackageData({
     countryCode: local.countryCode ? local.countryCode.toString().toUpperCase() : undefined,
-    region: String(local.region)
+    region: local.region ? String(local.region) : undefined,
+    iccid: local.iccid ? String(local.iccid) as any : undefined
   });
+  console.log(JSON.stringify({
+    countryCode: local.countryCode ? local.countryCode.toString().toUpperCase() : undefined,
+    region: local.region ? String(local.region) : undefined,
+    iccid: local.iccid ? String(local.iccid) as any : undefined
+  }, null, 2))
+
+  const simLabel = `SIM ending in ${String(local.iccid).slice(-4)}`;
 
   const renderPackageItem: ListRenderItem<PackageItem> = useCallback(
     ({ item }) => (
@@ -67,7 +82,7 @@ export function SelectPackageScreen() {
 
   if (isError) {
     return (
-      <SafeAreaView className="h-full w-full px-5 bg-[#111926]">
+      <SafeAreaView className={`h-full w-full px-5 bg-[${background}]`}>
         <PackageErrorState onRetry={onRefresh} />
       </SafeAreaView>
     );
@@ -77,7 +92,17 @@ export function SelectPackageScreen() {
     <SafeAreaView style={$styles.root}>
       <Appbar.Header style={$styles.header}>
         <Appbar.BackAction onPress={router.back} />
-        <Appbar.Content title={local.label} />
+        {!local.iccid && <Appbar.Content title={local.label} />}
+        {
+          local.iccid && (
+            <View>
+              <Text variant="titleLarge">
+                {`Topups`}
+              </Text>
+              <Text style={$styles.subtitle}>{`for ${simLabel}`}</Text>
+            </View>
+          )
+        }
       </Appbar.Header>
       <View style={$styles.listHeader}>
         <PackageFilters
@@ -102,8 +127,8 @@ export function SelectPackageScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#32D583"]}
-              tintColor="#32D583"
+              colors={[brandGreen]}
+              tintColor={brandGreen}
             />
           }
           showsVerticalScrollIndicator={false}
@@ -144,6 +169,7 @@ export function SelectPackageScreen() {
             pathname: "/checkoutStack/checkout",
             params: {
               title: local.label,
+              iccid: local.iccid,
               countryCode: local.countryCode,
               region: local.region,
             },

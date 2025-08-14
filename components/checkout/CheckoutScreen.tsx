@@ -1,11 +1,18 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Appbar } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ContinueButton, DiscountCode, PaymentMethod, PlanCard, PriceDetail } from './components';
+import {
+  ContinueButton,
+  DiscountCode,
+  PaymentMethod,
+  PlanCard,
+  PriceDetail
+} from './components';
+import { ErrorCard } from './components/errorCard';
 import { useCheckout } from './hooks/useCheckout';
 import { $styles } from './styles';
+import { useThrottledCallback } from '@/hooks/use-throttled-callback';
 
 export function CheckoutScreen() {
   const {
@@ -14,38 +21,65 @@ export function CheckoutScreen() {
     selectedMethodId,
     local,
     plans,
-    transferSol,
-    completeOrder,
+    paymentState,
+    checkCouponQuery,
+    getContinueButtonText,
+    handleDiscountClear,
     setSelectedMethodId,
     handleDiscountApply,
     handleContinuePayment,
+    clearError,
   } = useCheckout();
+  const throttledContinue = useThrottledCallback(handleContinuePayment, 3000)
 
   return (
-    <SafeAreaView style={$styles.container}>
+    <View style={$styles.container}>
       <Appbar.Header style={$styles.header}>
         <Appbar.BackAction onPress={router.back} />
         <Appbar.Content title={local.title} />
       </Appbar.Header>
 
-      <ScrollView style={$styles.content} showsVerticalScrollIndicator={false}>
-        {
-          plans.map((plan, index) => (
-            <PlanCard key={plan?.pkg?.id ?? index} {...plan} />
-          ))
-        }
-        <PriceDetail fields={priceData.fields} />
+      <ScrollView fadingEdgeLength={200} style={$styles.content}>
+        {plans.map((plan, index) => (
+          <PlanCard key={plan?.pkg?.id ?? index} {...plan} />
+        ))}
+
+        <PriceDetail
+          lineItems={priceData.lineItems}
+          adjustments={priceData.adjustments}
+          totals={priceData.totals}
+          subtotal={priceData.subtotal}
+        />
+
         <PaymentMethod
           selectedMethodId={selectedMethodId}
           onMethodChange={(methodId) => setSelectedMethodId(methodId)}
+          disabled={paymentState.isProcessing}
         />
+
         <DiscountCode
+          onClear={handleDiscountClear}
+          applied={!!checkCouponQuery.data?.data}
           value={discountCode}
+          invalid={!!checkCouponQuery.error}
+          loading={checkCouponQuery.isFetching}
           onApply={handleDiscountApply}
+          disabled={paymentState.isProcessing}
         />
-        <ContinueButton loading={transferSol.isPending || completeOrder.isPending} onPress={handleContinuePayment} />
+
+        <ErrorCard paymentState={paymentState} clearError={clearError} />
+
+        {
+          paymentState.error ?? (
+            <ContinueButton
+              text={getContinueButtonText()}
+              loading={paymentState.stage !== 'idle'}
+              onPress={throttledContinue}
+              disabled={paymentState.stage !== 'idle'}
+            />
+          )
+        }
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
-

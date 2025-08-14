@@ -3,6 +3,14 @@ import Svg, { Circle } from "react-native-svg";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { $styles } from "./styles";
+import { useSharedState } from "@/hooks/use-provider";
+import { $api, Sim } from "@/api/api";
+import { SIMS } from "@/components/checkout/hooks/useCheckout";
+import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
+import { ActivityIndicator } from "react-native-paper";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { brandGreen } from "@/components/app-providers";
+import { useThrottledCallback } from "@/hooks/use-throttled-callback";
 
 const exampleStats: UsageStat[] = [
   {
@@ -48,6 +56,7 @@ export interface UsageStat {
 
 export interface SimUsagePanelProps {
   stats?: UsageStat[];
+  topup: () => void
 }
 
 interface CircularProgressProps {
@@ -65,7 +74,6 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
-        {/* Background Circle */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -74,7 +82,6 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Progress Circle */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -85,22 +92,46 @@ function CircularProgress({ percentage, size, color }: CircularProgressProps) {
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`} // Rotate the circle to start at the top
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
     </View>
   );
 }
 
-export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
+export function SimUsagePanel({ stats = exampleStats, topup }: SimUsagePanelProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedStat = stats?.[selectedIndex] ?? exampleStats[0]; // Add null check here
+  const selectedStat = stats?.[selectedIndex] ?? exampleStats[0];
   const remaining = (selectedStat.total ?? 1) - (selectedStat.used ?? 1);
   const percentage = (remaining / (selectedStat.total ?? 1)) * 100;
+  const [, setSims] = useSharedState<Sim[]>(SIMS.key)
+  const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key)
+  const { account } = useWalletUi();
+  const throttledTopup = useThrottledCallback(topup, 1000)
+  const setSimInstalledMut = $api.useMutation('post', '/mark-sim-installed', {
+    onSuccess: () => {
+      setSims(prev => prev.map(sim => {
+        if (selectedSim && sim.iccid === selectedSim.iccid) {
+          return ({
+            ...sim,
+            installed: false,
+          })
+        }
+        return sim
+      }))
+      setSelectedSim(prev => ({
+        ...prev!,
+        installed: false
+      }))
 
-  // Determine color based on remaining percentage
+    },
+    onError: (error) => {
+      console.error(error)
+    }
+  })
+
   const progressColor =
-    percentage > 50 ? "#32D583" : percentage > 20 ? "#FFC107" : "#F44336";
+    percentage > 50 ? brandGreen : percentage > 20 ? "#FFC107" : "#F44336";
 
   return (
     <View style={$styles.root}>
@@ -112,7 +143,7 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
               $styles.iconContainer,
               selectedIndex === index && $styles.selectedIconContainer,
             ]}
-            onPress={() => setSelectedIndex(index)}
+            onPressIn={() => setSelectedIndex(index)}
             accessibilityLabel={`Select ${stat.label}`}
           >
             <MaterialIcons
@@ -132,7 +163,6 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         ))}
       </View>
 
-      {/* Circular Progress */}
       <View style={$styles.progressContainer}>
         <View style={$styles.circularProgressWrapper}>
           <CircularProgress
@@ -153,12 +183,32 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         </View>
       </View>
 
-      {/* Top up button */}
       <TouchableOpacity
         style={$styles.topUpButton}
+        onPress={throttledTopup}
         accessibilityLabel="Top up your plan"
       >
         <Text style={$styles.topUpButtonText}>Top up the plan</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={$styles.textButton}
+        disabled={setSimInstalledMut.isPending}
+        onPressIn={
+          () => setSimInstalledMut.mutate({
+            body: {
+              installed: false,
+              iccid: selectedSim!.iccid,
+              id: account?.address
+            }
+          })
+        }
+      >
+        {
+          !setSimInstalledMut.isPending
+            ? <Text style={$styles.installedText}>I haven't installed this SIM yet</Text>
+            : <ActivityIndicator />
+        }
       </TouchableOpacity>
     </View>
   );

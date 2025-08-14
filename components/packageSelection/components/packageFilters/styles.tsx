@@ -1,3 +1,4 @@
+import { brandGreen } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
@@ -6,7 +7,7 @@ export const $styles = StyleSheet.create({
     borderWidth: 2,
   },
   chipActive: {
-    backgroundColor: "#32D583",
+    backgroundColor: brandGreen,
     borderColor: "white",
     borderWidth: 2,
   },

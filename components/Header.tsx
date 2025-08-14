@@ -1,8 +1,7 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet, View } from "react-native";
+import { TouchableOpacity, StyleSheet, View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Text } from "./Themed";
 import { useTheme } from "@react-navigation/native";
 
 interface HeaderProps {

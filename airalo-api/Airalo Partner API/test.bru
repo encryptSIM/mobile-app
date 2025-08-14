@@ -1,0 +1,19 @@
+meta {
+  name: test
+  type: http
+  seq: 27
+}
+
+get {
+  url: https://randomuser.me/api/?results=10
+  body: none
+  auth: inherit
+}
+
+params:query {
+  results: 10
+}
+
+settings {
+  encodeUrl: true
+}

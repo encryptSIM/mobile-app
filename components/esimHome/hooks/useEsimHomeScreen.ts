@@ -31,7 +31,13 @@ export function useEsimHomeScreen() {
   const [progress, setProgress] = useState<number>(0.0);
   const [showContent, setShowContent] = useSharedState('SHOW_CONTENT')
   const intervalRef = useRef<number | null>(null);
+  console.log(JSON.stringify(selectedSim, null, 2))
 
+  useEffect(() => {
+    const simsSim = simsQuery.data?.data?.find(t => t.iccid === selectedSim?.iccid)
+    if (selectedSim?.installed === simsSim?.installed) return
+    simsQuery.refetch()
+  }, [selectedSim])
 
   const simDetails = useMemo(() => {
     if (!expiredSims || expiredSims.length === 0) {
@@ -138,16 +144,24 @@ export function useEsimHomeScreen() {
   )
 
   useEffect(() => {
-    const data = simsQuery?.data?.data
+    const data = simsQuery?.data?.data;
     if (data && data.length > 0) {
-      setSims(prev => [...prev.filter(t => !data.find(s => t.iccid === s.iccid)), ...data])
-      setSelectedSim(sims[0])
+      setSims((prev) => [
+        ...prev.filter((t) => !data.find((s) => t.iccid === s.iccid)),
+        ...data,
+      ]);
+      setSelectedSim(sims[0]);
     }
 
-    if (simsQuery.isPending) {
+    if (!simsQuery.isFetched) {
       setShowContent(false);
       setProgress(0.0);
-      if (intervalRef.current) clearInterval(intervalRef.current);
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
       intervalRef.current = window.setInterval(() => {
         setProgress((prev) => {
           if (prev < 0.9) return +(prev + 0.01).toFixed(2);
@@ -155,16 +169,20 @@ export function useEsimHomeScreen() {
         });
       }, 30);
     } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
       const finishInterval = window.setInterval(() => {
         setProgress((prev) => {
           if (prev < 1.0) return +(prev + 0.05).toFixed(2);
+          clearInterval(finishInterval);
           return 1.0;
         });
       }, 16);
 
       const timeout = window.setTimeout(() => {
-        clearInterval(finishInterval);
         setShowContent(true);
         setProgress(0);
       }, 400);
@@ -174,10 +192,14 @@ export function useEsimHomeScreen() {
         clearTimeout(timeout);
       };
     }
+
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [simsQuery.isPending]);
+  }, [simsQuery.isFetched, simsQuery.data]);
 
   useEffect(() => {
     if (!selectedSim && sims.length > 0) {

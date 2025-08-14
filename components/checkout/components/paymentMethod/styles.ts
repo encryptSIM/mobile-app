@@ -1,3 +1,4 @@
+import { background, brandGreen, card } from '@/components/app-providers';
 import { getDimensions } from '@/utils/dimensions';
 import { StyleSheet } from 'react-native';
 
@@ -5,7 +6,7 @@ const { height } = getDimensions()
 
 export const $styles = StyleSheet.create({
   card: {
-    backgroundColor: '#202939',
+    backgroundColor: card,
     marginBottom: 16,
     borderRadius: 30,
   },
@@ -43,14 +44,14 @@ export const $styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#111926',
+    backgroundColor: background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: height * 0.8,
     paddingTop: 20,
     borderWidth: 2,
     borderBottomWidth: 0,
-    borderColor: '#32D583',
+    borderColor: brandGreen,
     borderLeftWidth: 0.01,
     borderRightWidth: 0.01,
   },

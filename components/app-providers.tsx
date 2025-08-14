@@ -10,32 +10,50 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Provider } from '@/hooks/use-provider'
 
 const queryClient = new QueryClient()
+
+export const brandGreen = "#32D583"
+export const card = "#202939"
+export const background = "#111926"
+
 const theme: ThemeProp = {
   roundness: 30,
   colors: {
-    primary: '#32D583',
-    onPrimary: 'white',
-    primaryContainer: 'white',
-    onPrimaryContainer: '#202939',
+    primary: brandGreen,
+    onPrimary: '#000000', // Black text on green buttons
+    primaryContainer: card,
+    onPrimaryContainer: brandGreen,
+    inversePrimary: '#1A5D3A', // Darker green for inverse contexts
 
-    secondary: 'white',
-    onSecondary: 'white',
-    secondaryContainer: '#202939',
-    onSecondaryContainer: '#878787',
+    secondary: '#878787', // Gray text color visible in your UI
+    onSecondary: '#000000',
+    secondaryContainer: card,
+    onSecondaryContainer: '#FFFFFF',
 
-    onTertiary: 'red',
-    tertiary: 'red',
-    tertiaryContainer: 'red',
-    onTertiaryContainer: 'red',
+    tertiary: '#4A90E2', // Blue accent for variety
+    onTertiary: '#FFFFFF',
+    tertiaryContainer: '#1E3A5F',
+    onTertiaryContainer: '#B3D4FF',
 
-    surface: 'white',
-    onSurface: 'white',
-    surfaceVariant: 'red',
+    surface: card, // Card backgrounds
+    inverseSurface: '#FFFFFF',
+    onSurface: '#FFFFFF', // White text on dark surfaces
+    onSurfaceDisabled: 'white',
+    inverseOnSurface: '#000000',
 
-    background: '#202939',
-    onBackground: '#202939',
+    surfaceVariant: '#2A3441', // Slightly lighter than card for variants
+    onSurfaceVariant: '#C4C7C5',
 
-    outline: '#202939',
+    outlineVariant: '#3A4450', // Subtle borders
+
+    background: background, // Main app background
+    onBackground: '#FFFFFF', // White text on dark background
+
+    outline: '#4A5568', // Border colors
+
+    error: '#FF5252',
+    onError: '#FFFFFF',
+    onErrorContainer: '#FFEBEE',
+    backdrop: 'rgba(0, 0, 0, 0.5)', // Modal backdrop
   }
 }
 

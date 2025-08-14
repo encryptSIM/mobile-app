@@ -1,4 +1,4 @@
-import { Package } from "@/airalo-api/api";
+import { $api, Package } from "@/airalo-api/api";
 import { usePackageDetails } from "@/airalo-api/queries/packages";
 import { useSharedState } from "@/hooks/use-provider";
 import { useCallback, useMemo, useState } from "react";
@@ -16,47 +16,67 @@ export type SelectedPackageQtyMap = Record<string, {
   pkg: Package
 }>
 
-export const SELECTED_PACKAGES = { key: 'SELECTED_PACKAGES_KEY', initialState: [] }
-export const SELECTED_PACKAGE_QTY_MAP = { key: 'SELECTED_PACKAGE_QTY_MAP_KEY', initialState: {} }
+export const SELECTED_PACKAGES = {
+  key: 'SELECTED_PACKAGES_KEY',
+  initialState: []
+};
 
-export const usePackageData = ({ countryCode, region }: { countryCode?: string, region?: string }) => {
+export const SELECTED_PACKAGE_QTY_MAP = {
+  key: 'SELECTED_PACKAGE_QTY_MAP_KEY',
+  initialState: {}
+};
+
+export const usePackageData = ({
+  countryCode,
+  region,
+  iccid,
+}: {
+  countryCode?: string,
+  region?: string,
+  iccid?: string
+}) => {
   const [filter, setFilter] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedPackages, setSelectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key, SELECTED_PACKAGES.initialState);
-  const [selectedPackageQtyMap, setSelectedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(SELECTED_PACKAGE_QTY_MAP.key, SELECTED_PACKAGE_QTY_MAP.initialState)
-  const packageDetails = usePackageDetails({ countryCode, region });
+  const [selectedPackages, setSelectedPackages] = useSharedState<string[]>(
+    SELECTED_PACKAGES.key,
+    SELECTED_PACKAGES.initialState
+  );
+  const [selectedPackageQtyMap, setSelectedPackageQtyMap] = useSharedState<SelectedPackageQtyMap>(
+    SELECTED_PACKAGE_QTY_MAP.key,
+    SELECTED_PACKAGE_QTY_MAP.initialState
+  );
+
+  console.log({ countryCode, region, iccid })
+  const packageDetails = usePackageDetails({ countryCode, region, iccid });
 
   const filters = useMemo(() => {
-    if (!packageDetails) return []
-    const values: number[] = []
+    if (!packageDetails.packageDetails) return [];
+    const values: number[] = [];
+
     for (let i = 0; i < packageDetails.packageDetails.length; i++) {
-      const day = packageDetails.packageDetails[i].localPackage?.day
-      if (!day) continue
-      if (values.includes(day)) continue
-      values.push(day)
+      const day = packageDetails.packageDetails[i].localPackage?.day;
+      if (!day) continue;
+      if (values.includes(day)) continue;
+      values.push(day);
     }
-    return values.sort((a, b) => {
-      if (a >= b) return 0
-      return 1
-    })
-  }, [packageDetails.data])
+
+    return values.sort((a, b) => a - b); // Fixed sorting logic
+  }, [packageDetails.packageDetails]);
 
   const filteredPackages = useMemo(() => {
     if (!packageDetails.packageDetails) {
-      console.warn('no package details found')
+      console.warn('no package details found');
       return [];
     }
 
     return packageDetails.packageDetails
-      .map((packageDetails) => ({
-        id: packageDetails.localPackage?.id || Math.random().toString(),
-        localPackage: packageDetails.localPackage,
-        packageDetails: packageDetails.packageDetails,
+      .map((packageDetail) => ({
+        id: packageDetail.localPackage?.id || Math.random().toString(),
+        localPackage: packageDetail.localPackage,
+        packageDetails: packageDetail.packageDetails,
         price: parseFloat(
           String(
-            packageDetails.localPackage?.prices?.recommended_retail_price?.AUD?.toFixed(
-              2
-            )
+            packageDetail.localPackage?.prices?.net_price?.USD?.toFixed(2)
           )
         ),
       }))
@@ -70,13 +90,15 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
+      // Clear cache and refetch
+      await packageDetails.invalidateCache?.();
       await packageDetails.refetch?.();
     } catch (error) {
       console.error("Error refreshing:", error);
     } finally {
       setRefreshing(false);
     }
-  }, [packageDetails.refetch]);
+  }, [packageDetails.invalidateCache, packageDetails.refetch]);
 
   const handlePackagePress = useCallback(
     (packageId: string) => {
@@ -88,22 +110,25 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
           });
           return prev.filter((id) => id !== packageId);
         } else {
-          const packages = packageDetails.packageDetails.flatMap(
+          const packages = packageDetails.packageDetails?.flatMap(
             (t) => t.localPackage
-          );
+          ) || [];
           const pkg = packages.find((t) => t?.id === packageId);
-          setSelectedPackageQtyMap((qtyPrev) => ({
-            ...qtyPrev,
-            [packageId]: {
-              pkg: pkg!,
-              qty: qtyPrev[packageId] ? qtyPrev[packageId].qty + 1 : 1,
-            },
-          }));
+
+          if (pkg) {
+            setSelectedPackageQtyMap((qtyPrev) => ({
+              ...qtyPrev,
+              [packageId]: {
+                pkg,
+                qty: qtyPrev[packageId] ? qtyPrev[packageId].qty + 1 : 1,
+              },
+            }));
+          }
           return [...prev, packageId];
         }
       });
     },
-    [packageDetails.packageDetails]
+    [packageDetails.packageDetails, setSelectedPackages, setSelectedPackageQtyMap]
   );
 
   const handleFilterPress = useCallback((filterValue: number) => {
@@ -126,6 +151,7 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
     refreshing,
     isLoading: packageDetails.isLoading,
     isError: packageDetails.isError,
+    error: packageDetails.error,
     handlePackagePress,
     handleFilterPress,
     clearFilters,
@@ -134,5 +160,9 @@ export const usePackageData = ({ countryCode, region }: { countryCode?: string, 
     setSeletedPackageQtyMap: setSelectedPackageQtyMap,
     filters,
     packageDetails,
+    // Additional cache utilities
+    invalidateCache: packageDetails.invalidateCache,
+    preloadCache: packageDetails.preloadCache,
+    cacheKey: packageDetails.cacheKey,
   };
 };

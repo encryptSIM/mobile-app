@@ -8,6 +8,7 @@ export interface PlanCardProps {
   qty: number
   countryCode?: string
   imageUri?: string
+  iccid?: string
   country: string;
   benefits: Array<{
     icon: string;
@@ -21,21 +22,31 @@ export const PlanCard: React.FC<PlanCardProps> = (props) => {
       <Card.Content style={$styles.content}>
         <View style={$styles.header}>
           <View style={$styles.countryInfo}>
-            {props.countryCode ? (
-              <CountryFlag
-                style={$styles.flagImage}
-                isoCode={props.countryCode}
-                size={40}
-              />
-            ) : (
-              <Image
-                source={{ uri: props.imageUri }}
-                style={$styles.flagImage}
-              />
-            )}
+            {
+              props.countryCode ? (
+                <CountryFlag
+                  style={$styles.flagImage}
+                  isoCode={props.countryCode}
+                  size={40}
+                />
+              ) : (
+                <Image
+                  source={{ uri: props.imageUri }}
+                  style={$styles.flagImage}
+                />
+              )
+            }
             <View>
-              <Text style={$styles.countryName}>{props.country}</Text>
-              <Text style={$styles.esimLabel}>eSIM</Text>
+              {
+                props.iccid
+                  ? <Text style={$styles.countryName}>Topup</Text>
+                  : <Text style={$styles.countryName}>{props.country}</Text>
+              }
+              {
+                props.iccid
+                  ? <Text style={$styles.esimLabel}>{`For SIM ending in ${props.iccid.slice(-4)}`}</Text>
+                  : <Text style={$styles.esimLabel}>eSIM</Text>
+              }
             </View>
           </View>
           <Image style={$styles.simCard} source={require('@/assets/sim.png')} />

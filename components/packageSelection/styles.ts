@@ -5,10 +5,18 @@ export const $styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  subtitle: {
+    color: '#999',
+    fontSize: 14,
+  },
   header: {
     width: '100%',
     backgroundColor: 'transparent',
     elevation: 0,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   text: {
     marginBottom: 16
