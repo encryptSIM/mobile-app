@@ -13,6 +13,7 @@ import { useSolanaPrice } from '@/hooks/useSolanaPrice';
 import { router, useLocalSearchParams } from 'expo-router';
 import { err, ok, Result } from 'neverthrow';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { PublicKey } from '@solana/web3.js';
 import { PriceDetailField } from '../components';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
@@ -34,38 +35,6 @@ export interface PaymentError {
   transactionId?: string;
 }
 
-
-const completingState: PaymentState = {
-  stage: 'completing',
-  isProcessing: true,
-  error: null,
-  transactionId: null,
-  orderId: null,
-}
-const preparingState: PaymentState = {
-  stage: 'preparing',
-  isProcessing: true,
-  error: null,
-  transactionId: null,
-  orderId: null,
-}
-
-const errorState: PaymentState = {
-  stage: 'idle',
-  isProcessing: false,
-  error: "Woops",
-  transactionId: null,
-  orderId: null,
-}
-
-const successState: PaymentState = {
-  stage: 'success',
-  isProcessing: false,
-  error: null,
-  transactionId: "123412341234123412341234",
-  orderId: "1234123412341234",
-}
-
 const initialState: PaymentState = {
   stage: 'idle',
   isProcessing: false,
@@ -73,8 +42,6 @@ const initialState: PaymentState = {
   transactionId: null,
   orderId: null,
 }
-
-
 
 export const useCheckout = () => {
   const [selectedPackages] = useSharedState<string[]>(SELECTED_PACKAGES.key);
@@ -90,6 +57,7 @@ export const useCheckout = () => {
   const { account } = useWalletUi();
   const solanaPrice = useSolanaPrice();
   const paymentIdempotencyKey = useRef<string | null>(null);
+
   const checkCouponQuery = $api.useQuery('get', '/coupon/{code}', {
     params: {
       path: {
@@ -219,8 +187,18 @@ export const useCheckout = () => {
     }
   });
 
+  const accountPublicKey = useMemo(() => {
+    if (!account?.address) return null;
+    try {
+      return new PublicKey(account.address);
+    } catch (error) {
+      console.error('Failed to create PublicKey from address:', error);
+      return null;
+    }
+  }, [account?.address]);
+
   const transferSol = useTransferSol({
-    address: account?.publicKey!,
+    address: accountPublicKey!,
     onError: (error) => {
       console.error(error)
       logPaymentEvent('sol_transfer_failed', { error }, 'error');
@@ -453,7 +431,6 @@ export const useCheckout = () => {
       updatePaymentState({ stage: 'transferring' });
 
       if (solAmount > 0) {
-
         logPaymentEvent('initiating_sol_transfer', {
           amount: solAmount,
           destination: AppConfig.masterSolAccount,
