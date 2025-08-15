@@ -13,7 +13,7 @@ export type Prices = NonNullable<Package["prices"]>["recommended_retail_price"];
 export type Usage = NonNullable<NonNullable<paths['/v2/sims/{sim_iccid}/usage']['get']['responses']['200']['content']['application/json']>['data']>
 
 export const airaloFetchClient = createFetchClient<paths>({
-  baseUrl: "https://partners-api.airalo.com",
+  baseUrl: "https://backend-134243472228.asia-east1.run.app",
 });
 
 const TOKEN_STORAGE_KEY = "@api_token";
