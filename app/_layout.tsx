@@ -37,7 +37,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { isAuthenticated, isLoading } = useAuth()
-  if (isLoading) return null
+
   return (
     <ThemeProvider
       value={DarkThemeCustom}
@@ -45,10 +45,12 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="env" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="checkoutStack" options={{ headerShown: false }} />
+          <Stack.Screen name="env" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
     </ThemeProvider>

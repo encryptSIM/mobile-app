@@ -7,9 +7,9 @@ import * as Clipboard from "expo-clipboard";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
-import { Alert, Image, TouchableOpacity, View } from "react-native";
+import { Alert, TouchableOpacity, View, Platform } from "react-native";
 import { ActivityIndicator, IconButton, Text } from "react-native-paper";
-import QRCode from "react-native-qrcode-skia";
+import QRCode from "react-native-qrcode-svg";
 import { captureRef } from "react-native-view-shot";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
@@ -27,6 +27,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   const [, setSims] = useSharedState<Sim[]>(SIMS.key)
   const [, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key)
   const { account } = useWalletUi();
+
   const setSimInstalledMut = $api.useMutation('post', '/mark-sim-installed', {
     onSuccess: () => {
       setSims(prev => prev.map(sim => {
@@ -50,6 +51,13 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
 
   const saveQRCode = async () => {
     try {
+      // Check if we're on web - MediaLibrary doesn't work on web
+      if (Platform.OS === 'web') {
+        // For web, we'll trigger a download instead
+        await downloadQRCodeForWeb();
+        return;
+      }
+
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permission needed", "Please grant photo library access");
@@ -78,8 +86,65 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
     }
   };
 
+  const downloadQRCodeForWeb = async () => {
+    try {
+      if (Platform.OS !== 'web') return;
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const uri = await captureRef(modalQrRef, {
+        format: "png",
+        quality: 1,
+        result: "base64",
+      });
+
+      // Create download link for web
+      const link = document.createElement('a');
+      link.href = `data:image/png;base64,${uri}`;
+      link.download = 'esim-qr-code.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      Alert.alert(
+        "Success! 📱",
+        "QR code downloaded to your device.",
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.error("Error downloading QR code:", error);
+      Alert.alert("Error", "Failed to download QR code. Please try again.");
+    }
+  };
+
   const shareQRCode = async () => {
     try {
+      if (Platform.OS === 'web') {
+        // For web, use Web Share API if available, otherwise copy to clipboard
+        if (navigator.share) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          const uri = await captureRef(modalQrRef, {
+            format: "png",
+            quality: 1,
+            result: "base64",
+          });
+
+          const blob = await (await fetch(`data:image/png;base64,${uri}`)).blob();
+          const file = new File([blob], 'esim-qr-code.png', { type: 'image/png' });
+
+          await navigator.share({
+            title: 'eSIM QR Code',
+            text: 'Scan this QR code to install your eSIM',
+            files: [file]
+          });
+        } else {
+          // Fallback to copying the code
+          await copyToClipboard();
+        }
+        return;
+      }
+
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const uri = await captureRef(modalQrRef, {
@@ -115,31 +180,29 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   return (
     <View style={$styles.root}>
       <View style={$styles.header}>
-        <IconButton icon={'sim-outline'} size={40} />
+        <IconButton icon={'sim-outline'} size={40} iconColor="white" />
         <Text style={$styles.headerTitle}>Activate Your eSIM</Text>
         <Text style={$styles.headerSubtitle}>
           Quick, secure, and hassle-free installation.
         </Text>
       </View>
 
-      <View ref={qrRef} collapsable={false}>
-        <QRCode
-          value={`${props?.sim?.qrcode}`}
-          color={brandGreen}
-          shapeOptions={{
-            shape: "rounded",
-            eyePatternShape: "rounded",
-            eyePatternGap: 0,
-            gap: 0,
-          }}
-          logo={
-            <Image
-              source={require("@/assets/app-logo.png")}
-              style={{ width: 40, height: 40 }}
-            />
-          }
-          size={200}
-        />
+      <View ref={qrRef} collapsable={false} style={$styles.qrContainer}>
+        <View style={$styles.qrWrapper}>
+          <QRCode
+            value={`${props?.sim?.qrcode}`}
+            size={180}
+            color={brandGreen}
+            backgroundColor="transparent"
+            logo={require("@/assets/app-logo.png")}
+            logoSize={32}
+            logoBackgroundColor="white"
+            logoMargin={4}
+            logoBorderRadius={16}
+            quietZone={0}
+            enableLinearGradient={false}
+          />
+        </View>
       </View>
 
       <TouchableOpacity
@@ -162,13 +225,15 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
             }
           })
         }
+        style={$styles.markCompleteButton}
+        disabled={setSimInstalledMut.isPending}
       >
         {
           !setSimInstalledMut.isPending
             ? <Text style={$styles.installedText}>
               Already installed? Mark as complete
             </Text>
-            : <ActivityIndicator />
+            : <ActivityIndicator color="#9CA1AB" size="small" />
         }
       </TouchableOpacity>
 

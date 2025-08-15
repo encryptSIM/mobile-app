@@ -8,6 +8,7 @@ import { PaperProvider } from 'react-native-paper'
 import { ThemeProp } from 'react-native-paper/lib/typescript/types'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Provider } from '@/hooks/use-provider'
+import { WebWalletProvider } from '@/components/web-wallet-provider'
 
 const queryClient = new QueryClient()
 
@@ -65,11 +66,13 @@ export function AppProviders({ children }: PropsWithChildren) {
           <SolanaProvider>
             <GestureHandlerRootView>
               <PaperProvider theme={theme}>
-                <AuthProvider>
-                  <Provider>
-                    {children}
-                  </Provider>
-                </AuthProvider>
+                <WebWalletProvider>
+                  <AuthProvider>
+                    <Provider>
+                      {children}
+                    </Provider>
+                  </AuthProvider>
+                </WebWalletProvider>
               </PaperProvider>
             </GestureHandlerRootView>
           </SolanaProvider>

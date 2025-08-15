@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
-import { useAuth } from "@/context/auth-context";
+import { useUnifiedWallet } from "@/hooks/use-unified-wallet";
 import { addressFormatter } from "@/utils";
 
 interface WalletConnectionButtonProps {
@@ -28,7 +28,7 @@ export const WalletConnectionButton: React.FC<WalletConnectionButtonProps> = ({
   showAddress = true,
 }) => {
   const { colors } = useTheme();
-  const { wallet, isWalletConnected, currentPublicKey } = useAuth();
+  const wallet = useUnifiedWallet();
   const [connecting, setConnecting] = useState(false);
   console.log("wallet", wallet);
 
@@ -87,7 +87,7 @@ export const WalletConnectionButton: React.FC<WalletConnectionButtonProps> = ({
 
   const isLoading = connecting || wallet.connecting;
 
-  if (isWalletConnected && wallet.selectedAccount) {
+  if (wallet.connected && wallet.selectedAccount) {
     return (
       <View style={[styles.container, fullWidth && styles.fullWidth, style]}>
         {showAddress && (

@@ -33,7 +33,6 @@ export function SimsHome() {
             source={require("@/assets/app-logo-light.png")}
             style={$styles.logo}
           />
-          <Image source={{ uri: account?.icon }} style={$styles.icon} />
         </View>
         <SlidingTabs tabs={tabs} activeTab={tabIndex} onTabChange={handleSimHomeTabChange} />
         <View style={{ width: '100%', height: 4 }} />
