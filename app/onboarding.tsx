@@ -4,7 +4,6 @@ import {
   Text,
   Image,
   StyleSheet,
-  Dimensions,
   TouchableOpacity,
   Platform,
 } from "react-native";
@@ -48,15 +47,22 @@ const slides = [
 
 export default function Onboarding() {
   const [index, setIndex] = useState(0);
-  const { signIn } = useAuth()
-
+  const { signIn, isAuthenticated, isLoading } = useAuth()
 
   const handleNext = async () => {
     if (index < slides.length - 1) {
       setIndex((prev) => prev + 1);
     } else {
-      await signIn()
+      console.log('🚀 Starting sign-in process...');
+      console.log('Current auth state:', { isAuthenticated, isLoading });
 
+      try {
+        await signIn();
+        console.log('✅ Sign-in completed successfully');
+        console.log('New auth state:', { isAuthenticated, isLoading });
+      } catch (error) {
+        console.error('❌ Sign-in failed:', error);
+      }
     }
   };
 
@@ -76,8 +82,14 @@ export default function Onboarding() {
             />
           ))}
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleNext}>
-          <Text style={styles.buttonText}>{slides[index].buttonText}</Text>
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.loadingButton]}
+          onPress={handleNext}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {(isLoading && index === 2) ? "Connecting..." : slides[index].buttonText}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -155,6 +167,9 @@ const styles = StyleSheet.create({
     paddingVertical: verticalScale(12),
     paddingHorizontal: scale(48),
     marginTop: verticalScale(4),
+  },
+  loadingButton: {
+    opacity: 0.7,
   },
   buttonText: {
     color: "white",
