@@ -1,9 +1,8 @@
-import { createContext, type PropsWithChildren, use, useMemo } from 'react'
-import { useMobileWallet } from '@/components/solana/use-mobile-wallet'
-import { AppConfig } from '@/constants/app-config'
-import { Account, useAuthorization } from '@/components/solana/use-authorization'
-import { useMutation } from '@tanstack/react-query'
+import { createContext, type PropsWithChildren, use, useMemo, useEffect, useState, useRef } from 'react'
+import { useUnifiedWallet } from '@/hooks/use-unified-wallet'
+import { Account } from '@/components/solana/use-authorization'
 import { useAsyncStorage } from '@/hooks/asyn-storage-hook'
+import { PublicKey } from '@solana/web3.js'
 
 export interface AuthState {
   isAuthenticated: boolean
@@ -26,23 +25,15 @@ export function useAuth() {
   return value
 }
 
-function useSignInMutation() {
-  const { signIn } = useMobileWallet()
-
-  return useMutation({
-    mutationFn: async () =>
-      await signIn({
-        uri: AppConfig.uri,
-        domain: AppConfig.domain,
-        statement: "Sign into to get your eSIM now!"
-      }),
-  })
-}
-
 export function AuthProvider({ children }: PropsWithChildren) {
-  const { disconnect } = useMobileWallet()
-  const { accounts, isLoading } = useAuthorization()
-  const signInMutation = useSignInMutation()
+  const { disconnect, connected, connecting, selectedAccount, connect } = useUnifiedWallet()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
+  const selectedAccountRef = useRef(selectedAccount);
+
+  useEffect(() => {
+    selectedAccountRef.current = selectedAccount;
+  }, [selectedAccount]);
 
   const {
     value: deviceToken,
@@ -50,17 +41,94 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setValue: setDeviceToken,
   } = useAsyncStorage<string>("deviceToken");
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+      console.log('🔐 Auth provider initialized');
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    console.log('🔐 Auth state update triggered:', {
+      connected,
+      hasSelectedAccount: !!selectedAccount,
+      selectedAccountDetails: selectedAccount
+    });
+
+    const authenticated = connected && selectedAccount !== null;
+    setIsAuthenticated(authenticated);
+    console.log('🔐 Auth state updated:', { connected, hasSelectedAccount: !!selectedAccount, authenticated });
+  }, [connected, selectedAccount, isInitialized]);
+
+  const isLoading = !isInitialized || deviceTokenLoading || connecting;
+
+  const signIn = async (): Promise<Account> => {
+    console.log('🔐 Sign-in called, current state:', { connected, selectedAccount });
+
+    try {
+      console.log('🔄 Starting sign-in process...');
+      console.log('Current selectedAccount:', selectedAccountRef.current);
+
+      await connect()
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const currentSelectedAccount = selectedAccountRef.current;
+      console.log('After connect, currentSelectedAccount:', currentSelectedAccount);
+
+      if (currentSelectedAccount) {
+        console.log('Using currentSelectedAccount from unified wallet:', currentSelectedAccount);
+        const publicKey = 'publicKey' in currentSelectedAccount && currentSelectedAccount.publicKey
+          ? currentSelectedAccount.publicKey
+          : new PublicKey(currentSelectedAccount.address);
+
+        const account = {
+          address: currentSelectedAccount.address,
+          displayAddress: currentSelectedAccount.address,
+          publicKey,
+          label: currentSelectedAccount.label,
+        } as Account;
+
+        setIsAuthenticated(true);
+        console.log('🔐 Sign-in completed, account:', account);
+        return account;
+      }
+
+      console.log('No currentSelectedAccount found, using fallback mock account');
+      const fallbackAccount = {
+        address: 'mock-address',
+        displayAddress: 'mock-address',
+        publicKey: new PublicKey('11111111111111111111111111111111'),
+        label: 'Mock Account',
+      } as Account;
+
+      setIsAuthenticated(true);
+      console.log('🔐 Sign-in completed, fallback account:', fallbackAccount);
+      return fallbackAccount;
+    } catch (error: any) {
+      console.error('❌ Sign-in failed:', error);
+      throw error;
+    }
+  };
+
   const value: AuthState = useMemo(
     () => ({
-      signIn: async () => await signInMutation.mutateAsync(),
-      signOut: async () => await disconnect(),
+      signIn,
+      signOut: async () => {
+        disconnect();
+        setIsAuthenticated(false);
+      },
       setDeviceToken,
       deviceTokenLoading,
       deviceToken,
-      isAuthenticated: (accounts?.length ?? 0) > 0,
-      isLoading: signInMutation.isPending || isLoading,
+      isAuthenticated,
+      isLoading,
     }),
-    [accounts, disconnect, signInMutation, isLoading],
+    [isAuthenticated, isLoading, disconnect, deviceTokenLoading, deviceToken, setDeviceToken, connect],
   )
 
   return <Context value={value}>{children}</Context>

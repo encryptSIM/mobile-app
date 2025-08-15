@@ -8,296 +8,128 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
-import {
-  Connection,
-  PublicKey,
-  Transaction,
-  SystemProgram,
-  LAMPORTS_PER_SOL,
-  clusterApiUrl,
-} from "@solana/web3.js";
-import { Feather } from "@expo/vector-icons";
-import { useAuth } from "@/context/auth-context";
-import { useMobileWallet } from "@/hooks/use-mobile-wallet";
+import { Connection, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
+import { useUnifiedWallet } from "@/hooks/use-unified-wallet";
 
-interface TransactionExampleProps {
-  onClose?: () => void;
-}
-
-export const TransactionExample: React.FC<TransactionExampleProps> = ({
-  onClose,
-}) => {
+export const TransactionExample: React.FC = () => {
   const { colors } = useTheme();
-  const { isWalletConnected, currentPublicKeyObject } = useAuth();
-  const { signTransaction, signAndSendTransaction } = useMobileWallet();
-  const [processing, setProcessing] = useState(false);
+  const { signTransaction, signAndSendTransaction, connected, selectedAccount } = useUnifiedWallet();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const connection = new Connection(clusterApiUrl("testnet"), {
-    commitment: "confirmed",
-    confirmTransactionInitialTimeout: 60000,
-  });
-
-  const handleTestTransaction = async () => {
-    if (!isWalletConnected || !currentPublicKeyObject) {
+  const handleSignTransaction = async () => {
+    if (!connected || !selectedAccount) {
       Alert.alert("Error", "Please connect your wallet first");
       return;
     }
 
     try {
-      setProcessing(true);
+      setIsProcessing(true);
 
-      // Create a test transaction (transfer 0.001 SOL to yourself)
-      const testAmount = 0.001 * LAMPORTS_PER_SOL; // 0.001 SOL
+      // Get the public key from the selected account
+      const publicKey = 'publicKey' in selectedAccount && selectedAccount.publicKey 
+        ? selectedAccount.publicKey 
+        : new PublicKey(selectedAccount.address);
 
-      Alert.alert(
-        "Test Transaction",
-        `This will create a test transaction sending ${
-          testAmount / LAMPORTS_PER_SOL
-        } SOL to yourself. Continue?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Continue",
-            onPress: async () => {
-              try {
-                console.log("🔄 Creating test transaction...");
-
-                // Get recent blockhash
-                const { blockhash } = await connection.getLatestBlockhash();
-
-                // Create transaction
-                const transaction = new Transaction({
-                  feePayer: currentPublicKeyObject,
-                  recentBlockhash: blockhash,
-                });
-
-                // Add instruction (send to self)
-                transaction.add(
-                  SystemProgram.transfer({
-                    fromPubkey: currentPublicKeyObject,
-                    toPubkey: currentPublicKeyObject, // Send to self
-                    lamports: testAmount,
-                  })
-                );
-
-                console.log("✅ Transaction created, requesting signature...");
-
-                // Sign the transaction using mobile wallet adapter
-                const signedTransaction = await signTransaction(transaction);
-                console.log("✅ Transaction signed");
-
-                // Send the signed transaction
-                const signature = await connection.sendRawTransaction(
-                  signedTransaction.serialize()
-                );
-                console.log("✅ Transaction sent:", signature);
-
-                // Wait for confirmation
-                console.log("🔄 Waiting for confirmation...");
-                const confirmation = await connection.confirmTransaction(
-                  signature,
-                  "confirmed"
-                );
-
-                if (confirmation.value.err) {
-                  throw new Error(
-                    `Transaction failed: ${confirmation.value.err}`
-                  );
-                }
-
-                console.log("✅ Transaction confirmed");
-
-                Alert.alert(
-                  "Success!",
-                  `Transaction confirmed!\n\nSignature: ${signature.slice(
-                    0,
-                    8
-                  )}...${signature.slice(-8)}`,
-                  [{ text: "OK" }]
-                );
-              } catch (error: any) {
-                console.error("❌ Transaction failed:", error);
-                Alert.alert(
-                  "Transaction Failed",
-                  error.message || "An unexpected error occurred"
-                );
-              }
-            },
-          },
-        ]
+      // Create a simple transfer transaction
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey("11111111111111111111111111111111"), // System program
+          lamports: 1000, // 0.000001 SOL
+        })
       );
+
+      // Sign the transaction
+      const signedTransaction = await signTransaction(transaction);
+      console.log("Transaction signed:", signedTransaction);
+
+      Alert.alert("Success", "Transaction signed successfully!");
     } catch (error: any) {
-      console.error("❌ Test transaction setup failed:", error);
-      Alert.alert("Error", error.message || "Failed to prepare transaction");
+      console.error("Sign transaction error:", error);
+      Alert.alert("Error", `Failed to sign transaction: ${error.message}`);
     } finally {
-      setProcessing(false);
+      setIsProcessing(false);
     }
   };
 
-  const handleSignAndSendExample = async () => {
-    if (!isWalletConnected || !currentPublicKeyObject) {
+  const handleSignAndSendTransaction = async () => {
+    if (!connected || !selectedAccount) {
       Alert.alert("Error", "Please connect your wallet first");
       return;
     }
 
     try {
-      setProcessing(true);
+      setIsProcessing(true);
 
-      Alert.alert(
-        "Sign & Send Example",
-        "This will use the signAndSendTransaction method to create, sign, and send a transaction in one step.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Continue",
-            onPress: async () => {
-              try {
-                console.log("🔄 Creating sign & send transaction...");
+      // Get the public key from the selected account
+      const publicKey = 'publicKey' in selectedAccount && selectedAccount.publicKey 
+        ? selectedAccount.publicKey 
+        : new PublicKey(selectedAccount.address);
 
-                // Get recent blockhash
-                const { blockhash } = await connection.getLatestBlockhash();
-
-                // Create transaction
-                const transaction = new Transaction({
-                  feePayer: currentPublicKeyObject,
-                  recentBlockhash: blockhash,
-                });
-
-                // Add instruction (send small amount to self)
-                transaction.add(
-                  SystemProgram.transfer({
-                    fromPubkey: currentPublicKeyObject,
-                    toPubkey: currentPublicKeyObject,
-                    lamports: 1000, // Minimal amount
-                  })
-                );
-
-                console.log("✅ Transaction created, signing and sending...");
-
-                // Sign and send in one step
-                const signature = await signAndSendTransaction(
-                  transaction,
-                  connection
-                );
-                console.log("✅ Transaction signed and confirmed:", signature);
-
-                Alert.alert(
-                  "Success!",
-                  `Transaction signed and confirmed!\n\nSignature: ${signature.slice(
-                    0,
-                    8
-                  )}...${signature.slice(-8)}`,
-                  [{ text: "OK" }]
-                );
-              } catch (error: any) {
-                console.error("❌ Sign & send failed:", error);
-                Alert.alert(
-                  "Transaction Failed",
-                  error.message || "An unexpected error occurred"
-                );
-              }
-            },
-          },
-        ]
+      // Create a simple transfer transaction
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey("11111111111111111111111111111111"), // System program
+          lamports: 1000, // 0.000001 SOL
+        })
       );
+
+      // Connect to Solana network
+      const connection = new Connection("https://api.mainnet-beta.solana.com");
+
+      // Sign and send the transaction
+      const signature = await signAndSendTransaction(transaction, connection);
+      console.log("Transaction sent:", signature);
+
+      Alert.alert("Success", `Transaction sent successfully!\nSignature: ${signature}`);
     } catch (error: any) {
-      console.error("❌ Sign & send setup failed:", error);
-      Alert.alert("Error", error.message || "Failed to prepare transaction");
+      console.error("Sign and send transaction error:", error);
+      Alert.alert("Error", `Failed to send transaction: ${error.message}`);
     } finally {
-      setProcessing(false);
+      setIsProcessing(false);
     }
   };
 
-  if (!isWalletConnected) {
+  if (!connected) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.card }]}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Transaction Examples
+      <View style={styles.container}>
+        <Text style={[styles.text, { color: colors.text }]}>
+          Please connect your wallet to test transactions
         </Text>
-        <Text style={[styles.message, { color: colors.text }]}>
-          You are not connected to a wallet. You can still use most features,
-          but wallet-based transactions will be unavailable.
-        </Text>
-        {onClose && (
-          <TouchableOpacity
-            style={[styles.closeButton, { borderColor: colors.border }]}
-            onPress={onClose}
-          >
-            <Text style={[styles.closeButtonText, { color: colors.text }]}>
-              Close
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Transaction Examples
-        </Text>
-        {onClose && (
-          <TouchableOpacity onPress={onClose} style={styles.headerClose}>
-            <Feather name="x" size={24} color={colors.text} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <Text style={[styles.description, { color: colors.text }]}>
-        Test the mobile wallet adapter transaction signing capabilities
+    <View style={styles.container}>
+      <Text style={[styles.title, { color: colors.text }]}>
+        Transaction Examples
       </Text>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[
-            styles.exampleButton,
-            { backgroundColor: colors.primary },
-            processing && styles.disabledButton,
-          ]}
-          onPress={handleTestTransaction}
-          disabled={processing}
-        >
-          {processing ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Feather name="edit" size={18} color="white" />
-          )}
-          <Text style={styles.buttonText}>
-            {processing ? "Processing..." : "Sign Transaction"}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.exampleButton,
-            { backgroundColor: colors.primary },
-            processing && styles.disabledButton,
-          ]}
-          onPress={handleSignAndSendExample}
-          disabled={processing}
-        >
-          {processing ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Feather name="send" size={18} color="white" />
-          )}
-          <Text style={styles.buttonText}>
-            {processing ? "Processing..." : "Sign & Send"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View
-        style={[styles.warningBox, { backgroundColor: colors.primary + "20" }]}
+      
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: colors.primary }]}
+        onPress={handleSignTransaction}
+        disabled={isProcessing}
       >
-        <Feather name="info" size={16} color={colors.primary} />
-        <Text style={[styles.warningText, { color: colors.text }]}>
-          These are test transactions that send small amounts to yourself.
-          Network fees will apply.
-        </Text>
-      </View>
+        {isProcessing ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.buttonText}>Sign Transaction</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: colors.primary }]}
+        onPress={handleSignAndSendTransaction}
+        disabled={isProcessing}
+      >
+        {isProcessing ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.buttonText}>Sign & Send Transaction</Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -305,75 +137,28 @@ export const TransactionExample: React.FC<TransactionExampleProps> = ({
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    borderRadius: 12,
-    margin: 16,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
-  },
-  headerClose: {
-    padding: 4,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  description: {
-    fontSize: 14,
-    opacity: 0.7,
+    fontSize: 18,
+    fontWeight: "bold",
     marginBottom: 20,
-    lineHeight: 20,
   },
-  message: {
+  text: {
     fontSize: 16,
     textAlign: "center",
-    marginBottom: 20,
-    opacity: 0.7,
   },
-  buttonContainer: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  exampleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
+  button: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 8,
-    gap: 8,
-  },
-  disabledButton: {
-    opacity: 0.6,
+    marginVertical: 8,
+    minWidth: 200,
+    alignItems: "center",
   },
   buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-  },
-  closeButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  closeButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  warningBox: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  warningText: {
-    flex: 1,
-    fontSize: 12,
-    lineHeight: 16,
   },
 });
