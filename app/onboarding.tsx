@@ -10,6 +10,8 @@ import {
 import { useAuth } from "@/components/auth/auth-provider";
 import { getDimensions } from "@/utils/dimensions";
 import { card } from "@/components/app-providers";
+import { detectEnvironment } from "@/utils/environment";
+import { OpenInWalletPrompt } from "@/components/openInWalletPrompt";
 
 // Responsive scaling helpers
 const { width, height } = getDimensions();
@@ -65,6 +67,11 @@ export default function Onboarding() {
       }
     }
   };
+  const env = detectEnvironment();
+
+  if (env.isWeb && !env.isWalletBrowser) {
+    return <OpenInWalletPrompt />;
+  }
 
   return (
     <View style={styles.container}>
