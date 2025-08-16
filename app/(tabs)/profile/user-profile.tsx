@@ -13,21 +13,20 @@ import {
   View,
 } from "react-native";
 import { useAuth } from "@/components/auth/auth-provider";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { useGetBalance } from "@/components/solana/use-get-balance";
 import { ActivityIndicator } from "react-native-paper";
 import { lamportsToSol } from "@/utils/lamports-to-sol";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUnifiedWallet } from "@/hooks/use-unified-wallet";
 
 export default function ProfileScreen() {
-  const { account } = useWalletUi()
-  const balanceQuery = useGetBalance({ address: account?.publicKey! })
+  const wallet = useUnifiedWallet();
+  const balanceQuery = useGetBalance({ address: wallet?.publicKey! })
   const { signOut } = useAuth()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.screen}>
-        {/* Profile Info */}
         <View style={styles.profileWrapper}>
           <View style={styles.profilePictureWrapper}>
             <View style={styles.profilePicture}>
@@ -40,7 +39,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={async () => {
-              await Clipboard.setStringAsync(account?.publicKey.toString() || "");
+              await Clipboard.setStringAsync(wallet.publicKey!.toString() || "");
               ToastAndroid.show("Address copied!", ToastAndroid.SHORT);
             }}
             style={styles.addressButton}
@@ -48,7 +47,7 @@ export default function ProfileScreen() {
             <View style={styles.addressRow}>
               <Feather name="copy" size={16} color="#4ade80" />
               <Text style={styles.addressText}>
-                {addressFormatter(account?.publicKey.toString() || "")}
+                {addressFormatter(wallet?.publicKey!.toString() || "")}
               </Text>
             </View>
           </TouchableOpacity>
@@ -71,7 +70,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Options */}
         <View style={styles.optionsContainer}>
           <Text style={styles.optionsTitle}>Options</Text>
           <View style={styles.optionsList}>

@@ -44,21 +44,6 @@ export const $styles = StyleSheet.create({
     paddingVertical: 32,
     paddingHorizontal: 24,
   },
-  qrWrapper: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
   actionButtons: {
     paddingHorizontal: 24,
     gap: 16,

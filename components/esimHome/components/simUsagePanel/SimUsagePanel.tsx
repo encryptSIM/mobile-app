@@ -164,7 +164,7 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         <View style={$styles.circularProgressWrapper}>
           <CircularProgress
             percentage={percentage}
-            size={230}
+            size={200}
             color={progressColor}
           />
           <View style={$styles.progressTextContainer}>

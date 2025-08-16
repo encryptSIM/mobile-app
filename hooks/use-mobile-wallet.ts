@@ -1,307 +1,276 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Linking } from 'react-native';
+import { AppState } from 'react-native';
 import { Connection, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import {
-    transact,
-    Web3MobileWallet,
+  transact,
+  Web3MobileWallet,
 } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
 
 export interface AuthorizedWallet {
-    accounts: Account[];
-    selectedAccount: Account;
-    walletUriBase?: string;
+  accounts: Account[];
+  selectedAccount: Account;
+  walletUriBase?: string;
 }
 
 export interface Account {
-    address: string;
-    label?: string;
-    // publicKey is no longer needed here
+  address: string;
+  label?: string;
 }
 
 interface UseMobileWalletReturn {
-    // Connection state
-    connecting: boolean;
-    connected: boolean;
-    authorizedWallet: AuthorizedWallet | null;
-
-    // Actions
-    connect: () => Promise<void>;
-    disconnect: () => void;
-    reauthorize: () => Promise<void>;
-
-    // Transaction signing
-    signTransaction: (transaction: Transaction | VersionedTransaction) => Promise<Transaction | VersionedTransaction>;
-    signAllTransactions: (transactions: (Transaction | VersionedTransaction)[]) => Promise<(Transaction | VersionedTransaction)[]>;
-    signAndSendTransaction: (transaction: Transaction | VersionedTransaction, connection: Connection) => Promise<string>;
-
-    // Utility
-    selectedAccount: Account | null;
-    publicKey: PublicKey | null;
+  connecting: boolean;
+  connected: boolean;
+  authorizedWallet: AuthorizedWallet | null;
+  selectedAccount: Account | null;
+  publicKey: PublicKey | null;
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  reauthorize: () => Promise<void>;
+  signTransaction: (transaction: Transaction | VersionedTransaction) => Promise<Transaction | VersionedTransaction>;
+  signAllTransactions: (transactions: (Transaction | VersionedTransaction)[]) => Promise<(Transaction | VersionedTransaction)[]>;
+  signAndSendTransaction: (transaction: Transaction | VersionedTransaction, connection: Connection) => Promise<string>;
 }
 
-// Configuration object for wallet adapter
 const WALLET_ADAPTER_CONFIG = {
-    appIdentity: {
-        name: 'encryptSIM',
-        uri: 'https://encryptsim.com', // Replace with your actual domain
-        icon: 'favicon.ico', // Replace with your app icon
+  appIdentity: {
+    name: 'encryptSIM',
+    uri: 'https://encryptsim.com',
+    icon: 'favicon.ico',
+  },
+  authorizationResultCache: {
+    clear: async () => {
+      console.log('🔄 Clearing wallet authorization cache');
     },
-    authorizationResultCache: {
-        clear: async () => {
-            // Clear any cached authorization results
-            console.log('🔄 Clearing wallet authorization cache');
-        },
-        get: async () => {
-            // Return cached authorization if available
-            return null;
-        },
-        set: async () => {
-            // Cache authorization result
-            console.log('💾 Caching wallet authorization');
-        },
+    get: async () => {
+      return null;
     },
+    set: async () => {
+      console.log('💾 Caching wallet authorization');
+    },
+  },
 };
 
 export const useMobileWallet = (): UseMobileWalletReturn => {
-    const [connecting, setConnecting] = useState(false);
-    const [connected, setConnected] = useState(false);
-    const [authorizedWallet, setAuthorizedWallet] = useState<AuthorizedWallet | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [authorizedWallet, setAuthorizedWallet] = useState<AuthorizedWallet | null>(null);
 
-    const appStateRef = useRef(AppState.currentState);
+  const appStateRef = useRef(AppState.currentState);
 
-    // Derived state
-    const selectedAccount = useMemo(() => {
-        return authorizedWallet?.selectedAccount || null;
-    }, [authorizedWallet]);
+  const selectedAccount = useMemo(() => {
+    return authorizedWallet?.selectedAccount || null;
+  }, [authorizedWallet]);
 
-    const publicKey = useMemo(() => {
-        return null;
-    }, [selectedAccount]);
+  const publicKey = useMemo(() => {
+    return null;
+  }, [selectedAccount]);
 
-    // Handle app state changes for wallet session management
-    useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
-                // App came to foreground - could reauthorize if needed
-                console.log('📱 App came to foreground');
-            }
-            appStateRef.current = nextAppState;
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('📱 App came to foreground');
+      }
+      appStateRef.current = nextAppState;
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
+  const connect = useCallback(async () => {
+    if (connecting) return;
+
+    try {
+      setConnecting(true);
+      console.log('🔄 Initiating wallet connection...');
+
+      await transact(async (wallet: Web3MobileWallet) => {
+        console.log('🔄 Starting wallet authorization...');
+
+        const authResult = await wallet.authorize({
+          identity: WALLET_ADAPTER_CONFIG.appIdentity,
         });
 
-        return () => subscription?.remove();
-    }, []);
-
-    // Connect to wallet
-    const connect = useCallback(async () => {
-        if (connecting) return;
-
-        try {
-            setConnecting(true);
-            console.log('🔄 Initiating wallet connection...');
-
-            await transact(async (wallet: Web3MobileWallet) => {
-                console.log('🔄 Starting wallet authorization...');
-
-                const authResult = await wallet.authorize({
-                    identity: WALLET_ADAPTER_CONFIG.appIdentity,
-                });
-
-                console.log('🪪 Raw accounts from wallet:', authResult.accounts);
-                // Convert accounts to our format, filtering out invalid base58 addresses
-                const accounts: Account[] = authResult.accounts.map((account) => ({
-                    address: account.address,
-                    label: account.label,
-                }));
-                console.log("accounts", accounts);
-                if (accounts.length === 0) {
-                    throw new Error('No valid wallet accounts found (invalid base58 public keys)');
-                }
-
-                // Select the first account as the default selected account
-                const selectedAccount = accounts[0];
-
-                const authorizedWallet: AuthorizedWallet = {
-                    accounts,
-                    selectedAccount,
-                    walletUriBase: authResult.wallet_uri_base,
-                };
-
-                console.log('👜 Authorized wallet object:', authorizedWallet);
-
-                setAuthorizedWallet(authorizedWallet);
-                setConnected(true);
-
-                console.log('✅ Wallet connected successfully:', selectedAccount?.address);
-            });
-        } catch (error: any) {
-            console.error('❌ Wallet connection failed:', error);
-
-            // Handle specific error cases
-            if (error.code === 'ERROR_WALLET_NOT_FOUND') {
-                throw new Error('No compatible wallet found. Please install a Solana wallet app.');
-            } else if (error.code === 'ERROR_AUTHORIZATION_FAILED') {
-                throw new Error('Wallet authorization failed. Please try again.');
-            } else if (error.code === 'ERROR_NOT_SIGNED') {
-                throw new Error('User declined wallet connection.');
-            } else {
-                throw new Error(`Wallet connection failed: ${error.message}`);
-            }
-        } finally {
-            setConnecting(false);
-        }
-    }, [connecting]);
-
-    // Disconnect wallet
-    const disconnect = useCallback(() => {
-        console.log('🔄 Disconnecting wallet...');
-        setAuthorizedWallet(null);
-        setConnected(false);
-        console.log('✅ Wallet disconnected');
-    }, []);
-
-    // Reauthorize wallet (useful for expired sessions)
-    const reauthorize = useCallback(async () => {
-        if (!authorizedWallet) {
-            throw new Error('No wallet connected to reauthorize');
+        console.log('🪪 Raw accounts from wallet:', authResult.accounts);
+        const accounts: Account[] = authResult.accounts.map((account) => ({
+          address: account.address,
+          label: account.label,
+        }));
+        console.log("accounts", accounts);
+        if (accounts.length === 0) {
+          throw new Error('No valid wallet accounts found (invalid base58 public keys)');
         }
 
-        try {
-            console.log('🔄 Reauthorizing wallet...');
+        const selectedAccount = accounts[0];
 
-            await transact(async (wallet: Web3MobileWallet) => {
-                const authResult = await wallet.reauthorize({
-                    auth_token: '', // This would need to be stored from the initial authorization
-                    identity: WALLET_ADAPTER_CONFIG.appIdentity,
-                });
+        const authorizedWallet: AuthorizedWallet = {
+          accounts,
+          selectedAccount,
+          walletUriBase: authResult.wallet_uri_base,
+        };
 
-                console.log('✅ Wallet reauthorization successful');
+        console.log('👜 Authorized wallet object:', authorizedWallet);
 
-                // Update account info if needed
-                const accounts: Account[] = authResult.accounts.map((account) => ({
-                    address: account.address,
-                    label: account.label,
-                }));
+        setAuthorizedWallet(authorizedWallet);
+        setConnected(true);
 
-                const selectedAccount = accounts[0];
+        console.log('✅ Wallet connected successfully:', selectedAccount?.address);
+      });
+    } catch (error: any) {
+      console.error('❌ Wallet connection failed:', error);
 
-                setAuthorizedWallet({
-                    ...authorizedWallet,
-                    accounts,
-                    selectedAccount,
-                });
-            });
-        } catch (error: any) {
-            console.error('❌ Wallet reauthorization failed:', error);
-            throw new Error(`Reauthorization failed: ${error.message}`);
-        }
-    }, [authorizedWallet]);
+      if (error.code === 'ERROR_WALLET_NOT_FOUND') {
+        throw new Error('No compatible wallet found. Please install a Solana wallet app.');
+      } else if (error.code === 'ERROR_AUTHORIZATION_FAILED') {
+        throw new Error('Wallet authorization failed. Please try again.');
+      } else if (error.code === 'ERROR_NOT_SIGNED') {
+        throw new Error('User declined wallet connection.');
+      } else {
+        throw new Error(`Wallet connection failed: ${error.message}`);
+      }
+    } finally {
+      setConnecting(false);
+    }
+  }, [connecting]);
 
-    // Sign a single transaction
-    const signTransaction = useCallback(async (transaction: Transaction | VersionedTransaction) => {
-        if (!authorizedWallet) {
-            throw new Error('Wallet not connected');
-        }
+  const disconnect = useCallback(() => {
+    console.log('🔄 Disconnecting wallet...');
+    setAuthorizedWallet(null);
+    setConnected(false);
+    console.log('✅ Wallet disconnected');
+  }, []);
 
-        try {
-            console.log('🔄 Signing transaction...');
+  const reauthorize = useCallback(async () => {
+    if (!authorizedWallet) {
+      throw new Error('No wallet connected to reauthorize');
+    }
 
-            let signedTransaction: Transaction | VersionedTransaction;
+    try {
+      console.log('🔄 Reauthorizing wallet...');
 
-            await transact(async (wallet: Web3MobileWallet) => {
-                const [signedTx] = await wallet.signTransactions({
-                    transactions: [transaction],
-                });
-                signedTransaction = signedTx;
-            });
+      await transact(async (wallet: Web3MobileWallet) => {
+        const authResult = await wallet.reauthorize({
+          auth_token: '',
+          identity: WALLET_ADAPTER_CONFIG.appIdentity,
+        });
 
-            console.log('✅ Transaction signed successfully');
-            return signedTransaction!;
-        } catch (error: any) {
-            console.error('❌ Transaction signing failed:', error);
-            throw new Error(`Transaction signing failed: ${error.message}`);
-        }
-    }, [authorizedWallet]);
+        console.log('✅ Wallet reauthorization successful');
 
-    // Sign multiple transactions
-    const signAllTransactions = useCallback(async (transactions: (Transaction | VersionedTransaction)[]) => {
-        if (!authorizedWallet) {
-            throw new Error('Wallet not connected');
-        }
+        const accounts: Account[] = authResult.accounts.map((account) => ({
+          address: account.address,
+          label: account.label,
+        }));
 
-        try {
-            console.log(`🔄 Signing ${transactions.length} transactions...`);
+        const selectedAccount = accounts[0];
 
-            let signedTransactions: (Transaction | VersionedTransaction)[];
+        setAuthorizedWallet({
+          ...authorizedWallet,
+          accounts,
+          selectedAccount,
+        });
+      });
+    } catch (error: any) {
+      console.error('❌ Wallet reauthorization failed:', error);
+      throw new Error(`Reauthorization failed: ${error.message}`);
+    }
+  }, [authorizedWallet]);
 
-            await transact(async (wallet: Web3MobileWallet) => {
-                signedTransactions = await wallet.signTransactions({
-                    transactions,
-                });
-            });
+  const signTransaction = useCallback(async (transaction: Transaction | VersionedTransaction) => {
+    if (!authorizedWallet) {
+      throw new Error('Wallet not connected');
+    }
 
-            console.log('✅ All transactions signed successfully');
-            return signedTransactions!;
-        } catch (error: any) {
-            console.error('❌ Transaction signing failed:', error);
-            throw new Error(`Transaction signing failed: ${error.message}`);
-        }
-    }, [authorizedWallet]);
+    try {
+      console.log('🔄 Signing transaction...');
 
-    // Sign and send transaction
-    const signAndSendTransaction = useCallback(async (
-        transaction: Transaction | VersionedTransaction,
-        connection: Connection
-    ): Promise<string> => {
-        if (!authorizedWallet) {
-            throw new Error('Wallet not connected');
-        }
+      let signedTransaction: Transaction | VersionedTransaction;
 
-        try {
-            console.log('🔄 Signing and sending transaction...');
+      await transact(async (wallet: Web3MobileWallet) => {
+        const [signedTx] = await wallet.signTransactions({
+          transactions: [transaction],
+        });
+        signedTransaction = signedTx;
+      });
 
-            let signature = '';
+      console.log('✅ Transaction signed successfully');
+      return signedTransaction!;
+    } catch (error: any) {
+      console.error('❌ Transaction signing failed:', error);
+      throw new Error(`Transaction signing failed: ${error.message}`);
+    }
+  }, [authorizedWallet]);
 
-            await transact(async (wallet: Web3MobileWallet) => {
-                const signatures = await wallet.signAndSendTransactions({
-                    transactions: [transaction],
-                });
-                signature = signatures[0]; // signAndSendTransactions returns an array of signature strings
-            });
+  const signAllTransactions = useCallback(async (transactions: (Transaction | VersionedTransaction)[]) => {
+    if (!authorizedWallet) {
+      throw new Error('Wallet not connected');
+    }
 
-            console.log('✅ Transaction signed and sent:', signature);
+    try {
+      console.log(`🔄 Signing ${transactions.length} transactions...`);
 
-            // Wait for confirmation
-            console.log('🔄 Waiting for confirmation...');
-            const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+      let signedTransactions: (Transaction | VersionedTransaction)[];
 
-            if (confirmation.value.err) {
-                throw new Error(`Transaction failed: ${confirmation.value.err}`);
-            }
+      await transact(async (wallet: Web3MobileWallet) => {
+        signedTransactions = await wallet.signTransactions({
+          transactions,
+        });
+      });
 
-            console.log('✅ Transaction confirmed:', signature);
-            return signature;
-        } catch (error: any) {
-            console.error('❌ Transaction signing and sending failed:', error);
-            throw new Error(`Transaction failed: ${error.message}`);
-        }
-    }, [authorizedWallet]);
+      console.log('✅ All transactions signed successfully');
+      return signedTransactions!;
+    } catch (error: any) {
+      console.error('❌ Transaction signing failed:', error);
+      throw new Error(`Transaction signing failed: ${error.message}`);
+    }
+  }, [authorizedWallet]);
 
-    return {
-        // State
-        connecting,
-        connected,
-        authorizedWallet,
-        selectedAccount,
-        publicKey,
+  const signAndSendTransaction = useCallback(async (
+    transaction: Transaction | VersionedTransaction,
+    connection: Connection
+  ): Promise<string> => {
+    if (!authorizedWallet) {
+      throw new Error('Wallet not connected');
+    }
 
-        // Actions
-        connect,
-        disconnect,
-        reauthorize,
+    try {
+      console.log('🔄 Signing and sending transaction...');
 
-        // Transaction signing
-        signTransaction,
-        signAllTransactions,
-        signAndSendTransaction,
-    };
+      let signature = '';
+
+      await transact(async (wallet: Web3MobileWallet) => {
+        const signatures = await wallet.signAndSendTransactions({
+          transactions: [transaction],
+        });
+        signature = signatures[0];
+      });
+
+      console.log('✅ Transaction signed and sent:', signature);
+
+      console.log('🔄 Waiting for confirmation...');
+      const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed: ${confirmation.value.err}`);
+      }
+
+      console.log('✅ Transaction confirmed:', signature);
+      return signature;
+    } catch (error: any) {
+      console.error('❌ Transaction signing and sending failed:', error);
+      throw new Error(`Transaction failed: ${error.message}`);
+    }
+  }, [authorizedWallet]);
+
+  return {
+    connecting,
+    connected,
+    authorizedWallet,
+    selectedAccount,
+    publicKey,
+    connect,
+    disconnect,
+    reauthorize,
+    signTransaction,
+    signAllTransactions,
+    signAndSendTransaction,
+  };
 }; 

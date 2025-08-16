@@ -51,7 +51,7 @@ export const $styles = StyleSheet.create({
   },
   progressValue: {
     color: "white",
-    fontSize: 30,
+    fontSize: 20,
     fontWeight: "700",
   },
   progressSubtitle: {
