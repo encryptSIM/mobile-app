@@ -6,31 +6,44 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Modal,
+  Pressable,
+  Image,
 } from "react-native";
 import { useTheme } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useUnifiedWallet } from "@/hooks/use-unified-wallet";
 import { addressFormatter } from "@/utils";
+import { BlurView } from "expo-blur";
+import { useGetBalance } from "./solana/use-get-balance";
+import { brandGreen } from "./app-providers";
+import { lamportsToSol } from "@/utils/lamports-to-sol";
+import { useAuth } from "./auth/auth-provider";
 
 interface WalletConnectionButtonProps {
   onConnected?: () => void;
   onDisconnected?: () => void;
+  onSwitchAccount?: () => void;
   style?: any;
-  fullWidth?: boolean;
-  showAddress?: boolean;
 }
 
-export const WalletConnectionButton: React.FC<WalletConnectionButtonProps> = ({
+const truncateAddress = (address: string, startChars = 6, endChars = 4) => {
+  if (!address) return '';
+  if (address.length <= startChars + endChars) return address;
+  return `${address.substring(0, startChars)}...${address.substring(address.length - endChars)}`;
+};
+
+export function WalletConnectionButton({
   onConnected,
-  onDisconnected,
+  onSwitchAccount,
   style,
-  fullWidth = false,
-  showAddress = true,
-}) => {
+}: WalletConnectionButtonProps) {
   const { colors } = useTheme();
   const wallet = useUnifiedWallet();
+  const { signOut } = useAuth()
+  const balance = useGetBalance({ address: wallet.publicKey! });
   const [connecting, setConnecting] = useState(false);
-  console.log("wallet", wallet);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const handleConnect = async () => {
     if (connecting) return;
@@ -38,192 +51,319 @@ export const WalletConnectionButton: React.FC<WalletConnectionButtonProps> = ({
     try {
       setConnecting(true);
       await wallet.connect();
-
-      Alert.alert(
-        "Wallet Connected",
-        `Successfully connected to your Solana wallet!`,
-        [{ text: "OK" }]
-      );
-
       onConnected?.();
     } catch (error: any) {
       console.error("Wallet connection error:", error);
-
-      let errorMessage = "Failed to connect wallet";
-      if (error.message.includes("No compatible wallet found")) {
-        errorMessage =
-          "No Solana wallet found. Please install a compatible wallet app like Phantom, Solflare, or others.";
-      } else if (error.message.includes("User declined")) {
-        errorMessage =
-          "Connection cancelled. Please try again and approve the connection.";
-      } else {
-        errorMessage = error.message || "An unexpected error occurred";
-      }
-
-      Alert.alert("Connection Failed", errorMessage);
+      Alert.alert("Connection Failed", error.message || "Unexpected error");
     } finally {
       setConnecting(false);
     }
-  };
-
-  const handleDisconnect = () => {
-    Alert.alert(
-      "Disconnect Wallet",
-      "Are you sure you want to disconnect your wallet?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Disconnect",
-          style: "destructive",
-          onPress: () => {
-            wallet.disconnect();
-            onDisconnected?.();
-            Alert.alert("Disconnected", "Wallet has been disconnected");
-          },
-        },
-      ]
-    );
-  };
+  }
 
   const isLoading = connecting || wallet.connecting;
 
+  const designColors = {
+    primary: "#00D4AA",
+    secondary: "#6366F1",
+    bg: "rgba(17, 24, 39, 0.95)",
+    cardBg: "rgba(31, 41, 55, 0.8)",
+    border: "rgba(75, 85, 99, 0.3)",
+    text: "#FFFFFF",
+    textSecondary: "rgba(255, 255, 255, 0.7)",
+    textTertiary: "rgba(255, 255, 255, 0.5)",
+    buttonBg: "rgba(55, 65, 81, 0.8)",
+    buttonText: "#FFFFFF",
+    success: "#10B981",
+    danger: "#EF4444",
+  };
+
+  const handleDisconnect = () => {
+    console.log("handleDisconnect")
+    setMenuVisible(false);
+    signOut()
+  };
+
+  const handleSwitchAccount = () => {
+    setMenuVisible(false);
+    onSwitchAccount?.();
+  };
+
+  const handleCopyAddress = () => {
+    Alert.alert("Copied!", "Address copied to clipboard");
+  };
+
+  const getIcon = (address: string) => {
+    return `https://api.dicebear.com/9.x/rings/svg?ringColor=${brandGreen}&seed=${address}`
+  }
+
   if (wallet.connected && wallet.selectedAccount) {
     return (
-      <View style={[styles.container, fullWidth && styles.fullWidth, style]}>
-        {showAddress && (
-          <View style={styles.accountInfo}>
-            <View style={styles.accountRow}>
-              <Feather name="check-circle" size={16} color={colors.primary} />
-              <Text style={[styles.connectedText, { color: colors.primary }]}>
-                Connected
-              </Text>
-            </View>
-            <Text style={[styles.addressText, { color: colors.text }]}>
-              {addressFormatter(wallet.selectedAccount.address)}
-            </Text>
-            {wallet.selectedAccount.label && (
-              <Text style={[styles.labelText, { color: colors.text }]}>
-                {wallet.selectedAccount.label}
-              </Text>
-            )}
-          </View>
-        )}
-
+      <>
         <TouchableOpacity
-          style={[
-            styles.button,
-            styles.disconnectButton,
-            { borderColor: colors.primary },
-          ]}
-          onPress={handleDisconnect}
+          style={[styles.connectedButton, { backgroundColor: designColors.buttonBg }, style]}
+          onPress={() => setMenuVisible(true)}
+          activeOpacity={0.7}
         >
-          <Text style={[styles.buttonText, { color: colors.primary }]}>
-            Disconnect
+          {/* Identicon Avatar */}
+          <Image
+            source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
+            style={{ width: 24, height: 24, borderRadius: 32 }}
+          />
+
+          {/* Address */}
+          <Text style={[styles.addressText, { color: designColors.buttonText }]}>
+            {addressFormatter(wallet.selectedAccount.address)}
           </Text>
+
+          {/* Subtle dropdown indicator */}
+          <Ionicons name="chevron-down" size={16} color={designColors.textTertiary} />
         </TouchableOpacity>
-      </View>
+
+        {/* Simplified Wallet Modal */}
+        <Modal
+          transparent
+          visible={menuVisible}
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
+        >
+          <BlurView intensity={20} style={styles.blurOverlay}>
+            <Pressable
+              style={styles.modalOverlay}
+              onPress={() => setMenuVisible(false)}
+            >
+              <View style={[styles.walletModal, { backgroundColor: designColors.bg }]}>
+                {/* Header */}
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity
+                    onPress={() => setMenuVisible(false)}
+                    style={styles.closeButton}
+                  >
+                    <Ionicons name="close" size={24} color={designColors.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Wallet Avatar & Address */}
+                <View style={styles.walletInfo}>
+                  <Image
+                    source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
+                    style={{ width: 64, height: 64, borderRadius: 32 }}
+                  />
+
+                  <View style={styles.addressSection}>
+                    <Text style={[styles.fullAddress, { color: designColors.text }]}>
+                      {truncateAddress(wallet.selectedAccount.address, 8, 6)}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.copyButton}
+                      onPress={handleCopyAddress}
+                    >
+                      <Ionicons name="copy-outline" size={16} color={designColors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Balance */}
+                <View style={styles.balanceSection}>
+                  <Text style={[styles.balanceLabel, { color: designColors.textSecondary }]}>
+                    Balance
+                  </Text>
+                  <Text style={[styles.balanceValue, { color: designColors.text }]}>
+                    {balance?.data ? `${lamportsToSol(balance.data)} SOL` : 'Loading...'}
+                  </Text>
+                </View>
+
+                {/* Actions */}
+                <View style={styles.actionsSection}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, {
+                      backgroundColor: designColors.cardBg,
+                      borderColor: designColors.border
+                    }]}
+                    onPress={handleSwitchAccount}
+                  >
+                    <Ionicons name="swap-horizontal" size={20} color={designColors.primary} />
+                    <Text style={[styles.actionText, { color: designColors.primary }]}>
+                      Switch Account
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.actionButton, {
+                      backgroundColor: designColors.cardBg,
+                      borderColor: designColors.border
+                    }]}
+                    onPress={handleDisconnect}
+                  >
+                    <Ionicons name="log-out-outline" size={20} color={designColors.danger} />
+                    <Text style={[styles.actionText, { color: designColors.danger }]}>
+                      Disconnect
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Pressable>
+          </BlurView>
+        </Modal>
+      </>
     );
   }
 
   return (
     <TouchableOpacity
       style={[
-        styles.button,
         styles.connectButton,
-        { backgroundColor: colors.primary },
-        fullWidth && styles.fullWidth,
-        isLoading && styles.loadingButton,
+        {
+          backgroundColor: designColors.primary,
+        },
         style,
       ]}
       onPress={handleConnect}
       disabled={isLoading}
+      activeOpacity={0.8}
     >
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="white" />
-          <Text style={[styles.buttonText, styles.whiteText]}>
-            Connecting...
-          </Text>
-        </View>
+        <ActivityIndicator size="small" color="#000" />
       ) : (
-        <View style={styles.buttonContent}>
-          <Feather name="link" size={18} color="white" />
-          <Text style={[styles.buttonText, styles.whiteText]}>
-            Connect Wallet
-          </Text>
-        </View>
+        <Ionicons name="wallet-outline" size={16} color="#000" />
+      )}
+      {!isLoading && (
+        <Text style={styles.connectText}>Connect</Text>
       )}
     </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-  },
-  fullWidth: {
-    width: "100%",
-  },
-  accountInfo: {
-    alignItems: "center",
-    marginBottom: 12,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
-  },
-  accountRow: {
+  connectedButton: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 4,
-  },
-  connectedText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(75, 85, 99, 0.3)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   addressText: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: "500",
     fontFamily: "monospace",
-    marginTop: 2,
-  },
-  labelText: {
-    fontSize: 11,
-    opacity: 0.7,
-    marginTop: 2,
-  },
-  button: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 140,
+    marginLeft: 8,
+    marginRight: 4,
+    opacity: 0.9,
   },
   connectButton: {
-    // backgroundColor set dynamically
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    shadowColor: "#00D4AA",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  disconnectButton: {
-    backgroundColor: "transparent",
+  connectText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#000",
+    marginLeft: 6,
+  },
+  blurOverlay: {
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  walletModal: {
+    width: "100%",
+    maxWidth: 340,
+    borderRadius: 20,
+    padding: 0,
+    borderWidth: 1,
+    borderColor: "rgba(75, 85, 99, 0.3)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    paddingBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  walletInfo: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  addressSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    backgroundColor: "rgba(31, 41, 55, 0.5)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    maxWidth: "100%",
+  },
+  fullAddress: {
+    fontSize: 13,
+    fontFamily: "monospace",
+    flex: 1,
+    marginRight: 8,
+  },
+  copyButton: {
+    padding: 4,
+  },
+  balanceSection: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  balanceLabel: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  balanceValue: {
+    fontSize: 28,
+    fontWeight: "700",
+  },
+  actionsSection: {
+    padding: 20,
+    paddingTop: 0,
+    gap: 12,
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  loadingButton: {
-    opacity: 0.7,
-  },
-  buttonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
+  actionText: {
     fontSize: 16,
     fontWeight: "600",
-    textAlign: "center",
-  },
-  whiteText: {
-    color: "white",
     marginLeft: 8,
   },
 });

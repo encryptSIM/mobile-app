@@ -8,7 +8,7 @@ export const $styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 20,
     display: 'flex',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
     alignItems: "center",
     minHeight: 400,
   },
@@ -42,22 +42,6 @@ export const $styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 16,
   },
-  qrWrapper: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-    // Add subtle border for better definition
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
   topUpButton: {
     marginBottom: 12,
     borderWidth: 2,
@@ -68,7 +52,6 @@ export const $styles = StyleSheet.create({
     backgroundColor: "transparent",
     marginTop: 16,
     minWidth: 200,
-    // Add subtle shadow
     shadowColor: brandGreen,
     shadowOffset: {
       width: 0,

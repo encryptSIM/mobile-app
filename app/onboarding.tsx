@@ -10,7 +10,7 @@ import {
 import { useAuth } from "@/components/auth/auth-provider";
 import { getDimensions } from "@/utils/dimensions";
 import { card } from "@/components/app-providers";
-import { detectEnvironment } from "@/utils/environment";
+import { detectEnvironment, isSolanaWalletExtensionAvailable } from "@/utils/environment";
 import { OpenInWalletPrompt } from "@/components/openInWalletPrompt";
 
 // Responsive scaling helpers
@@ -69,7 +69,7 @@ export default function Onboarding() {
   };
   const env = detectEnvironment();
 
-  if (env.isWeb && !env.isWalletBrowser) {
+  if (env.isWeb && !env.isWalletBrowser && !isSolanaWalletExtensionAvailable()) {
     return <OpenInWalletPrompt />;
   }
 

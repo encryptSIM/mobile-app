@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import * as SplashScreenAPI from "expo-splash-screen";
 import React, { useEffect } from "react";
 
@@ -6,6 +6,7 @@ import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import Colors from "@/constants/Colors";
 import { Icon } from "react-native-paper";
 import { useSharedState } from "@/hooks/use-provider";
+import { detectEnvironment } from "@/utils/environment";
 
 function TabBarIcon(props: {
   name: 'dVPN' | 'eSIM' | 'Profile'
@@ -18,10 +19,31 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const [showContent,] = useSharedState('SHOW_CONTENT', false)
+  const env = detectEnvironment();
 
   useEffect(() => {
     SplashScreenAPI.hideAsync();
   }, [])
+  if (env.isWeb)
+    return (
+      <Stack
+        screenOptions={{
+          // Disable the static render of the header on web
+          // to prevent a hydration error in React Navigation v6.
+          headerShown: useClientOnlyValue(false, true),
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            headerShown: false,
+            title: 'eSIM',
+            tabBarStyle: { opacity: showContent ? 1 : 0 },
+            tabBarIcon: ({ color }) => <TabBarIcon name="eSIM" color={color} />,
+          }}
+        />
+      </Stack>
+    )
 
   return (
     <Tabs

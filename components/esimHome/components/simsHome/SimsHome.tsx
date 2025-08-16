@@ -1,4 +1,4 @@
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { WalletConnectionButton } from "@/components/WalletConnectionButton"
 import SlidingTabs from "@/components/Tab";
 import React from "react";
 import { Image, View, FlatList } from "react-native";
@@ -14,7 +14,6 @@ import { InstallSimPanel } from "../installSimPanel";
 const tabs = ["Current", "Expired"];
 
 export function SimsHome() {
-  const { account } = useWalletUi();
   const {
     tabIndex,
     selectedSim,
@@ -33,9 +32,9 @@ export function SimsHome() {
             source={require("@/assets/app-logo-light.png")}
             style={$styles.logo}
           />
+          <WalletConnectionButton />
         </View>
         <SlidingTabs tabs={tabs} activeTab={tabIndex} onTabChange={handleSimHomeTabChange} />
-        <View style={{ width: '100%', height: 4 }} />
         {tabIndex === 1 ? (
           <FlatList
             data={simDetails}
@@ -70,9 +69,9 @@ export function SimsHome() {
                 ? <SimUsagePanel stats={usageStats[selectedSim?.iccid!]} />
                 : <InstallSimPanel sim={selectedSim!} />
             }
-            <BuyEsim onBuyPress={() => router.push('/checkoutStack/addSim')} />
           </>
         )}
+        <BuyEsim onBuyPress={() => router.push('/checkoutStack/addSim')} />
       </View>
     </View>
   );

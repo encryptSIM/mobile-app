@@ -9,6 +9,7 @@ import { FlatList, Image, View } from "react-native";
 import { TextInput } from "react-native-paper";
 import { $styles } from "./styles";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
+import { WalletConnectionButton } from "@/components/WalletConnectionButton";
 
 const tabs = ["Countries", "Regional"];
 
@@ -53,7 +54,7 @@ export function NoSimsHome() {
             source={require("@/assets/app-logo-light.png")}
             style={$styles.logo}
           />
-          <Image source={{ uri: account?.icon }} style={$styles.icon} />
+          <WalletConnectionButton />
         </View>
         <TextInput
           placeholder="Search your destination"
