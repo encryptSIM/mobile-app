@@ -1,4 +1,5 @@
 import { background, brandGreen, card } from "@/components/app-providers";
+import { sizing } from "@/constants/sizing";
 import { getDimensions } from "@/utils/dimensions";
 import { StyleSheet } from "react-native";
 
@@ -7,17 +8,17 @@ const { height } = getDimensions()
 export const $styles = StyleSheet.create({
   flagImage: {
     paddingRight: 16,
-    width: 30,
-    height: 30,
+    width: sizing.icon,
+    height: sizing.icon,
     borderRadius: 50,
   },
   card: {
     backgroundColor: card,
-    marginBottom: 16,
+    marginBottom: sizing.margin,
     borderRadius: 30,
   },
   content: {
-    padding: 20,
+    padding: sizing.padding,
   },
   header: {
     flexDirection: 'row',
@@ -31,12 +32,12 @@ export const $styles = StyleSheet.create({
   },
   title: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: sizing.fontMedium,
     fontWeight: 'bold',
   },
   description: {
     color: '#cccccc',
-    fontSize: 14,
+    fontSize: sizing.fontSmall,
     lineHeight: 20,
   },
   modalOverlay: {
@@ -64,7 +65,7 @@ export const $styles = StyleSheet.create({
   },
   modalTitle: {
     color: '#cccccc',
-    fontSize: 16,
+    fontSize: sizing.fontLarge,
     fontWeight: '500',
   },
   closeButton: {
@@ -75,12 +76,12 @@ export const $styles = StyleSheet.create({
   },
   closeButtonText: {
     color: '#cccccc',
-    fontSize: 24,
+    fontSize: sizing.fontLarge,
     fontWeight: 'bold',
   },
   simsList: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: sizing.padding,
   },
   simDropdownRight: {
     display: 'flex',
@@ -89,7 +90,7 @@ export const $styles = StyleSheet.create({
     alignItems: 'center',
   },
   simDropdown: {
-    marginTop: 18,
+    marginTop: sizing.margin,
     marginBottom: 8,
     justifyContent: 'space-between',
     paddingRight: 20,
@@ -133,12 +134,12 @@ export const $styles = StyleSheet.create({
   },
   disabledText: {
     color: '#000000',
-    fontSize: 12,
+    fontSize: sizing.fontSmall,
     fontWeight: '500',
   },
   simLabel: {
     color: 'white',
-    fontSize: 16,
+    fontSize: sizing.fontMedium,
     fontWeight: '800',
   },
   dragHandle: {

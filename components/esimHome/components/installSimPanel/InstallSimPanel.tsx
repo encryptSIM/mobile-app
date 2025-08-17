@@ -14,6 +14,8 @@ import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
 import { $styles } from "./styles";
 import { QrCodeSvg } from "react-native-qr-svg";
+import { moderateScale, scale } from "react-native-size-matters";
+import { sizing } from "@/constants/sizing";
 
 export interface InstallSimPanelProps {
   sim: Sim;
@@ -188,23 +190,28 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
       <View ref={qrRef} collapsable={false} style={$styles.qrContainer}>
         <QrCodeSvg
           value={props?.sim?.qrcode || "123"}
-          frameSize={180}
+          frameSize={sizing.qr}
           contentCells={12}
-          backgroundColor='transparent'
+          backgroundColor="transparent"
           dotColor={brandGreen}
-          errorCorrectionLevel={'high'}
+          contentStyle={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          errorCorrectionLevel="high"
           content={
             <Image
               source={require("@/assets/app-logo.png")}
-              style={{ width: 40, height: 40, borderRadius: 10, margin: 12 }}
+              style={{
+                width: sizing.icon,
+                height: sizing.icon,
+                borderRadius: 10,
+                margin: sizing.margin / 2,
+              }}
               resizeMode="contain"
             />
           }
-          contentStyle={{
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 12,
-          }}
         />
       </View>
 

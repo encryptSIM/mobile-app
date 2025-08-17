@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 export const $styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: -40,
+    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
@@ -14,13 +14,13 @@ export const $styles = StyleSheet.create({
   cartContent: {
     backgroundColor: background,
     padding: 16,
-    maxHeight: 400,
+    maxHeight: 500,
     width: '100%',
     height: '100%',
   },
 
   itemsList: {
-    maxHeight: 280,
+    maxHeight: 300,
     marginBottom: 16,
   },
 

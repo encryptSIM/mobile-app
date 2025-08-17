@@ -1,10 +1,10 @@
 import { Sim } from "@/api/api";
-import { $styles } from "./styles";
+import { countries, regions } from "@/constants/countries";
 import { useState } from "react";
 import { Image, Modal, ScrollView, TouchableOpacity, View } from "react-native";
-import { Card, IconButton, List, Text } from "react-native-paper";
-import { countries, regions } from "@/constants/countries";
 import CountryFlag from "react-native-country-flag";
+import { List, Text } from "react-native-paper";
+import { $styles } from "./styles";
 
 export interface SimSelectorProps {
   selectedSim: Sim | null
@@ -115,7 +115,6 @@ export function SimSelector(props: SimSelectorProps) {
                   </View>
                 </TouchableOpacity>
               ))}
-              <View style={{ height: 20 }} />
             </ScrollView>
           </View>
         </TouchableOpacity>

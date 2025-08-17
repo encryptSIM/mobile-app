@@ -1,7 +1,13 @@
-import { WalletConnectionButton } from "@/components/WalletConnectionButton"
+import { WalletConnectionButton } from "@/components/WalletConnectionButton";
 import SlidingTabs from "@/components/Tab";
 import React from "react";
-import { Image, View, FlatList } from "react-native";
+import {
+  Image,
+  View,
+  FlatList,
+  ScrollView,
+  SafeAreaView,
+} from "react-native";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
 import { SimSelector } from "../simSelector/SimSelector";
 import { $styles } from "./styles";
@@ -25,8 +31,11 @@ export function SimsHome() {
   } = useEsimHomeScreen();
 
   return (
-    <View style={$styles.container}>
-      <View style={$styles.content}>
+    <SafeAreaView style={$styles.container}>
+      <ScrollView
+        contentContainerStyle={$styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={$styles.header}>
           <Image
             source={require("@/assets/app-logo-light.png")}
@@ -34,7 +43,11 @@ export function SimsHome() {
           />
           <WalletConnectionButton />
         </View>
-        <SlidingTabs tabs={tabs} activeTab={tabIndex} onTabChange={handleSimHomeTabChange} />
+        <SlidingTabs
+          tabs={tabs}
+          activeTab={tabIndex}
+          onTabChange={handleSimHomeTabChange}
+        />
         {tabIndex === 1 ? (
           <FlatList
             data={simDetails}
@@ -49,11 +62,13 @@ export function SimsHome() {
                   onPress={() => { }}
                   id={item.sim.iccid}
                 />
-                <View style={{ width: '100%', height: 16 }} />
+                <View style={{ height: 16 }} />
               </>
             )}
             ListFooterComponent={
-              <BuyEsim onBuyPress={() => router.push('/checkoutStack/addSim')} />
+              <BuyEsim
+                onBuyPress={() => router.push("/checkoutStack/addSim")}
+              />
             }
             contentContainerStyle={$styles.listContent}
           />
@@ -64,15 +79,15 @@ export function SimsHome() {
               selectedSim={selectedSim}
               onSelectSim={(sim) => setSelectedSim(sim)}
             />
-            {
-              selectedSim?.installed
-                ? <SimUsagePanel stats={usageStats[selectedSim?.iccid!]} />
-                : <InstallSimPanel sim={selectedSim!} />
-            }
+            {selectedSim?.installed ? (
+              <SimUsagePanel stats={usageStats[selectedSim?.iccid!]} />
+            ) : (
+              <InstallSimPanel sim={selectedSim!} />
+            )}
           </>
         )}
-        <BuyEsim onBuyPress={() => router.push('/checkoutStack/addSim')} />
-      </View>
-    </View>
+        <BuyEsim onBuyPress={() => router.push("/checkoutStack/addSim")} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }

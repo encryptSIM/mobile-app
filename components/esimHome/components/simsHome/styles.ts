@@ -1,57 +1,56 @@
 import { background } from "@/components/app-providers";
+import { sizing } from "@/constants/sizing";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: '100%',
     flex: 1,
+    width: "100%",
+    height: "100%",
   },
   content: {
-    paddingHorizontal: 24,
-    paddingVertical: 36,
-    width: '100%',
-    height: '100%',
-    flex: 1,
+    paddingHorizontal: sizing.padding,
+    paddingVertical: sizing.padding,
+    display: 'flex',
     justifyContent: 'space-evenly',
+    flex: 1,
+    width: "100%",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingBottom: 32,
+    paddingBottom: sizing.margin,
   },
   logo: {
-    width: 48,
-    height: 48,
+    width: sizing.logo,
+    height: sizing.logo,
+    resizeMode: "contain",
   },
   icon: {
-    width: 48,
-    height: 48,
+    width: sizing.icon,
+    height: sizing.icon,
   },
   searchSpacing: {
-    height: 16,
+    height: sizing.margin,
   },
   tabsContainer: {
     position: "relative",
     zIndex: 1000,
     width: "100%",
     backgroundColor: background,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: sizing.margin / 2,
+    paddingBottom: sizing.margin / 2,
   },
   listContent: {
-    paddingBottom: 16,
+    paddingBottom: sizing.margin,
   },
   columnWrapper: {
     justifyContent: "space-between",
-    paddingHorizontal: 8,
-    marginBottom: 16,
+    paddingHorizontal: sizing.margin / 2,
+    marginBottom: sizing.margin,
   },
   cardContainer: {
     flex: 1,
-    marginHorizontal: 8,
+    marginHorizontal: sizing.margin / 2,
   },
 });
-
-
-

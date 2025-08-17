@@ -32,7 +32,7 @@ export const appFrameStyles = `
     #app-frame-container {
       width: min(375px, 90vw);
       height: min(812px, 90vh);
-      aspect-ratio: 375 / 812;
+      aspect-ratio: 380 / 812;
       border-radius: 25px;
       padding: 8px;
       box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1),
@@ -47,7 +47,7 @@ export const appFrameStyles = `
   /* Large desktop - maintain reasonable max size */
   @media (min-width: 1200px) {
     #app-frame-container {
-      width: 375px;
+      width: 380px;
       height: 812px;
     }
   }

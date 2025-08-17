@@ -10,6 +10,8 @@ import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { ActivityIndicator } from "react-native-paper";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { brandGreen } from "@/components/app-providers";
+import { moderateScale } from "react-native-size-matters";
+import { sizing } from "@/constants/sizing";
 
 const exampleStats: UsageStat[] = [
   {
@@ -164,7 +166,7 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         <View style={$styles.circularProgressWrapper}>
           <CircularProgress
             percentage={percentage}
-            size={200}
+            size={sizing.progress}
             color={progressColor}
           />
           <View style={$styles.progressTextContainer}>
