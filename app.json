@@ -76,9 +76,24 @@
       }
     },
     "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/app-logo-light.png",
+      "name": "encryptSIM",
+      "shortName": "encryptSIM",
+      "description": "Your Web3 gateway. No KYC, crypto-ready, instant eSIM for secure global use.",
+      "themeColor": "#F8FAFC",
+      "backgroundColor": "#F8FAFC",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "en",
+      "meta": {
+        "apple-mobile-web-app-capable": "yes",
+        "apple-mobile-web-app-status-bar-style": "black-translucent",
+        "apple-mobile-web-app-title": "encryptSIM",
+        "application-name": "encryptSIM",
+        "msapplication-TileColor": "#F8FAFC",
+        "msapplication-tap-highlight": "no",
+        "mobile-web-app-capable": "yes"
+      }
     },
     "plugins": [
       "expo-router",
