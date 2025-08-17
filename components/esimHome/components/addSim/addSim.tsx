@@ -1,9 +1,8 @@
+import { Icon } from "@/components/Icon";
 import { PackageCard } from "@/components/packageCard";
 import PackageLocationListHeader from "@/components/PackageLocationListHeader";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { PackageCardData } from "@/constants/countries";
-import EvilIcons from "@react-native-vector-icons/fontawesome";
-import { router } from "expo-router";
+import { useSafeNavigation } from "@/hooks/use-safe-navigation";
 import React, { useCallback } from "react";
 import { FlatList, View } from "react-native";
 import { Appbar, TextInput } from "react-native-paper";
@@ -20,14 +19,15 @@ export function AddSim() {
     setSearchQuery,
     handleTabChange,
   } = useEsimHomeScreen();
+  const navigation = useSafeNavigation()
 
   const renderCard = useCallback(
     ({ item }: { item: PackageCardData }) => (
       <View style={$styles.cardContainer}>
         <PackageCard
           onPress={() =>
-            router.push({
-              pathname: "/checkoutStack",
+            navigation.navigate("checkoutStack", {
+              screen: "index",
               params: {
                 region: item.region,
                 label: item.label,
@@ -48,7 +48,7 @@ export function AddSim() {
     <View style={$styles.container}>
       <View style={$styles.content}>
         <Appbar.Header style={$styles.header}>
-          <Appbar.BackAction onPress={router.back} />
+          <Icon icon="back" onPress={navigation.goBack} colour="white" size="large" />
           <Appbar.Content title={"Add new eSIM"} />
         </Appbar.Header>
         <TextInput
@@ -58,9 +58,7 @@ export function AddSim() {
           textColor="white"
           onChangeText={setSearchQuery}
           left={
-            <TextInput.Icon
-              icon={() => <EvilIcons name="search" size={24} color="gray" />}
-            />
+            <Icon icon="search" />
           }
         />
         <View style={$styles.searchSpacing} />

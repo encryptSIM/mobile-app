@@ -2,10 +2,16 @@ import { card } from '@/components/app-providers';
 import { StyleSheet } from 'react-native';
 
 export const $styles = StyleSheet.create({
+  icon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    display: 'flex'
+  },
   qtyContainer: {
     position: 'absolute',
-    bottom: 15,
-    right: 40,
+    bottom: -20,
+    right: 20,
   },
   flagImage: {
     width: 40,
@@ -17,6 +23,7 @@ export const $styles = StyleSheet.create({
     backgroundColor: card,
     marginBottom: 16,
     borderRadius: 30,
+    paddingBottom: 30,
   },
   content: {
     padding: 20,

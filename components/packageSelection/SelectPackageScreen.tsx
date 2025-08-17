@@ -1,17 +1,19 @@
 import { Cart, PackageDetailsCard, PackageEmptyState, PackageErrorState, PackageFilters, PackageListFooter } from "@/components/packageSelection/components";
 import { PackageItem, usePackageData } from "@/components/packageSelection/hooks";
-import { router, useLocalSearchParams } from "expo-router";
+import { useSafeNavigation } from "@/hooks/use-safe-navigation";
+import { useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
 import {
   FlatList,
   ListRenderItem,
   RefreshControl,
-  View,
-  SafeAreaView
+  SafeAreaView,
+  View
 } from "react-native";
 import { Appbar, Text } from "react-native-paper";
-import { $styles } from "./styles";
 import { background, brandGreen } from "../app-providers";
+import { $styles } from "./styles";
+import { Icon } from "../Icon";
 
 const MAX_PACKAGES = 1
 export function SelectPackageScreen() {
@@ -36,6 +38,7 @@ export function SelectPackageScreen() {
     countryCode: local.countryCode ? local.countryCode.toString().toUpperCase() : undefined,
     region: String(local.region)
   });
+  const navigation = useSafeNavigation()
 
   const renderPackageItem: ListRenderItem<PackageItem> = useCallback(
     ({ item }) => (
@@ -77,7 +80,7 @@ export function SelectPackageScreen() {
   return (
     <SafeAreaView style={$styles.root}>
       <Appbar.Header style={$styles.header}>
-        <Appbar.BackAction onPress={router.back} />
+        <Icon icon="back" onPress={navigation.goBack} colour="white" size="large" />
         <Appbar.Content title={local.label} />
       </Appbar.Header>
       <View style={$styles.listHeader}>
@@ -141,14 +144,14 @@ export function SelectPackageScreen() {
           },
         }))}
         onCheckout={() => {
-          router.push({
-            pathname: "/checkoutStack/checkout",
+          navigation.navigate("checkoutStack", {
+            screen: "checkout",
             params: {
               title: local.label,
               countryCode: local.countryCode,
               region: local.region,
             },
-          })
+          });
         }}
       />
 

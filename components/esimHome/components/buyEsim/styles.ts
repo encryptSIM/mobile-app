@@ -2,6 +2,7 @@ import { brandGreen, card } from "@/components/app-providers";
 import { sizing } from "@/constants/sizing";
 import { StyleSheet } from "react-native";
 
+
 export const $styles = StyleSheet.create({
   root: {
     display: 'flex',
@@ -25,6 +26,8 @@ export const $styles = StyleSheet.create({
   },
   button: {
     backgroundColor: brandGreen,
+    position: 'relative',
+    right: 20,
   },
   title: {
     fontWeight: 700,
@@ -33,4 +36,10 @@ export const $styles = StyleSheet.create({
     maxWidth: '70%',
     color: '#CDD0D5',
   },
+  icon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    display: 'flex'
+  }
 })

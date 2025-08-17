@@ -80,6 +80,7 @@ export const usePackageData = ({
       .filter((item) => {
         if (filter.length === 0) return true;
         if (filter.includes(parseInt(String(item.localPackage?.day)))) return true;
+        if (selectedPackages.includes(item.id)) return true
         return false;
       });
   }, [packageDetails.packageDetails, filter]);

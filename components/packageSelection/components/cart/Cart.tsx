@@ -3,6 +3,7 @@ import { Button, FAB, Text } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { $styles } from "./styles";
 import { useThrottledCallback } from "@/hooks/use-throttled-callback";
+import { Icon } from "@/components/Icon";
 
 const MEDIUM_FAB_HEIGHT = 40;
 
@@ -59,7 +60,9 @@ export function Cart(props: CartProps) {
                     size="small"
                     disabled={props.items[0].qty < 2}
                     rippleColor={'white'}
-                    icon="minus"
+                    icon={
+                      () => <View style={$styles.icon}><Icon icon="minus" colour="white" /></View>
+                    }
                     onPress={item.decrement}
                     style={[$styles.quantityButton, $styles.minusButton]}
                     customSize={MEDIUM_FAB_HEIGHT}
@@ -72,7 +75,9 @@ export function Cart(props: CartProps) {
                     color="white"
                     size="small"
                     rippleColor={'white'}
-                    icon="plus"
+                    icon={
+                      () => <View style={$styles.icon}><Icon icon="plus" colour="white" /></View>
+                    }
                     onPress={item.increment}
                     style={[$styles.quantityButton, $styles.plusButton]}
                     customSize={MEDIUM_FAB_HEIGHT}

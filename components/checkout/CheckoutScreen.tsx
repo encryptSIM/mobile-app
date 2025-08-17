@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { Appbar } from 'react-native-paper';
@@ -13,6 +12,8 @@ import { ErrorCard } from './components/errorCard';
 import { useCheckout } from './hooks/useCheckout';
 import { $styles } from './styles';
 import { useThrottledCallback } from '@/hooks/use-throttled-callback';
+import { useSafeNavigation } from '@/hooks/use-safe-navigation';
+import { Icon } from '../Icon';
 
 export function CheckoutScreen() {
   const {
@@ -30,12 +31,13 @@ export function CheckoutScreen() {
     handleContinuePayment,
     clearError,
   } = useCheckout();
+  const navigation = useSafeNavigation()
   const throttledContinue = useThrottledCallback(handleContinuePayment, 3000)
 
   return (
     <View style={$styles.container}>
       <Appbar.Header style={$styles.header}>
-        <Appbar.BackAction onPress={router.back} />
+        <Icon icon="back" onPress={navigation.goBack} colour="white" size="large" />
         <Appbar.Content title={local.title} />
       </Appbar.Header>
 
@@ -70,7 +72,7 @@ export function CheckoutScreen() {
         <ErrorCard paymentState={paymentState} clearError={clearError} />
 
         {
-          paymentState.error ?? (
+          !paymentState.error && (
             <ContinueButton
               text={getContinueButtonText()}
               loading={paymentState.stage !== 'idle'}

@@ -59,6 +59,8 @@ export const $styles = StyleSheet.create({
   left: {
     display: 'flex',
     flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 5,
   },
 });

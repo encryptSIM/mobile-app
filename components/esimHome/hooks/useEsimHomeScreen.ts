@@ -14,6 +14,7 @@ import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { useMultiUsage } from "@/airalo-api/queries/usage";
 import { UsageStat } from "../components/simUsagePanel";
 import { PackageDetailsCardField } from "@/components/packageSelection/components";
+import { IconType } from "@/components/Icon";
 
 export const SELECTED_SIM = {
   key: 'SELECTED_SIM',
@@ -45,7 +46,7 @@ export function useEsimHomeScreen() {
 
     const addDetail = (
       key: string,
-      icon: string,
+      icon: IconType,
       value: any,
       detailsArray: PackageDetailsCardField[]
     ) => {
@@ -68,7 +69,7 @@ export function useEsimHomeScreen() {
       addDetail("Data", "wifi", stats[sim.iccid].total, packageDetails);
       addDetail(
         "Validity",
-        "calendar-month",
+        "calendar",
         total,
         packageDetails
       );
@@ -88,7 +89,7 @@ export function useEsimHomeScreen() {
           total: usage.total_text,
           used: usage.total_text - usage.remaining_text!,
           label: "SMS",
-          icon: "message",
+          icon: "sms",
           unit: "messages",
         })
       }
@@ -119,7 +120,7 @@ export function useEsimHomeScreen() {
           total: total,
           used: total - remaining,
           label: "Validity",
-          icon: "calendar-month",
+          icon: "calendar",
           unit: "days",
           formatValue: () => "7 days left",
         })

@@ -1,17 +1,16 @@
-import React, { useState } from "react";
-import Svg, { Circle } from "react-native-svg";
-import { View, Text, TouchableOpacity } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { $styles } from "./styles";
-import { useSharedState } from "@/hooks/use-provider";
 import { $api, Sim } from "@/api/api";
-import { SIMS } from "@/components/checkout/hooks/useCheckout";
-import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
-import { ActivityIndicator } from "react-native-paper";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { brandGreen } from "@/components/app-providers";
-import { moderateScale } from "react-native-size-matters";
+import { SIMS } from "@/components/checkout/hooks/useCheckout";
+import { Icon, IconType } from "@/components/Icon";
+import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { sizing } from "@/constants/sizing";
+import { useSharedState } from "@/hooks/use-provider";
+import React, { useState } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
+import Svg, { Circle } from "react-native-svg";
+import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
+import { $styles } from "./styles";
 
 const exampleStats: UsageStat[] = [
   {
@@ -32,14 +31,14 @@ const exampleStats: UsageStat[] = [
     total: 50,
     used: 12,
     label: "SMS",
-    icon: "message",
+    icon: "sms",
     unit: "messages",
   },
   {
     total: 10,
     used: 3,
     label: "Validity",
-    icon: "calendar-month",
+    icon: "calendar",
     unit: "days",
     formatValue: () => "7 days left",
   },
@@ -50,7 +49,7 @@ export interface UsageStat {
   total: number;
   used: number;
   label: string;
-  icon: string;
+  icon: IconType;
   unit: string;
   formatValue?: () => string;
 }
@@ -142,13 +141,12 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
               $styles.iconContainer,
               selectedIndex === index && $styles.selectedIconContainer,
             ]}
-            onPressIn={() => setSelectedIndex(index)}
+            onPress={() => setSelectedIndex(index)}
             accessibilityLabel={`Select ${stat.label}`}
           >
-            <MaterialIcons
-              name={stat.icon as any}
-              size={24}
-              color={selectedIndex === index ? "white" : "#666"}
+            <Icon
+              icon={stat.icon}
+              colour={selectedIndex === index ? "white" : "#666"}
             />
             <Text
               style={[

@@ -1,20 +1,18 @@
+import { Icon } from "@/components/Icon";
 import { PackageCard } from "@/components/packageCard";
 import PackageLocationListHeader from "@/components/PackageLocationListHeader";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { WalletConnectionButton } from "@/components/WalletConnectionButton";
 import { PackageCardData } from "@/constants/countries";
-import EvilIcons from "@react-native-vector-icons/fontawesome";
-import { router } from "expo-router";
+import { useSafeNavigation } from "@/hooks/use-safe-navigation";
 import React, { useCallback } from "react";
 import { FlatList, Image, View } from "react-native";
 import { TextInput } from "react-native-paper";
-import { $styles } from "./styles";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
-import { WalletConnectionButton } from "@/components/WalletConnectionButton";
+import { $styles } from "./styles";
 
 const tabs = ["Countries", "Regional"];
 
 export function NoSimsHome() {
-  const { account } = useWalletUi();
   const {
     tabIndex,
     searchQuery,
@@ -22,14 +20,15 @@ export function NoSimsHome() {
     setSearchQuery,
     handleTabChange,
   } = useEsimHomeScreen();
+  const navigation = useSafeNavigation()
 
   const renderCard = useCallback(
     ({ item }: { item: PackageCardData }) => (
       <View style={$styles.cardContainer}>
         <PackageCard
           onPress={() =>
-            router.push({
-              pathname: "/checkoutStack",
+            navigation.navigate("checkoutStack", {
+              screen: "index",
               params: {
                 region: item.region,
                 label: item.label,
@@ -63,9 +62,7 @@ export function NoSimsHome() {
           textColor="white"
           onChangeText={setSearchQuery}
           left={
-            <TextInput.Icon
-              icon={() => <EvilIcons name="search" size={24} color="gray" />}
-            />
+            <Icon icon="search" />
           }
         />
         <View style={$styles.searchSpacing} />

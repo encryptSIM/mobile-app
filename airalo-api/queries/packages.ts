@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { airaloFetchClient } from "../api";
 import { RemoteCache } from "@/components/cache/types";
 import { fetchClient } from "@/api/api";
+import { IconType } from "@/components/Icon";
 
 const localStorage = createAsyncStorage();
 
@@ -122,7 +123,7 @@ export const usePackageDetails = (params?: {
 
     const addDetail = (
       key: string,
-      icon: string,
+      icon: IconType,
       value: any,
       detailsArray: PackageDetailsCardField[]
     ) => {
@@ -139,11 +140,11 @@ export const usePackageDetails = (params?: {
       const packageDetails: PackageDetailsCardField[] = [];
 
       addDetail("Calls (min)", "phone", localPackage?.voice, packageDetails);
-      addDetail("SMS", "message-processing", localPackage?.text, packageDetails);
+      addDetail("SMS", "sms", localPackage?.text, packageDetails);
       addDetail("Data", "wifi", localPackage?.data, packageDetails);
       addDetail(
         "Validity",
-        "calendar-month",
+        "calendar",
         localPackage?.day,
         packageDetails
       );
