@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Card, Text, TextInput, Button } from 'react-native-paper';
 import { $styles } from './styles';
 import { brandGreen } from '@/components/app-providers';
+import { Icon } from '@/components/Icon';
 
 interface DiscountCodeProps {
   value: string;
@@ -51,9 +52,9 @@ export const DiscountCode: React.FC<DiscountCodeProps> = ({
             cursorColor='white'
             right={
               (invalid || loading)
-                ? <TextInput.Icon color={!loading ? '#FFD480' : undefined} loading={loading} icon="alert" />
+                ? <Icon colour={!loading ? '#FFD480' : undefined} loading={loading} icon="alert" />
                 : applied
-                  ? <TextInput.Icon color={brandGreen} icon="checkbox-marked-circle-outline" />
+                  ? <Icon colour={brandGreen} icon="checkCircle" />
                   : undefined
             }
             placeholderTextColor="#888"

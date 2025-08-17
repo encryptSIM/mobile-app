@@ -2,6 +2,12 @@ import { background, brandGreen } from "@/components/app-providers";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
+  icon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    display: 'flex'
+  },
   container: {
     position: 'absolute',
     bottom: 0,

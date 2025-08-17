@@ -1,6 +1,7 @@
 import { View } from "react-native";
-import { Button, Icon, Text } from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 import { $styles } from "./styles";
+import { Icon } from "@/components/Icon";
 
 interface PackageEmptyStateProps {
   onClearFilters: () => void;
@@ -9,7 +10,7 @@ interface PackageEmptyStateProps {
 export const PackageEmptyState = ({ onClearFilters }: PackageEmptyStateProps) => {
   return (
     <View style={$styles.emptyContainer}>
-      <Icon size={64} source="package-variant" color="#666" />
+      <Icon size={'large'} icon="cube" />
       <Text variant="headlineSmall" style={$styles.emptyTitle}>
         No packages available
       </Text>

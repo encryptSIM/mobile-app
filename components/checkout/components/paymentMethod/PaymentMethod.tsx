@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Modal, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Card, Text, IconButton } from 'react-native-paper';
 import { $styles } from './styles';
+import { Icon } from '@/components/Icon';
 
 interface PaymentMethodOption {
   id: string;
@@ -103,11 +104,7 @@ export const PaymentMethod: React.FC<PaymentMethodProps> = ({
               <Image source={selectedMethod.icon} style={$styles.methodIcon} />
               <Text style={$styles.title}>Payment method</Text>
             </View>
-            <IconButton
-              icon="pencil"
-              iconColor="#888"
-              size={20}
-            />
+            <Icon icon="pencil" />
           </TouchableOpacity>
 
           <Text style={$styles.description}>

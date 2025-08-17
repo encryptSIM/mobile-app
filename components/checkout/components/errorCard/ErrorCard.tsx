@@ -3,6 +3,7 @@ import { Animated, Text, TouchableOpacity, View } from "react-native";
 import { PaymentState } from "../../hooks/useCheckout";
 import { Ionicons } from "@expo/vector-icons";
 import { $styles } from "./styles";
+import { Icon } from "@/components/Icon";
 
 export interface ErrorCardProps {
   paymentState: PaymentState;
@@ -35,7 +36,7 @@ export function ErrorCard({ paymentState, clearError }: ErrorCardProps) {
     <View style={$styles.card}>
       <View style={$styles.headerRow}>
         <View style={$styles.iconCircle}>
-          <Ionicons name="alert-circle" size={24} color="#ff4757" />
+          <Icon icon="alertCircle" colour="#ff4757" />
         </View>
         <Text style={$styles.headerText}>Payment Failed</Text>
       </View>
@@ -47,10 +48,9 @@ export function ErrorCard({ paymentState, clearError }: ErrorCardProps) {
           onPress={clearError}
           style={$styles.tryAgainButton}
         >
-          <Ionicons
-            name="refresh"
-            size={16}
-            color="#ffffff"
+          <Icon
+            icon="swap"
+            colour="#ffffff"
             style={$styles.tryAgainIcon}
           />
           <Text style={$styles.tryAgainText}>Try Again</Text>

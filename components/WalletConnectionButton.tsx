@@ -10,8 +10,6 @@ import {
   Pressable,
   Image,
 } from "react-native";
-import { useTheme } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
 import { useUnifiedWallet } from "@/hooks/use-unified-wallet";
 import { addressFormatter } from "@/utils";
 import { BlurView } from "expo-blur";
@@ -19,6 +17,7 @@ import { useGetBalance } from "./solana/use-get-balance";
 import { brandGreen } from "./app-providers";
 import { lamportsToSol } from "@/utils/lamports-to-sol";
 import { useAuth } from "./auth/auth-provider";
+import { Icon } from "./Icon";
 
 interface WalletConnectionButtonProps {
   onConnected?: () => void;
@@ -38,7 +37,6 @@ export function WalletConnectionButton({
   onSwitchAccount,
   style,
 }: WalletConnectionButtonProps) {
-  const { colors } = useTheme();
   const wallet = useUnifiedWallet();
   const { signOut } = useAuth()
   const balance = useGetBalance({ address: wallet.publicKey! });
@@ -104,22 +102,18 @@ export function WalletConnectionButton({
           onPress={() => setMenuVisible(true)}
           activeOpacity={0.7}
         >
-          {/* Identicon Avatar */}
           <Image
             source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
             style={{ width: 24, height: 24, borderRadius: 32 }}
           />
 
-          {/* Address */}
           <Text style={[styles.addressText, { color: designColors.buttonText }]}>
             {addressFormatter(wallet.selectedAccount.address)}
           </Text>
 
-          {/* Subtle dropdown indicator */}
-          <Ionicons name="chevron-down" size={16} color={designColors.textTertiary} />
+          <Icon icon={'chevronDown'} size="small" colour={designColors.textTertiary} />
         </TouchableOpacity>
 
-        {/* Simplified Wallet Modal */}
         <Modal
           transparent
           visible={menuVisible}
@@ -132,17 +126,15 @@ export function WalletConnectionButton({
               onPress={() => setMenuVisible(false)}
             >
               <View style={[styles.walletModal, { backgroundColor: designColors.bg }]}>
-                {/* Header */}
                 <View style={styles.modalHeader}>
                   <TouchableOpacity
                     onPress={() => setMenuVisible(false)}
                     style={styles.closeButton}
                   >
-                    <Ionicons name="close" size={24} color={designColors.textSecondary} />
+                    <Icon icon={'x'} size="normal" colour={designColors.textSecondary} />
                   </TouchableOpacity>
                 </View>
 
-                {/* Wallet Avatar & Address */}
                 <View style={styles.walletInfo}>
                   <Image
                     source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
@@ -157,12 +149,11 @@ export function WalletConnectionButton({
                       style={styles.copyButton}
                       onPress={handleCopyAddress}
                     >
-                      <Ionicons name="copy-outline" size={16} color={designColors.primary} />
+                      <Icon icon={'copy'} size="normal" colour={designColors.primary} />
                     </TouchableOpacity>
                   </View>
                 </View>
 
-                {/* Balance */}
                 <View style={styles.balanceSection}>
                   <Text style={[styles.balanceLabel, { color: designColors.textSecondary }]}>
                     Balance
@@ -172,7 +163,6 @@ export function WalletConnectionButton({
                   </Text>
                 </View>
 
-                {/* Actions */}
                 <View style={styles.actionsSection}>
                   <TouchableOpacity
                     style={[styles.actionButton, {
@@ -181,7 +171,7 @@ export function WalletConnectionButton({
                     }]}
                     onPress={handleSwitchAccount}
                   >
-                    <Ionicons name="swap-horizontal" size={20} color={designColors.primary} />
+                    <Icon icon={'swap'} size="normal" colour={designColors.primary} />
                     <Text style={[styles.actionText, { color: designColors.primary }]}>
                       Switch Account
                     </Text>
@@ -194,7 +184,7 @@ export function WalletConnectionButton({
                     }]}
                     onPress={handleDisconnect}
                   >
-                    <Ionicons name="log-out-outline" size={20} color={designColors.danger} />
+                    <Icon icon={'logout'} size="normal" colour={designColors.danger} />
                     <Text style={[styles.actionText, { color: designColors.danger }]}>
                       Disconnect
                     </Text>
@@ -224,7 +214,7 @@ export function WalletConnectionButton({
       {isLoading ? (
         <ActivityIndicator size="small" color="#000" />
       ) : (
-        <Ionicons name="wallet-outline" size={16} color="#000" />
+        <Icon icon={'swap'} size="normal" colour={designColors.primary} />
       )}
       {!isLoading && (
         <Text style={styles.connectText}>Connect</Text>

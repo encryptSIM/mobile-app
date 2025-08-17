@@ -5,6 +5,7 @@ import { Image, Modal, ScrollView, TouchableOpacity, View } from "react-native";
 import CountryFlag from "react-native-country-flag";
 import { List, Text } from "react-native-paper";
 import { $styles } from "./styles";
+import { Icon } from "@/components/Icon";
 
 export interface SimSelectorProps {
   selectedSim: Sim | null
@@ -68,7 +69,7 @@ export function SimSelector(props: SimSelectorProps) {
             }
 
           ]}>{props.selectedSim.package_title}</Text>
-          {props.sims.length > 1 && <List.Icon icon={'chevron-down'} />}
+          {props.sims.length > 1 && <Icon icon={'chevronDown'} />}
         </View>
       </TouchableOpacity>
 

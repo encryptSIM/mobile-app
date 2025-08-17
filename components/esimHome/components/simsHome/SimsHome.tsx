@@ -1,21 +1,21 @@
-import { WalletConnectionButton } from "@/components/WalletConnectionButton";
+import { PackageDetailsCard } from "@/components/packageSelection/components";
 import SlidingTabs from "@/components/Tab";
+import { WalletConnectionButton } from "@/components/WalletConnectionButton";
+import { useSafeNavigation } from "@/hooks/use-safe-navigation";
 import React from "react";
 import {
-  Image,
-  View,
   FlatList,
-  ScrollView,
+  Image,
   SafeAreaView,
+  ScrollView,
+  View,
 } from "react-native";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
-import { SimSelector } from "../simSelector/SimSelector";
-import { $styles } from "./styles";
-import { SimUsagePanel } from "../simUsagePanel/SimUsagePanel";
 import { BuyEsim } from "../buyEsim";
-import { router } from "expo-router";
-import { PackageDetailsCard } from "@/components/packageSelection/components";
 import { InstallSimPanel } from "../installSimPanel";
+import { SimSelector } from "../simSelector/SimSelector";
+import { SimUsagePanel } from "../simUsagePanel/SimUsagePanel";
+import { $styles } from "./styles";
 
 const tabs = ["Current", "Expired"];
 
@@ -29,7 +29,7 @@ export function SimsHome() {
     setSelectedSim,
     handleSimHomeTabChange,
   } = useEsimHomeScreen();
-
+  const navigation = useSafeNavigation();
   return (
     <SafeAreaView style={$styles.container}>
       <ScrollView
@@ -67,7 +67,7 @@ export function SimsHome() {
             )}
             ListFooterComponent={
               <BuyEsim
-                onBuyPress={() => router.push("/checkoutStack/addSim")}
+                onBuyPress={() => navigation.navigate("checkoutStack", { screen: "addSim" })}
               />
             }
             contentContainerStyle={$styles.listContent}
@@ -86,7 +86,10 @@ export function SimsHome() {
             )}
           </>
         )}
-        <BuyEsim onBuyPress={() => router.push("/checkoutStack/addSim")} />
+        <BuyEsim
+          onBuyPress={() => navigation.navigate("checkoutStack", { screen: "addSim" })}
+
+        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -42,7 +42,7 @@ function RootLayoutNav() {
     <ThemeProvider
       value={DarkThemeCustom}
     >
-      <Stack>
+      <Stack >
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="env" options={{ headerShown: false }} />

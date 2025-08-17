@@ -3,6 +3,7 @@ import { View, Image } from 'react-native';
 import { Card, Text, Chip } from 'react-native-paper';
 import { $styles } from './styles';
 import CountryFlag from 'react-native-country-flag';
+import { Icon, IconType } from '@/components/Icon';
 
 export interface PlanCardProps {
   qty: number
@@ -10,7 +11,7 @@ export interface PlanCardProps {
   imageUri?: string
   country: string;
   benefits: Array<{
-    icon: string;
+    icon: IconType;
     text: string;
   }>;
 }
@@ -46,7 +47,9 @@ export const PlanCard: React.FC<PlanCardProps> = (props) => {
           {props.benefits.map((benefit, index) => (
             <Chip
               key={index}
-              icon={benefit.icon}
+              icon={
+                () => <View style={$styles.icon}><Icon icon={benefit.icon} colour="white" /></View>
+              }
               style={$styles.benefitChip}
               textStyle={$styles.benefitText}
             >

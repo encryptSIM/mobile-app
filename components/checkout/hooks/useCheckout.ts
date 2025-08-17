@@ -10,11 +10,13 @@ import { AppConfig } from '@/constants/app-config';
 import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
 import { useSolanaPrice } from '@/hooks/useSolanaPrice';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { err, ok, Result } from 'neverthrow';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { PublicKey } from '@solana/web3.js';
 import { PriceDetailField } from '../components';
+import { useSafeNavigation } from '@/hooks/use-safe-navigation';
+import { IconType } from '@/components/Icon';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
 
@@ -52,7 +54,7 @@ export const useCheckout = () => {
   const [selectedMethodId, setSelectedMethodId] = useState<string>('solana');
   const [discountCode, setDiscountCode] = useState('');
   const [paymentState, setPaymentState] = useState<PaymentState>(initialState);
-
+  const navigation = useSafeNavigation();
   const local = useLocalSearchParams();
   const { account } = useWalletUi();
   const solanaPrice = useSolanaPrice();
@@ -174,7 +176,7 @@ export const useCheckout = () => {
       }
 
       setTimeout(() => {
-        router.replace("/(tabs)");
+        navigation.replace("(tabs)");
       }, 2000);
     },
     onError: (error) => {
@@ -257,13 +259,12 @@ export const useCheckout = () => {
       const pkgQtyMap = selectedPackageQtyMap[packageName];
 
       const planBenefits = [
-        { icon: "shield-off", text: "No share data" },
-        { icon: "speedometer", text: "Up to 5G speed" },
+        { icon: "speed" as IconType, text: "Up to 5G speed" },
       ];
 
       if (pkgQtyMap?.pkg?.day) {
         planBenefits.push({
-          icon: "calendar-month",
+          icon: "calendar" as IconType,
           text: `${pkgQtyMap?.pkg?.day} days`,
         });
       }
@@ -272,13 +273,13 @@ export const useCheckout = () => {
       }
       if (pkgQtyMap?.pkg?.voice) {
         planBenefits.push({
-          icon: "phone",
+          icon: "phone" as IconType,
           text: `${pkgQtyMap?.pkg?.voice} minutes of calls`,
         });
       }
       if (pkgQtyMap?.pkg?.text) {
         planBenefits.push({
-          icon: "phone",
+          icon: "sms" as IconType,
           text: `${pkgQtyMap?.pkg?.text} SMS Messages`,
         });
       }

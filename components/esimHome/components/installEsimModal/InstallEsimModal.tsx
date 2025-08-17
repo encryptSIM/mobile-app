@@ -12,6 +12,7 @@ import { useRef } from "react";
 import { brandGreen } from "@/components/app-providers";
 import { useThrottledCallback } from "@/hooks/use-throttled-callback";
 import { QrCodeSvg } from "react-native-qr-svg";
+import { Icon } from "@/components/Icon";
 
 export interface InstallModalProps {
   modalVisible: boolean;
@@ -67,10 +68,8 @@ export function InstallModal(props: InstallModalProps) {
         <View style={$styles.modalContent}>
           <View style={$styles.modalHeader}>
             <Text style={$styles.modalTitle}>Install eSIM</Text>
-            <IconButton
-              icon="close"
-              iconColor="#666"
-              size={24}
+            <Icon
+              icon="x"
               onPress={() => props.setModalVisible(false)}
             />
           </View>
