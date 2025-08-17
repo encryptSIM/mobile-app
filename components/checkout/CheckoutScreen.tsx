@@ -4,7 +4,6 @@ import { Appbar } from 'react-native-paper';
 import {
   ContinueButton,
   DiscountCode,
-  PaymentMethod,
   PlanCard,
   PriceDetail
 } from './components';
@@ -53,11 +52,11 @@ export function CheckoutScreen() {
           subtotal={priceData.subtotal}
         />
 
-        <PaymentMethod
-          selectedMethodId={selectedMethodId}
-          onMethodChange={(methodId) => setSelectedMethodId(methodId)}
-          disabled={paymentState.isProcessing}
-        />
+        {/* <PaymentMethod */}
+        {/*   selectedMethodId={selectedMethodId} */}
+        {/*   onMethodChange={(methodId) => setSelectedMethodId(methodId)} */}
+        {/*   disabled={paymentState.isProcessing} */}
+        {/* /> */}
 
         <DiscountCode
           onClear={handleDiscountClear}
