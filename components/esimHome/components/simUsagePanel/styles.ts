@@ -1,26 +1,27 @@
 import { brandGreen, card } from "@/components/app-providers";
+import { sizing } from "@/constants/sizing";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
   root: {
     backgroundColor: card,
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: sizing.margin * 1.5,
+    padding: sizing.padding,
     alignItems: "center",
-    minHeight: 400,
+    minHeight: sizing.progress * 2,
   },
   headerIcons: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginBottom: 20,
+    marginBottom: sizing.margin,
   },
   iconContainer: {
     alignItems: "center",
-    padding: 12,
+    padding: sizing.margin / 2,
     borderRadius: 50,
-    minWidth: 60,
-    minHeight: 60,
+    minWidth: sizing.icon * 2,
+    minHeight: sizing.icon * 2,
     justifyContent: "center",
   },
   selectedIconContainer: {
@@ -28,8 +29,8 @@ export const $styles = StyleSheet.create({
   },
   iconLabel: {
     color: "#666",
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: sizing.fontSmall,
+    marginTop: sizing.margin / 3,
     fontWeight: "500",
   },
   selectedIconLabel: {
@@ -37,7 +38,7 @@ export const $styles = StyleSheet.create({
   },
   progressContainer: {
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: sizing.margin,
   },
   circularProgressWrapper: {
     position: "relative",
@@ -51,34 +52,38 @@ export const $styles = StyleSheet.create({
   },
   progressValue: {
     color: "white",
-    fontSize: 20,
+    fontSize: sizing.fontLarge,
     fontWeight: "700",
   },
   progressSubtitle: {
     color: "#DADADA",
-    fontSize: 14,
-    marginTop: 8,
+    fontSize: sizing.fontSmall,
+    marginTop: sizing.margin / 2,
     textAlign: "center",
   },
   topUpButton: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 2,
     borderColor: brandGreen,
-    borderRadius: 25,
-    paddingHorizontal: 32,
-    paddingVertical: 12,
+    borderRadius: sizing.margin * 1.5,
+    paddingHorizontal: sizing.padding * 1.5,
+    paddingVertical: sizing.margin / 1.5,
     backgroundColor: "transparent",
+    height: sizing.buttonHeight,
   },
   topUpButtonText: {
     color: brandGreen,
-    fontSize: 16,
+    fontSize: sizing.fontMedium,
     fontWeight: "500",
   },
   installedText: {
     color: "#9CA1AB",
-    fontSize: 14,
+    fontSize: sizing.fontSmall,
     fontWeight: "400",
   },
   textButton: {
-    paddingTop: 16,
+    paddingTop: sizing.margin,
   },
 });

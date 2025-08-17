@@ -11,14 +11,16 @@ export function BuyEsim(props: BuyEsimProps) {
   const debouncedPress = useThrottledCallback(props.onBuyPress, 1000);
   return (
     <View style={$styles.root}>
-      <Image style={$styles.image} source={require("@/assets/buy-esim.png")} />
-      <View>
-        <Text style={$styles.title} variant="bodyLarge">
-          Buy encryptSIM
-        </Text>
-        <Text style={$styles.text} variant="bodySmall">
-          Free dVPN Access on any plan
-        </Text>
+      <View style={$styles.left}>
+        <Image style={$styles.image} source={require("@/assets/buy-esim.png")} />
+        <View>
+          <Text style={$styles.title} variant="bodyLarge">
+            Buy encryptSIM
+          </Text>
+          <Text style={$styles.text} variant="bodySmall">
+            Free dVPN Access on any plan
+          </Text>
+        </View>
       </View>
       <FAB
         mode="flat"

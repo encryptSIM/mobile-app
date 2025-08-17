@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { brandGreen, card } from "./app-providers";
+import { sizing } from "@/constants/sizing";
 
 interface SlidingTabsProps {
   tabs: string[];
@@ -25,7 +26,7 @@ const SlidingTabs: React.FC<SlidingTabsProps> = ({
   const translateX = useRef(new Animated.Value(0)).current;
   const screenWidth = Dimensions.get("window").width;
   const containerPadding = 32; // Total horizontal padding/margin
-  const tabWrapperPadding = 8; // Internal padding of tabWrapper (4 * 2)
+  const tabWrapperPadding = sizing.padding; // Internal padding of tabWrapper (4 * 2)
   const availableWidth = Math.min(screenWidth - containerPadding, 320); // Max width constraint
   const tabWidth = (availableWidth - tabWrapperPadding) / tabs.length;
 
@@ -97,13 +98,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 4,
     left: 4,
-    height: 44,
+    height: '80%',
     backgroundColor: "#373E4C",
     borderRadius: 20,
     zIndex: 0,
   },
   tabButton: {
-    paddingVertical: 12,
+    paddingVertical: sizing.padding,
     paddingHorizontal: 24,
     borderRadius: 20,
     alignItems: "center",
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: sizing.fontLarge,
     fontWeight: "500",
     flexShrink: 0,
     textAlign: "center",
