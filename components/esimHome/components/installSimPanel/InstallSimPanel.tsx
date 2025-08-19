@@ -2,20 +2,19 @@ import { $api, Sim } from "@/api/api";
 import { brandGreen } from "@/components/app-providers";
 import { SIMS } from "@/components/checkout/hooks/useCheckout";
 import { useWalletUi } from "@/components/solana/use-wallet-ui";
+import { sizing } from "@/constants/sizing";
 import { useSharedState } from "@/hooks/use-provider";
 import * as Clipboard from "expo-clipboard";
 import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
-import { Alert, TouchableOpacity, View, Platform, Image } from "react-native";
+import { Alert, Image, Platform, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator, Text } from "react-native-paper";
+import { QrCodeSvg } from "react-native-qr-svg";
 import { captureRef } from "react-native-view-shot";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
 import { $styles } from "./styles";
-import { QrCodeSvg } from "react-native-qr-svg";
-import { moderateScale, scale } from "react-native-size-matters";
-import { sizing } from "@/constants/sizing";
 
 export interface InstallSimPanelProps {
   sim: Sim;
