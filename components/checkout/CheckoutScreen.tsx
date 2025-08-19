@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import {
@@ -29,6 +29,7 @@ export function CheckoutScreen() {
     clearError,
   } = useCheckout();
   const navigation = useSafeNavigation()
+  const ref = useRef<ScrollView>(null)
   const throttledContinue = useThrottledCallback(handleContinuePayment, 3000)
 
   return (
@@ -38,7 +39,7 @@ export function CheckoutScreen() {
         <Appbar.Content title={local.title} />
       </Appbar.Header>
 
-      <ScrollView fadingEdgeLength={200} style={$styles.content}>
+      <ScrollView ref={ref} fadingEdgeLength={200} style={$styles.content}>
         {plans.map((plan, index) => (
           <PlanCard key={plan?.pkg?.id ?? index} {...plan} />
         ))}
@@ -59,6 +60,7 @@ export function CheckoutScreen() {
         {/* /> */}
 
         <DiscountCode
+          onFocus={() => setTimeout(() => ref.current?.scrollToEnd(), 500)}
           onClear={handleDiscountClear}
           applied={!!checkCouponQuery.data?.data}
           value={discountCode}

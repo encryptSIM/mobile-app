@@ -11,6 +11,7 @@ interface DiscountCodeProps {
   loading?: boolean
   invalid: boolean
   applied: boolean
+  onFocus: () => void;
   onApply: (code: string) => void;
   onClear: (code: string) => void;
 }
@@ -20,6 +21,7 @@ export const DiscountCode: React.FC<DiscountCodeProps> = ({
   loading,
   applied,
   invalid,
+  onFocus,
   onClear,
   onApply,
 
@@ -43,6 +45,7 @@ export const DiscountCode: React.FC<DiscountCodeProps> = ({
 
         <View style={$styles.inputContainer}>
           <TextInput
+            onFocus={onFocus}
             value={code}
             onChangeText={setCode}
             label={invalid ? 'Invalid Code' : undefined}
