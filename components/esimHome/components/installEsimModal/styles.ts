@@ -195,7 +195,10 @@ export const $styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   manualActions: {
-    flexDirection: 'row',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 12,
     marginTop: 20,
   },
