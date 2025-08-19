@@ -6,19 +6,22 @@ import {
   Platform,
   Image,
 } from "react-native";
-import { IconButton, Text } from "react-native-paper";
+import { Text } from "react-native-paper";
 import { $styles } from "./styles";
 import { useRef } from "react";
 import { brandGreen } from "@/components/app-providers";
 import { useThrottledCallback } from "@/hooks/use-throttled-callback";
 import { QrCodeSvg } from "react-native-qr-svg";
 import { Icon } from "@/components/Icon";
+import { detectEnvironment, isIOSWeb } from "@/utils/environment";
+import { CodeBox } from "@/components/codeBox/CodeBox";
 
 export interface InstallModalProps {
   modalVisible: boolean;
   esimCode: string;
   showInstructions: boolean;
   copyToClipboard: () => void;
+  copied?: boolean
   setShowInstructions: (show: boolean) => void;
   shareQRCode: () => void;
   saveQRCode: () => void;
@@ -55,7 +58,8 @@ export function InstallModal(props: InstallModalProps) {
 
   const instructions = getInstructionsForPlatform();
 
-  const showMobileActions = Platform.OS !== "web";
+  const showMobileActions = !detectEnvironment().isWeb;
+
 
   return (
     <Modal
@@ -151,62 +155,40 @@ export function InstallModal(props: InstallModalProps) {
                 </>
               )}
 
-              <TouchableOpacity
-                style={$styles.actionButton}
-                onPressIn={() => {
-                  props.setShowInstructions(!props.showInstructions);
-                  setTimeout(() => {
-                    ref.current?.scrollToEnd({ animated: true });
-                  }, 100);
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={$styles.actionButtonContent}>
-                  <View style={$styles.actionButtonIconContainer}>
-                    <Text style={$styles.actionButtonIcon}>📋</Text>
-                  </View>
-                  <Text style={$styles.actionButtonText}>
-                    {Platform.OS === "web"
-                      ? "Setup Instructions"
-                      : "Manual Setup"}
-                  </Text>
-                  <Text style={$styles.actionButtonSubtext}>
-                    {Platform.OS === "web"
-                      ? "View step-by-step guide"
-                      : "Enter code manually"}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              {Platform.OS === "web" && (
-                <TouchableOpacity
-                  style={[$styles.actionButton, $styles.primaryActionButton]}
-                  onPressIn={props.copyToClipboard}
-                  activeOpacity={0.7}
-                >
-                  <View style={$styles.actionButtonContent}>
-                    <View
-                      style={[
-                        $styles.actionButtonIconContainer,
-                        $styles.primaryIconContainer,
-                      ]}
-                    >
-                      <Text style={$styles.actionButtonIcon}>📋</Text>
+              {
+                detectEnvironment().isWeb || (
+                  <TouchableOpacity
+                    style={$styles.actionButton}
+                    onPressIn={() => {
+                      props.setShowInstructions(!props.showInstructions);
+                      setTimeout(() => {
+                        ref.current?.scrollToEnd({ animated: true });
+                      }, 100);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={$styles.actionButtonContent}>
+                      <View style={$styles.actionButtonIconContainer}>
+                        <Text style={$styles.actionButtonIcon}>📋</Text>
+                      </View>
+                      <Text style={$styles.actionButtonText}>
+                        {Platform.OS === "web"
+                          ? "Setup Instructions"
+                          : "Manual Setup"}
+                      </Text>
+                      <Text style={$styles.actionButtonSubtext}>
+                        {Platform.OS === "web"
+                          ? "View step-by-step guide"
+                          : "Enter code manually"}
+                      </Text>
                     </View>
-                    <Text
-                      style={[$styles.actionButtonText, $styles.primaryActionText]}
-                    >
-                      Copy Activation Code
-                    </Text>
-                    <Text style={$styles.actionButtonSubtext}>
-                      Copy to use on your mobile device
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              )}
+                  </TouchableOpacity>
+                )
+
+              }
             </View>
 
-            {props.showInstructions && (
+            {props.showInstructions || detectEnvironment().isWeb && (
               <View style={$styles.instructionsContainer}>
                 <Text style={$styles.instructionsTitle}>
                   {Platform.OS === "web"
@@ -228,29 +210,22 @@ export function InstallModal(props: InstallModalProps) {
                   </View>
                 ))}
 
-                <View style={$styles.codeContainer}>
-                  <Text style={$styles.codeLabel}>Activation Code:</Text>
-                  <View style={$styles.codeBox}>
-                    <Text style={$styles.codeText} selectable>
-                      {props.esimCode}
-                    </Text>
-                  </View>
-                  <Text style={$styles.codeHelper}>
-                    {Platform.OS === "web"
-                      ? "Copy this code and enter it on your mobile device"
-                      : "Tap and hold to select all, then copy"}
-                  </Text>
-                </View>
+                <CodeBox code={props.esimCode} />
 
-                <View style={$styles.manualActions}>
-                  <TouchableOpacity
-                    style={$styles.manualButton}
-                    onPressIn={props.copyToClipboard}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={$styles.manualButtonText}>📋 Copy Code</Text>
-                  </TouchableOpacity>
-                </View>
+                {
+                  (!detectEnvironment().isWalletBrowser && !isIOSWeb()) && (
+                    <View style={$styles.manualActions}>
+                      <TouchableOpacity
+                        style={$styles.manualButton}
+                        onPressIn={props.copyToClipboard}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={$styles.manualButtonText}>📋 Copy Code</Text>
+                      </TouchableOpacity>
+                      {props.copied && <Text >✅ Link copied!</Text>}
+                    </View>
+                  )
+                }
               </View>
             )}
 

@@ -27,6 +27,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   const [showInstructions, setShowInstructions] = useState(false);
   const [, setSims] = useSharedState<Sim[]>(SIMS.key);
   const [, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key);
+  const [copied, setCopied] = useState<boolean>(false)
   const { account } = useWalletUi();
 
   const setSimInstalledMut = $api.useMutation("post", "/mark-sim-installed", {
@@ -171,6 +172,8 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   const copyToClipboard = async () => {
     try {
       await Clipboard.setStringAsync(props.sim?.qrcode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
       Alert.alert("Copied! 📋", "Activation code copied to clipboard");
     } catch (error) {
       Alert.alert("Error", "Failed to copy to clipboard");
@@ -245,6 +248,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
       </TouchableOpacity>
 
       <InstallModal
+        copied={copied}
         esimCode={props.sim?.qrcode}
         modalVisible={modalVisible}
         showInstructions={showInstructions}
