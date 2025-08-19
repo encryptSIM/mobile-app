@@ -16,7 +16,9 @@ export function detectEnvironment(): EnvironmentInfo {
   if (isWeb) {
     const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : '';
     const walletBrowsers = [
-      'phantom', 'solflare', 'backpack', 'glow', 'trust', 'mathwallet', 'metamask', 'brave', 'coinbase', 'exodus'
+      'phantom',
+      'solflare',
+      'backpack',
     ];
     isWalletBrowser = walletBrowsers.some(wallet =>
       userAgent.toLowerCase().includes(wallet.toLowerCase())
@@ -40,8 +42,29 @@ export function shouldUseMobileWalletAdapter(): boolean {
   return env.isNativeApp && !env.isWalletBrowser;
 }
 
-// Helper function to check if a Solana wallet extension is available
 export function isSolanaWalletExtensionAvailable(): boolean {
-  if (typeof window === 'undefined') return false;
-  return !!(window as any).solana || !!(window as any).phantom;
-} 
+  return Object.values(detectWallets()).some(w => w)
+}
+
+export const detectWallets = () => {
+  const wallets: Record<string, boolean> = {
+    Phantom: !!(window as any).solana?.isPhantom,
+    Solflare: !!(window as any).solflare?.isSolflare,
+    Backpack: !!(window as any).backpack?.isBackpack,
+  };
+  return wallets;
+};
+
+export function isIOSWeb() {
+  if (Platform.OS === "web") {
+    const ua = navigator.userAgent || navigator.vendor
+
+    // iOS detection (iPhone, iPad, iPod)
+    const isIOS =
+      /iPad|iPhone|iPod/.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS
+
+    return isIOS;
+  }
+  return false;
+}

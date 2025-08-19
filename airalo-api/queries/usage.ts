@@ -1,6 +1,6 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchClient } from '@/api/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery } from '@tanstack/react-query';
 import * as airaloApi from '../api';
 
 interface CacheEntry {
@@ -20,8 +20,7 @@ export const useMultiUsage = (
   iccids: string[],
   options: UseMultiUsageOptions = {}
 ) => {
-  const { useFakeData = true } = options;
-  const queryClient = useQueryClient();
+  const { useFakeData = process.env.EXPO_PUBLIC_ENVIRONMENT === 'prod' } = options;
 
   return useQuery({
     queryKey: ['multi-usage', ...iccids, useFakeData],

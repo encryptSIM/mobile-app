@@ -9,6 +9,7 @@
       "distribution": "internal",
       "env": {
         "ENVIRONMENT": "development",
+        "EXPO_PUBLIC_ENVIRONMENT": "development",
         "EXPO_PUBLIC_RPC_URL": "https://api.devnet.solana.com",
         "EXPO_PUBLIC_API_URL": "https://api-63k4aibnea-de.a.run.app"
       }
@@ -17,12 +18,17 @@
       "distribution": "internal",
       "env": {
         "ENVIRONMENT": "preview",
+        "EXPO_PUBLIC_ENVIRONMENT": "preview",
         "EXPO_PUBLIC_RPC_URL": "https://api.testnet.solana.com",
         "EXPO_PUBLIC_API_URL": "https://api-63k4aibnea-de.a.run.app"
       }
     },
     "production": {
       "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_ENVIRONMENT": "prod",
+        "ENVIRONMENT": "prod"
+      },
       "android": {
         "ndk": "26.2.11394342",
         "image": "latest",

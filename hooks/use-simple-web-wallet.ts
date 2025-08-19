@@ -5,6 +5,7 @@ import {
   Transaction,
   VersionedTransaction,
 } from "@solana/web3.js";
+import { isSolanaWalletExtensionAvailable } from "@/utils/environment";
 
 export interface SimpleWebWalletAccount {
   address: string;
@@ -38,32 +39,24 @@ interface UseSimpleWebWalletReturn {
   ) => Promise<string>;
 }
 
-function isWalletBrowser(): boolean {
-  if (typeof window === "undefined") return false;
-  const userAgent = window.navigator.userAgent.toLowerCase();
-  const walletBrowsers = [
-    "phantom",
-    "solflare",
-    "backpack",
-    "glow",
-    "trust",
-    "mathwallet",
-    "metamask",
-    "brave",
-    "coinbase",
-    "exodus",
-  ];
-  return walletBrowsers.some((wallet) => userAgent.includes(wallet));
-}
-
-function isSolanaWalletAvailable(): boolean {
-  if (typeof window === "undefined") return false;
-  return !!(window as any).solana || !!(window as any).phantom;
-}
 
 function getWalletProvider(): any {
   if (typeof window === "undefined") return null;
-  return (window as any).solana;
+
+  const anyWindow = window as any;
+
+  if (anyWindow.backpack && anyWindow.backpack.isBackpack) {
+    return anyWindow.backpack;
+  }
+  if (anyWindow.solflare && anyWindow.solflare.isSolflare) {
+    return anyWindow.solflare;
+  }
+  if (anyWindow.solana && anyWindow.solana.isPhantom) {
+    return anyWindow.solana;
+  }
+
+  // fallback: return solana if present
+  return anyWindow.solana || null;
 }
 
 export const useSimpleWebWallet = (): UseSimpleWebWalletReturn => {
@@ -98,10 +91,7 @@ export const useSimpleWebWallet = (): UseSimpleWebWalletReturn => {
       return;
     }
 
-    if (
-      typeof window !== "undefined" &&
-      (isWalletBrowser() || isSolanaWalletAvailable())
-    ) {
+    if ((isSolanaWalletExtensionAvailable())) {
       const checkConnection = async () => {
         try {
           const wallet = getWalletProvider();
@@ -171,7 +161,7 @@ export const useSimpleWebWallet = (): UseSimpleWebWalletReturn => {
       setManuallyDisconnected(false);
       console.log("🔄 Initiating simple web wallet connection...");
 
-      if (!isWalletBrowser() && !isSolanaWalletAvailable()) {
+      if (!isSolanaWalletExtensionAvailable()) {
         throw new Error(
           "No Solana wallet detected. Please install Phantom, Solflare, or another Solana wallet extension."
         );
@@ -184,27 +174,46 @@ export const useSimpleWebWallet = (): UseSimpleWebWalletReturn => {
         );
       }
 
+      // Call connect
       const response = await wallet.connect();
-      if (response.publicKey) {
-        const pubKey = new PublicKey(response.publicKey);
-        setPublicKey(pubKey);
-        setConnected(true);
-        const walletAccount: SimpleWebWalletAccount = {
-          address: pubKey.toString(),
-          label: wallet.name || "Wallet",
-          publicKey: pubKey,
-        };
-        setAuthorizedWallet({
-          accounts: [walletAccount],
-          selectedAccount: walletAccount,
-        });
-        console.log(
-          "✅ Simple web wallet connected successfully:",
-          pubKey.toString()
-        );
-      } else {
+      console.log("🔍 Wallet connect response:", response);
+
+      let pubKey: PublicKey | null = null;
+
+      // Case 1: Phantom/Backpack return publicKey directly
+      if (response?.publicKey) {
+        pubKey = new PublicKey(response.publicKey);
+      }
+
+      // Case 2: Solflare may not return publicKey in response
+      if (!pubKey && wallet.publicKey) {
+        pubKey = new PublicKey(wallet.publicKey);
+      }
+
+      // Case 3: Solflare sometimes requires getAccounts()
+      if (!pubKey && typeof wallet.getAccounts === "function") {
+        const accounts = await wallet.getAccounts();
+        if (accounts && accounts.length > 0) {
+          pubKey = new PublicKey(accounts[0].publicKey);
+        }
+      }
+
+      if (!pubKey) {
         throw new Error("Failed to get public key from wallet");
       }
+
+      setPublicKey(pubKey);
+      setConnected(true);
+      const walletAccount: SimpleWebWalletAccount = {
+        address: pubKey.toString(),
+        label: wallet.name || "Wallet",
+        publicKey: pubKey,
+      };
+      setAuthorizedWallet({
+        accounts: [walletAccount],
+        selectedAccount: walletAccount,
+      });
+      console.log("✅ Wallet connected successfully:", pubKey.toString());
     } catch (error: any) {
       console.error("❌ Simple web wallet connection failed:", error);
       throw new Error(`Web wallet connection failed: ${error.message}`);

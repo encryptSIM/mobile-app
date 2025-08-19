@@ -296,14 +296,13 @@ export const useCheckout = () => {
   }, [selectedPackages, selectedPackageQtyMap, local, regions]);
 
   const priceData = useMemo(() => {
-    const feePercentage = 0.4;
     let subtotalUSD = 0;
 
     const lineItems: PriceDetailField[] = [];
     selectedPackages.forEach((pkgId) => {
       const { pkg, qty } = selectedPackageQtyMap[pkgId];
       const netPriceUSD = pkg?.prices?.net_price?.USD || 0;
-      const packageTotal = netPriceUSD * qty;
+      const packageTotal = netPriceUSD * qty * AppConfig.feePercentage;
 
       subtotalUSD += packageTotal;
 
@@ -316,15 +315,8 @@ export const useCheckout = () => {
 
     const adjustments: PriceDetailField[] = [];
 
-    const serviceFeeUSD = subtotalUSD * feePercentage;
-    adjustments.push({
-      label: 'Service fee',
-      value: serviceFeeUSD,
-      type: 'fee',
-    });
-
     const discount = checkCouponQuery?.data?.data
-      ? -1 * ((subtotalUSD + serviceFeeUSD) * (checkCouponQuery.data.data.discount / 100))
+      ? -1 * ((subtotalUSD) * (checkCouponQuery.data.data.discount / 100))
       : 0;
 
     if (checkCouponQuery.data?.data) {
@@ -335,7 +327,7 @@ export const useCheckout = () => {
       });
     }
 
-    const grandTotalUSD = subtotalUSD + serviceFeeUSD + discount;
+    const grandTotalUSD = subtotalUSD + discount;
     const priceInSol = solanaPrice.data
       ? (1 / solanaPrice.data) * grandTotalUSD
       : 0;

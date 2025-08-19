@@ -6,71 +6,70 @@ import {
   StyleSheet,
   Image,
   Linking,
-  Clipboard,
   SafeAreaView,
   ScrollView,
+  Alert,
 } from "react-native";
+import Clipboard from "@react-native-clipboard/clipboard";
+
+const APP_URL = "https://encrypsim-dev.web.app/";
+
+const ENCODED_APP_URL = encodeURIComponent(APP_URL);
 
 const WALLETS = [
   {
     name: "Phantom",
     icon: require("@/assets/phantom.png"),
-    link: (url: string) => `https://phantom.app/ul/browse/${url}?ref=phantom`,
+    link: (url: string) =>
+      `https://phantom.app/ul/browse/${url}?ref=${encodeURIComponent(
+        APP_URL
+      )}`,
+
   },
   {
     name: "Solflare",
     icon: require("@/assets/solflare.png"),
-    link: (url: string) => `solflare://browser?url=${url}`,
+    link: (url: string) =>
+      `https://solflare.com/ul/v1/browse/${url}?ref=${encodeURIComponent(
+        APP_URL
+      )}`,
   },
   {
     name: "Backpack",
     icon: require("@/assets/backpack.png"),
-    link: (url: string) => `backpack://app/browser?url=${url}`,
-  },
-  {
-    name: "Glow",
-    icon: require("@/assets/glow.png"),
-    link: (url: string) => `glow://browser?url=${url}`,
-  },
-  {
-    name: "Trust Wallet",
-    icon: require("@/assets/trust.png"),
-    link: (url: string) => `trust://browser?url=${url}`,
-  },
-  {
-    name: "MetaMask",
-    icon: require("@/assets/metamask.png"),
-    link: (url: string) => `metamask://dapp/${url}`,
-  },
-  {
-    name: "Coinbase",
-    icon: require("@/assets/coinbase.png"),
-    link: (url: string) => `cbwallet://dapp/${url}`,
+    link: (url: string) =>
+      `https://backpack.app/ul/v1/browse/${url}`,
   },
 ];
 
 export function OpenInWalletPrompt() {
-  const appUrl = window.location.href;
-  const encodedUrl = encodeURIComponent(appUrl);
+  const encodedUrl = encodeURIComponent(APP_URL);
   const [copied, setCopied] = useState(false);
 
+
   const openWallet = async (walletLink: (url: string) => string) => {
-    const deepLink = walletLink(encodedUrl);
+    const deepLink = walletLink(ENCODED_APP_URL);
 
     try {
       const supported = await Linking.canOpenURL(deepLink);
       if (supported) {
         await Linking.openURL(deepLink);
       } else {
-        alert("Could not open wallet. Please make sure it is installed.");
+        Alert.alert(
+          "Wallet Not Found",
+          "Could not open wallet. Please make sure it is installed."
+        );
       }
     } catch (error) {
-      alert("Could not open wallet. Please make sure it is installed.");
+      Alert.alert(
+        "Error",
+        "Could not open wallet. Please make sure it is installed."
+      );
     }
   };
 
   const copyToClipboard = () => {
-    Clipboard.setString(appUrl);
+    Clipboard.setString(APP_URL);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

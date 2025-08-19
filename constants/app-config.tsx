@@ -7,6 +7,7 @@ export class AppConfig {
   static masterSolAccount = new PublicKey('DyVd5DpMfq8UG8WQDaYiCaALpXDrVGzj3CHB5cZ7Vor1')
   static uri = 'https://www.encryptsim.com/'
   static domain = 'encryptsim.com'
+  static feePercentage = 1.66
   static clusters: Cluster[] = [
     {
       id: 'solana:devnet',
