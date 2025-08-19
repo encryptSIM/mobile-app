@@ -296,7 +296,7 @@ export const useCheckout = () => {
   }, [selectedPackages, selectedPackageQtyMap, local, regions]);
 
   const priceData = useMemo(() => {
-    const feePercentage = 0.4;
+    const feePercentage = 0.66;
     let subtotalUSD = 0;
 
     const lineItems: PriceDetailField[] = [];
