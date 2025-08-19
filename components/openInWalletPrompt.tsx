@@ -6,10 +6,10 @@ import {
   StyleSheet,
   Image,
   Linking,
-  Clipboard,
   SafeAreaView,
   ScrollView,
 } from "react-native";
+import Clipboard from "@react-native-clipboard/clipboard";
 
 const WALLETS = [
   {
@@ -70,7 +70,7 @@ export function OpenInWalletPrompt() {
   };
 
   const copyToClipboard = () => {
-    Clipboard.setString(appUrl);
+    Clipboard.setString(APP_URL);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
