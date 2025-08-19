@@ -14,6 +14,7 @@ import { Appbar, Text } from "react-native-paper";
 import { background, brandGreen } from "../app-providers";
 import { $styles } from "./styles";
 import { Icon } from "../Icon";
+import { AppConfig } from "@/constants/app-config";
 
 const MAX_PACKAGES = 1
 export function SelectPackageScreen() {
@@ -44,7 +45,7 @@ export function SelectPackageScreen() {
     ({ item }) => (
       <PackageDetailsCard
         disabled={selectedPackages.length >= MAX_PACKAGES && !selectedPackages.includes(item.id)}
-        price={item.localPackage?.prices?.net_price?.USD!}
+        price={item.localPackage?.prices?.net_price?.USD! * AppConfig.feePercentage}
         id={item.id}
         fields={item.packageDetails}
         selected={selectedPackages.includes(item.id)}
@@ -119,7 +120,7 @@ export function SelectPackageScreen() {
       <Cart
         items={filteredPackages.filter(t => selectedPackages.includes(t.id)).map(selectedPackage => ({
           description: String(selectedPackage.localPackage?.title),
-          value: selectedPackage.localPackage?.prices?.net_price?.USD!,
+          value: selectedPackage.localPackage?.prices?.net_price?.USD! * AppConfig.feePercentage,
           qty: selectedPackageQtyMap[selectedPackage.id].qty,
           id: selectedPackage.id,
           increment: () => {
