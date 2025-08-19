@@ -1320,6 +1320,8 @@ components:
           type: number
         installed:
           type: boolean
+        direct_apple_installation_url:
+          type: string
       required:
         - iccid
         - qrcode
@@ -1329,6 +1331,7 @@ components:
         - package_title
         - expiration_ms
         - created_at_ms
+        - direct_apple_installation_url
     # VPN Schemas
     DeviceInfo:
       type: object
