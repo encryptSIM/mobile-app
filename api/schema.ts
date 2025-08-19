@@ -1873,6 +1873,7 @@ export interface components {
             expiration_ms: number;
             created_at_ms: number;
             installed?: boolean;
+            direct_apple_installation_url: string;
         };
         DeviceInfo: {
             /** @description Device token for authentication */
