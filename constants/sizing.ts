@@ -1,5 +1,5 @@
 import { getDimensions } from "@/utils/dimensions";
-import { Dimensions } from "react-native";
+import { Dimensions, DimensionValue } from "react-native";
 
 const { width, height } = getDimensions();
 
@@ -33,8 +33,8 @@ function getBreakpointLevel(size: number, breakpoints: number[]) {
 }
 
 // Configurable breakpoint system
-const widthBreakpoints = generateBreakpoints(300, 20, 8); // e.g. 320, 380, 440, ...
-const heightBreakpoints = generateBreakpoints(480, 80, 8); // e.g. 480, 560, 640, ...
+const widthBreakpoints = generateBreakpoints(300, 20, 8);
+const heightBreakpoints = generateBreakpoints(480, 80, 8);
 
 const widthLevel = getBreakpointLevel(width, widthBreakpoints);
 const heightLevel = getBreakpointLevel(height, heightBreakpoints);
@@ -62,6 +62,7 @@ console.log({
 function generateSizes(level: number) {
   const base = {
     padding: 8,
+    horizontalPadding: 16,
     margin: 8,
     logo: 22,
     icon: 24,
@@ -77,6 +78,7 @@ function generateSizes(level: number) {
 
   return {
     padding: Math.round(base.padding * scale),
+    horizontalPadding: Dimensions.get('window').width > 500 ? ('10%' as DimensionValue) : Dimensions.get('window').width > 800 ? ('25%' as DimensionValue) : Math.round(base.padding * scale),
     margin: Math.round(base.margin * scale),
     logo: Math.round(base.logo * scale),
     icon: Math.round(base.icon * scale),

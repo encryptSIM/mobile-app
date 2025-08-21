@@ -5,16 +5,22 @@ import { StyleSheet } from "react-native";
 export const $styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: "100%",
+    marginTop: sizing.padding,
+    paddingHorizontal: sizing.padding,
+    width: "98%",
+    alignSelf: 'center',
     height: "100%",
   },
   content: {
-    paddingHorizontal: sizing.padding,
-    paddingVertical: sizing.padding,
+    paddingHorizontal: sizing.horizontalPadding,
     display: 'flex',
+
     justifyContent: 'space-evenly',
     flex: 1,
     width: "100%",
+  },
+  body: {
+    flex: 1,
   },
   header: {
     flexDirection: "row",
