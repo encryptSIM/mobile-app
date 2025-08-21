@@ -4,7 +4,7 @@ import PackageLocationListHeader from "@/components/PackageLocationListHeader";
 import { PackageCardData } from "@/constants/countries";
 import { useSafeNavigation } from "@/hooks/use-safe-navigation";
 import React, { useCallback } from "react";
-import { FlatList, View } from "react-native";
+import { Dimensions, FlatList, View } from "react-native";
 import { Appbar, TextInput } from "react-native-paper";
 import { useEsimHomeScreen } from "../../hooks/useEsimHomeScreen";
 import { $styles } from "./styles";
@@ -51,6 +51,12 @@ export function AddSim() {
           <Icon icon="back" onPress={navigation.goBack} colour="white" size="large" />
           <Appbar.Content title={"Add new eSIM"} />
         </Appbar.Header>
+        <PackageLocationListHeader
+          tabs={tabs}
+          activeTab={tabIndex}
+          onTabChange={handleTabChange}
+        />
+        <View style={$styles.searchSpacing} />
         <TextInput
           placeholder="Search your destination"
           mode="outlined"
@@ -61,22 +67,18 @@ export function AddSim() {
             <Icon icon="search" />
           }
         />
-        <View style={$styles.searchSpacing} />
-        <PackageLocationListHeader
-          tabs={tabs}
-          activeTab={tabIndex}
-          onTabChange={handleTabChange}
-        />
-        <FlatList
-          data={filteredData}
-          keyExtractor={(item) => item.id}
-          renderItem={renderCard}
-          numColumns={2}
-          ListHeaderComponent={<View style={$styles.listHeader} />}
-          columnWrapperStyle={$styles.columnWrapper}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={$styles.listContent}
-        />
+        <View style={$styles.body}>
+          <FlatList
+            data={filteredData}
+            keyExtractor={(item) => item.id}
+            renderItem={renderCard}
+            numColumns={Dimensions.get('window').width > 1000 ? 4 : Dimensions.get('window').width > 600 ? 3 : 2}
+            ListHeaderComponent={<View style={$styles.listHeader} />}
+            columnWrapperStyle={$styles.columnWrapper}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={$styles.listContent}
+          />
+        </View>
       </View>
     </View>
   );

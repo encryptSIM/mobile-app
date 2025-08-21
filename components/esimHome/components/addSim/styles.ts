@@ -1,4 +1,5 @@
 import { background } from "@/components/app-providers";
+import { sizing } from "@/constants/sizing";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
@@ -38,6 +39,10 @@ export const $styles = StyleSheet.create({
     backgroundColor: background,
     paddingTop: 8,
     paddingBottom: 8,
+  },
+  body: {
+    paddingHorizontal: sizing.horizontalPadding,
+    flex: 1,
   },
   listContent: {
     paddingBottom: 16,

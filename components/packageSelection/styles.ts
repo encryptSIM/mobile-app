@@ -1,3 +1,4 @@
+import { sizing } from "@/constants/sizing";
 import { StyleSheet } from "react-native";
 
 export const $styles = StyleSheet.create({
@@ -18,7 +19,7 @@ export const $styles = StyleSheet.create({
   },
   listContainer: {
     display: 'flex',
-    paddingHorizontal: 20,
+    paddingHorizontal: sizing.horizontalPadding2,
     flex: 1,
     paddingBottom: 20,
     height: '10%',
