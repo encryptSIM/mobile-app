@@ -47,7 +47,7 @@ export const useGlobalPackages = (enabled?: boolean) => {
     remoteTTL: 65 * 60 * 1000,
     staleTime: 65 * 60 * 1000,
     queryOptions: {
-      enabled: enabled ?? true,
+      enabled,
     },
   });
 };
