@@ -64,9 +64,9 @@ export function useEsimHomeScreen() {
 
       const total = getDaysBetweenInclusive(sim.created_at_ms, sim.expiration_ms)
       const stats = usageQuery.data!
-      addDetail("Calls (min)", "phone", stats[sim.iccid].total_voice, packageDetails);
-      addDetail("SMS", "sms", stats[sim.iccid].total_text, packageDetails);
-      addDetail("Data", "wifi", stats[sim.iccid].total, packageDetails);
+      addDetail("Calls (min)", "phone", stats[sim.iccid]?.total_voice, packageDetails);
+      addDetail("SMS", "sms", stats[sim.iccid]?.total_text, packageDetails);
+      addDetail("Data", "wifi", stats[sim.iccid]?.total, packageDetails);
       addDetail(
         "Validity",
         "calendar",
@@ -84,16 +84,16 @@ export function useEsimHomeScreen() {
     for (const iccid of Object.keys(usageQuery.data)) {
       const stats: UsageStat[] = []
       const usage = usageQuery.data[iccid]
-      if (usage.total_text) {
+      if (usage?.total_text) {
         stats.push({
-          total: usage.total_text,
-          used: usage.total_text - usage.remaining_text!,
+          total: usage?.total_text ?? 0,
+          used: usage?.total_text - usage.remaining_text!,
           label: "SMS",
           icon: "sms",
           unit: "messages",
         })
       }
-      if (usage.total) {
+      if (usage?.total) {
         stats.push({
           total: usage.total,
           used: usage.total - usage.remaining!,
@@ -102,10 +102,10 @@ export function useEsimHomeScreen() {
           unit: "MB",
         })
       }
-      if (usage.total_voice) {
+      if (usage?.total_voice) {
         stats.push({
-          total: usage.total_voice,
-          used: usage.total_voice - usage.remaining_voice!,
+          total: usage?.total_voice,
+          used: usage?.total_voice - usage.remaining_voice!,
           label: "Call",
           icon: "phone",
           unit: "mins",

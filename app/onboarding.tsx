@@ -1,25 +1,18 @@
 import { useState } from "react";
 import {
+  useWindowDimensions,
   View,
   Text,
   Image,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Platform,
 } from "react-native";
+import { card } from "@/components/app-providers";
 import { useAuth } from "@/components/auth/auth-provider";
 import { getDimensions } from "@/utils/dimensions";
-import { card } from "@/components/app-providers";
-import { detectEnvironment, isSolanaWalletExtensionAvailable } from "@/utils/environment";
-import { OpenInWalletPrompt } from "@/components/openInWalletPrompt";
-
-// Responsive scaling helpers
-const { width, height } = getDimensions();
-const guidelineBaseWidth = 375; // iPhone 11/12/13/14 width
-const guidelineBaseHeight = 812;
-
-const scale = (size: number) => (width / guidelineBaseWidth) * size;
-const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
+import { sizing } from "@/constants/sizing";
 
 const slides = [
   {
@@ -47,78 +40,161 @@ const slides = [
   },
 ];
 
+const { width: baseWidth, height: baseHeight } = getDimensions();
+const guidelineBaseWidth = 375;
+const guidelineBaseHeight = 812;
+const scale = (size: number) => (baseWidth / guidelineBaseWidth) * size;
+const verticalScale = (size: number) => (baseHeight / guidelineBaseHeight) * size;
+
 export default function Onboarding() {
+  const { width } = useWindowDimensions();
+  const isMobile = width <= 480; // ✅ switch point (largest phone size)
+  const { signIn, isLoading } = useAuth();
+
   const [index, setIndex] = useState(0);
-  const { signIn, isAuthenticated, isLoading } = useAuth()
 
   const handleNext = async () => {
     if (index < slides.length - 1) {
       setIndex((prev) => prev + 1);
     } else {
-      console.log('🚀 Starting sign-in process...');
-      console.log('Current auth state:', { isAuthenticated, isLoading });
-
       try {
         await signIn();
-        console.log('✅ Sign-in completed successfully');
-        console.log('New auth state:', { isAuthenticated, isLoading });
       } catch (error) {
-        console.error('❌ Sign-in failed:', error);
+        console.error("❌ Sign-in failed:", error);
       }
     }
   };
-  const env = detectEnvironment();
 
-  if (env.isWeb && !env.isWalletBrowser && !isSolanaWalletExtensionAvailable()) {
-    return <OpenInWalletPrompt />;
+  const handleGetStarted = async () => {
+    try {
+      await signIn();
+    } catch (error) {
+      console.error("❌ Sign-in failed:", error);
+    }
+  };
+
+  // ✅ MOBILE: Wizard style
+  if (isMobile) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.imageContainer}>
+          <Image source={slides[index].image} style={styles.image} />
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.title}>{slides[index].title}</Text>
+          <Text style={styles.description}>{slides[index].description}</Text>
+          <View style={styles.pagination}>
+            {slides.map((_, i) => (
+              <View
+                key={i}
+                style={[styles.dot, index === i && styles.activeDot]}
+              />
+            ))}
+          </View>
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.loadingButton]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            <Text style={styles.buttonText}>
+              {isLoading && index === slides.length - 1
+                ? "Connecting..."
+                : slides[index].buttonText}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   }
 
+  // ✅ DESKTOP: Scrolling landing style
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image source={slides[index].image} style={styles.image} />
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.title}>{slides[index].title}</Text>
-        <Text style={styles.description}>{slides[index].description}</Text>
-        <View style={styles.pagination}>
-          {slides.map((_, i) => (
-            <View
-              key={i}
-              style={[styles.dot, index === i && styles.activeDot]}
-            />
-          ))}
-        </View>
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.loadingButton]}
-          onPress={handleNext}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>
-            {(isLoading && index === 2) ? "Connecting..." : slides[index].buttonText}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    <ScrollView showsVerticalScrollIndicator={false} style={styles.container} contentContainerStyle={styles.scrollContent}>
+      {slides.map((slide, i) => {
+        const isEven = i % 2 === 0;
+        return (
+          <View
+            key={slide.key}
+            style={[
+              styles.section,
+              { flexDirection: isEven ? "row" : "row-reverse" },
+            ]}
+          >
+            {/* IMAGE */}
+            <View style={[styles.imageContainerDesktop]}>
+              <Image source={slide.image} style={styles.imageDesktop} />
+            </View>
+
+            {/* TEXT */}
+            <View style={styles.textContainerDesktop}>
+              <Text style={styles.title}>{slide.title}</Text>
+              <Text style={styles.description}>{slide.description}</Text>
+              {i === slides.length - 1 && (
+                <TouchableOpacity
+                  style={[styles.button, isLoading && styles.loadingButton]}
+                  onPress={handleGetStarted}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.buttonText}>
+                    {isLoading ? "Connecting..." : "Get Started"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        );
+      })}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  // Shared
   container: {
     flex: 1,
     backgroundColor: "#0A0F1C",
-    alignItems: "center",
-    justifyContent: "space-between",
   },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  description: {
+    fontSize: 16,
+    color: "rgba(248, 250, 252, 0.7)",
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  button: {
+    backgroundColor: "#7BE596",
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    marginTop: 20,
+    alignSelf: "center",
+  },
+  loadingButton: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+
+  // Mobile wizard
   imageContainer: {
     width: "100%",
-    flex: 1.1, // More space on taller screens
+    flex: 1.1,
     alignItems: "center",
     justifyContent: "flex-end",
   },
   image: {
-    width: width * 0.55,
-    height: width * 0.55,
+    width: baseWidth * 0.55,
+    height: baseWidth * 0.55,
     resizeMode: "contain",
     marginTop: verticalScale(Platform.OS === "android" ? 30 : 60),
   },
@@ -128,31 +204,17 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: scale(28),
     borderTopRightRadius: scale(28),
     alignItems: "center",
-    paddingHorizontal: scale(30),
-    paddingBottom: verticalScale(40),
-    paddingTop: verticalScale(24),
+    paddingHorizontal: sizing.horizontalPadding,
+    paddingBottom: sizing.padding * 4,
+    paddingTop: sizing.padding * 3,
     flex: 0.8,
-    gap: verticalScale(20),
+    gap: sizing.padding * 2,
     minHeight: verticalScale(260),
     maxHeight: verticalScale(340),
   },
-  title: {
-    fontSize: scale(22),
-    fontWeight: "bold",
-    color: "white",
-    textAlign: "center",
-    marginBottom: verticalScale(6),
-  },
-  description: {
-    fontSize: scale(14.5),
-    color: "rgba(248, 250, 252, 0.7)",
-    textAlign: "center",
-    marginBottom: verticalScale(14),
-    lineHeight: scale(21),
-  },
   pagination: {
     flexDirection: "row",
-    marginBottom: verticalScale(8),
+    marginBottom: sizing.padding,
   },
   dot: {
     width: scale(8),
@@ -160,27 +222,40 @@ const styles = StyleSheet.create({
     borderRadius: scale(4),
     backgroundColor: "#444",
     marginHorizontal: scale(4),
-    transitionDuration: "200ms",
   },
   activeDot: {
     width: scale(20),
     backgroundColor: "#7BE596",
   },
-  button: {
-    backgroundColor: "#7BE596",
+
+  // Desktop landing
+  scrollContent: {
+    paddingVertical: 60,
+  },
+  section: {
     alignItems: "center",
-    width: "100%",
-    borderRadius: scale(12),
-    paddingVertical: verticalScale(12),
-    paddingHorizontal: scale(48),
-    marginTop: verticalScale(4),
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 40,
   },
-  loadingButton: {
-    opacity: 0.7,
+  imageContainerDesktop: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
   },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: scale(16),
+  imageDesktop: {
+    width: 250,
+    height: 250,
+    resizeMode: "contain",
+  },
+  textContainerDesktop: {
+    flex: 1,
+    backgroundColor: card,
+    borderRadius: 20,
+    padding: 40,
+    maxWidth: 500,
+    alignItems: "flex-start",
+    justifyContent: "center",
   },
 });
