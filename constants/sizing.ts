@@ -79,6 +79,7 @@ function generateSizes(level: number) {
   return {
     padding: Math.round(base.padding * scale),
     horizontalPadding: Dimensions.get('window').width > 500 ? ('10%' as DimensionValue) : Dimensions.get('window').width > 800 ? ('25%' as DimensionValue) : Math.round(base.padding * scale),
+    horizontalPadding2: Dimensions.get('window').width > 500 ? ('20%' as DimensionValue) : Dimensions.get('window').width > 800 ? ('50%' as DimensionValue) : Math.round(base.padding * scale),
     margin: Math.round(base.margin * scale),
     logo: Math.round(base.logo * scale),
     icon: Math.round(base.icon * scale),
