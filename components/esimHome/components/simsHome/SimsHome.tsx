@@ -32,22 +32,22 @@ export function SimsHome() {
   const navigation = useSafeNavigation();
   return (
     <SafeAreaView style={$styles.container}>
+      <View style={$styles.header}>
+        <Image
+          source={require("@/assets/app-logo-light.png")}
+          style={$styles.logo}
+        />
+        <WalletConnectionButton />
+      </View>
+      <SlidingTabs
+        tabs={tabs}
+        activeTab={tabIndex}
+        onTabChange={handleSimHomeTabChange}
+      />
       <ScrollView
         contentContainerStyle={$styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={$styles.header}>
-          <Image
-            source={require("@/assets/app-logo-light.png")}
-            style={$styles.logo}
-          />
-          <WalletConnectionButton />
-        </View>
-        <SlidingTabs
-          tabs={tabs}
-          activeTab={tabIndex}
-          onTabChange={handleSimHomeTabChange}
-        />
         {tabIndex === 1 ? (
           <FlatList
             data={simDetails}
