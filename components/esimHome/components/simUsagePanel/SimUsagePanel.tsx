@@ -180,12 +180,13 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={$styles.topUpButton}
-        accessibilityLabel="Top up your plan"
-      >
-        <Text style={$styles.topUpButtonText}>Top up the plan</Text>
-      </TouchableOpacity>
+      {/* disabled until implemented */}
+      {/* <TouchableOpacity */}
+      {/*   style={$styles.topUpButton} */}
+      {/*   accessibilityLabel="Top up your plan" */}
+      {/* > */}
+      {/*   <Text style={$styles.topUpButtonText}>Top up the plan</Text> */}
+      {/* </TouchableOpacity> */}
 
       <TouchableOpacity
         style={$styles.textButton}
