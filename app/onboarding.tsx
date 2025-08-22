@@ -67,6 +67,8 @@ export default function Onboarding() {
     }
   };
 
+  const env = detectEnvironment()
+
   if (env.isWeb && !env.isWalletBrowser && !isSolanaWalletExtensionAvailable()) {
     return <OpenInWalletPrompt />;
   }
