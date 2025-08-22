@@ -164,18 +164,19 @@ export function WalletConnectionButton({
                 </View>
 
                 <View style={styles.actionsSection}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, {
-                      backgroundColor: designColors.cardBg,
-                      borderColor: designColors.border
-                    }]}
-                    onPress={handleSwitchAccount}
-                  >
-                    <Icon icon={'swap'} size="normal" colour={designColors.primary} />
-                    <Text style={[styles.actionText, { color: designColors.primary }]}>
-                      Switch Account
-                    </Text>
-                  </TouchableOpacity>
+                  {/* disabled until implemented */}
+                  {/* <TouchableOpacity */}
+                  {/*   style={[styles.actionButton, { */}
+                  {/*     backgroundColor: designColors.cardBg, */}
+                  {/*     borderColor: designColors.border */}
+                  {/*   }]} */}
+                  {/*   onPress={handleSwitchAccount} */}
+                  {/* > */}
+                  {/*   <Icon icon={'swap'} size="normal" colour={designColors.primary} /> */}
+                  {/*   <Text style={[styles.actionText, { color: designColors.primary }]}> */}
+                  {/*     Switch Account */}
+                  {/*   </Text> */}
+                  {/* </TouchableOpacity> */}
 
                   <TouchableOpacity
                     style={[styles.actionButton, {
