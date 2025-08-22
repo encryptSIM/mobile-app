@@ -14,6 +14,14 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { DarkThemeCustom } from "@/constants/custom-theme";
 import "../global.css";
 
+if (process.env.EXPO_PUBLIC_ENVIRONMENT === "prod") {
+  console.log = () => { };
+  console.debug = () => { };
+  console.info = () => { };
+  console.warn = () => { };
+  console.error = () => { };
+}
+
 export { ErrorBoundary } from "expo-router";
 
 SplashScreenAPI.preventAutoHideAsync();
