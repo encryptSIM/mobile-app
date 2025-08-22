@@ -3,11 +3,6 @@ info:
   title: encryptSIM API
   description: API for VPN services, payment profiles, SIM orders, and package management
   version: 1.0.0
-servers:
-  - url: https://backend-134243472228.asia-east1.run.app
-    description: Jacks server
-  - url: http://localhost:3000
-    description: Local development server
 
 paths:
   /coupon/{code}:
