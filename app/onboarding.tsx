@@ -12,6 +12,8 @@ import {
 import { card } from "@/components/app-providers";
 import { useAuth } from "@/components/auth/auth-provider";
 import { getDimensions } from "@/utils/dimensions";
+import { detectEnvironment, isSolanaWalletExtensionAvailable } from "@/utils/environment";
+import { OpenInWalletPrompt } from "@/components/openInWalletPrompt";
 import { sizing } from "@/constants/sizing";
 
 const slides = [
@@ -65,6 +67,9 @@ export default function Onboarding() {
     }
   };
 
+  if (env.isWeb && !env.isWalletBrowser && !isSolanaWalletExtensionAvailable()) {
+    return <OpenInWalletPrompt />;
+  }
   const handleGetStarted = async () => {
     try {
       await signIn();
