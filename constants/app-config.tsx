@@ -14,12 +14,6 @@ export class AppConfig {
       case 'prod':
         return [
           {
-            id: 'solana:testnet',
-            name: 'Testnet',
-            endpoint: clusterApiUrl('testnet'),
-            network: ClusterNetwork.Testnet,
-          },
-          {
             id: 'solana:mainnet-beta',
             name: 'Mainnet',
             endpoint: clusterApiUrl('mainnet-beta'),
