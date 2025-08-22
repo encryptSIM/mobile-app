@@ -20,7 +20,7 @@ const slides = [
   {
     key: "1",
     title: "Unbreakable Security",
-    description: "eSIM + dVPN.\nNo trackers, no logs.",
+    description: "Private, borderless mobile data.\nNo trackers, no logs.",
     image: require("@/assets/onboarding/shield.png"),
     buttonText: "Next",
   },
@@ -28,7 +28,7 @@ const slides = [
     key: "2",
     title: "Speed Meets Freedom",
     description:
-      "Global 5G in 138+ countries, fast servers.\nSentinel dVPN boosts speed with privacy.",
+      "Global 5G in 138+ countries.\nFast, reliable, and private.",
     image: require("@/assets/onboarding/rocket.png"),
     buttonText: "Next",
   },
@@ -36,7 +36,7 @@ const slides = [
     key: "3",
     title: "Your Web3 Gateway",
     description:
-      "No KYC, crypto-ready, from $1.95 or $99/yr.\nInstant eSIM + dVPN for secure global use.",
+      "No KYC. Crypto-ready.\nFrom $1.95/day or $99/year.",
     image: require("@/assets/onboarding/solana.png"),
     buttonText: "Get Started",
   },

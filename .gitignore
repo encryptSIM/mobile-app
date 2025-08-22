@@ -39,3 +39,4 @@ development.apk
 preview.apk
 airalo-api/Airalo Partner API/collection.bru
 .firebase
+.env

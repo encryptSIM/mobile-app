@@ -18,8 +18,12 @@ export function BuyEsim(props: BuyEsimProps) {
           <Text style={$styles.title} variant="bodyLarge">
             Buy encryptSIM
           </Text>
+          {/* disabled until dvpn implemented */}
+          {/* <Text style={$styles.text} variant="bodySmall"> */}
+          {/*   Free dVPN Access on any plan */}
+          {/* </Text> */}
           <Text style={$styles.text} variant="bodySmall">
-            Free dVPN Access on any plan
+            Get Your eSIM Instantly
           </Text>
         </View>
       </View>
