@@ -1607,6 +1607,18 @@ components:
         - redeemable
         - redeemed
       properties:
+        validityLimit:
+          type: number
+          example: 1
+        gbLimit:
+          type: number
+          example: 1
+        country:
+          type: string
+          example: au
+        region:
+          type: string
+          example: asia
         code:
           type: string
           minLength: 3
