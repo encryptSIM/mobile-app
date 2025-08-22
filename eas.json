@@ -10,7 +10,7 @@
       "env": {
         "ENVIRONMENT": "development",
         "EXPO_PUBLIC_ENVIRONMENT": "development",
-        "EXPO_PUBLIC_RPC_URL": "https://api.devnet.solana.com",
+        "EXPO_PUBLIC_RPC_URL": "https://api.testnet.solana.com",
         "EXPO_PUBLIC_API_URL": "https://api-63k4aibnea-de.a.run.app"
       }
     },
@@ -27,7 +27,8 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_ENVIRONMENT": "prod",
-        "ENVIRONMENT": "prod"
+        "EXPO_PUBLIC_RPC_URL": "https://api.mainnet-beta.solana.com",
+        "EXPO_PUBLIC_API_URL": "https://backend-80282010584.asia-southeast1.run.app"
       },
       "android": {
         "ndk": "26.2.11394342",
