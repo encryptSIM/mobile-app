@@ -11,8 +11,9 @@ import {
   Alert,
 } from "react-native";
 import Clipboard from "@react-native-clipboard/clipboard";
+import { AppConfig } from "@/constants/app-config";
 
-const APP_URL = "https://encrypsim-dev.web.app/";
+const APP_URL = AppConfig.uri
 
 const ENCODED_APP_URL = encodeURIComponent(APP_URL);
 
