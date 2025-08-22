@@ -295,6 +295,26 @@ export const useCheckout = () => {
     });
   }, [selectedPackages, selectedPackageQtyMap, local, regions]);
 
+  const validCoupon = useMemo(() => {
+    const pkg = selectedPackageQtyMap[selectedPackages[0]].pkg
+    if (!pkg) return false
+    const coupon = checkCouponQuery.data?.data
+    if (!coupon) return false
+    const couponRegion = coupon.region
+    const couponCountry = coupon.country
+    const couponGbLimit = coupon.gbLimit
+    const validityLimit = coupon.validityLimit
+    const validGb = couponGbLimit ? parseToGigabytes(pkg.data) <= couponGbLimit : true
+    const validDay = validityLimit ? pkg.day! <= coupon.validityLimit! : true
+    const validRegion = couponRegion ? couponRegion === local.region : true
+    const validCountry = couponCountry ? couponCountry === local.countryCode : true
+    const validCoupon = validCountry
+      && validDay
+      && validGb
+      && validRegion
+    return validCoupon
+  }, [checkCouponQuery.data?.data])
+
   const priceData = useMemo(() => {
     let subtotalUSD = 0;
 
@@ -315,13 +335,14 @@ export const useCheckout = () => {
 
     const adjustments: PriceDetailField[] = [];
 
-    const discount = checkCouponQuery?.data?.data
-      ? -1 * ((subtotalUSD) * (checkCouponQuery.data.data.discount / 100))
+
+    const discount = validCoupon
+      ? -1 * ((subtotalUSD) * (checkCouponQuery.data!.data!.discount / 100))
       : 0;
 
-    if (checkCouponQuery.data?.data) {
+    if (validCoupon) {
       adjustments.push({
-        label: `Coupon: ${checkCouponQuery.data.data.code}`,
+        label: `Coupon: ${checkCouponQuery.data!.data!.code}`,
         value: discount,
         type: 'discount',
       });
@@ -498,6 +519,7 @@ export const useCheckout = () => {
     priceData,
     discountCode,
     selectedPackages,
+    validCoupon,
     selectedPackageQtyMap,
     selectedMethodId,
     local,
@@ -540,4 +562,34 @@ function getEndOfFutureDayTimestamp(days: number): number {
   futureDate.setDate(now.getDate() + days + 1);
 
   return futureDate.getTime() - 1;
+}
+
+function parseToGigabytes(data?: string): number {
+  if (!data) return 0
+  if (data === "Unlimited") return 999999999999999
+  // Normalize input (trim spaces, uppercase for consistency)
+  const normalized = data.trim().toUpperCase();
+
+  // Regex to capture number and unit
+  const match = normalized.match(/^([\d.]+)\s*(GB|MB|KB|TB)$/);
+
+  if (!match) {
+    throw new Error(`Invalid data string format: "${data}"`);
+  }
+
+  const value = parseFloat(match[1]);
+  const unit = match[2];
+
+  switch (unit) {
+    case "GB":
+      return value;
+    case "MB":
+      return value / 1024;
+    case "KB":
+      return value / (1024 * 1024);
+    case "TB":
+      return value * 1024;
+    default:
+      throw new Error(`Unsupported unit: "${unit}"`);
+  }
 }

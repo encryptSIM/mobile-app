@@ -22,6 +22,7 @@ export function CheckoutScreen() {
     plans,
     paymentState,
     checkCouponQuery,
+    validCoupon,
     getContinueButtonText,
     handleDiscountClear,
     handleDiscountApply,
@@ -64,7 +65,7 @@ export function CheckoutScreen() {
           onClear={handleDiscountClear}
           applied={!!checkCouponQuery.data?.data}
           value={discountCode}
-          invalid={!!checkCouponQuery.error}
+          invalid={!validCoupon && !checkCouponQuery.isPending}
           loading={checkCouponQuery.isFetching}
           onApply={handleDiscountApply}
           disabled={paymentState.isProcessing}

@@ -2034,6 +2034,14 @@ export interface components {
             error?: string;
         };
         Coupon: {
+            /** @example 1 */
+            validityLimit?: number;
+            /** @example 1 */
+            gbLimit?: number;
+            /** @example au */
+            country?: string;
+            /** @example asia */
+            region?: string;
             /** @example ABC123 */
             code: string;
             /** @example 20 */
