@@ -12,7 +12,6 @@ export class AppConfig {
   static clusters: Cluster[] = (() => {
     switch (process.env.EXPO_PUBLIC_ENVIRONMENT) {
       case 'prod':
-        console.log("USING PROD CLUSTERS")
         return [
           {
             id: 'solana:testnet',
@@ -29,7 +28,6 @@ export class AppConfig {
         ];
 
       case 'development':
-        console.log("USING DEV CLUSTERS")
         return [
           {
             id: 'solana:devnet',
@@ -40,7 +38,6 @@ export class AppConfig {
         ];
 
       default:
-        console.log("USING STAGING CLUSTERS")
         return [
           {
             id: 'solana:devnet',
