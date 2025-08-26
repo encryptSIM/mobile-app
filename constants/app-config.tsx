@@ -1,4 +1,4 @@
-import { clusterApiUrl, PublicKey } from '@solana/web3.js'
+import { PublicKey } from '@solana/web3.js'
 import { Cluster } from '@/components/cluster/cluster'
 import { ClusterNetwork } from '@/components/cluster/cluster-network'
 
@@ -16,7 +16,7 @@ export class AppConfig {
           {
             id: 'solana:mainnet-beta',
             name: 'Mainnet',
-            endpoint: clusterApiUrl('mainnet-beta'),
+            endpoint: process.env.EXPO_PUBLIC_RPC_URL!,
             network: ClusterNetwork.Mainnet,
           },
         ];
@@ -26,7 +26,7 @@ export class AppConfig {
           {
             id: 'solana:devnet',
             name: 'Devnet',
-            endpoint: clusterApiUrl('devnet'),
+            endpoint: process.env.EXPO_PUBLIC_RPC_URL!,
             network: ClusterNetwork.Devnet,
           },
         ];
@@ -36,7 +36,7 @@ export class AppConfig {
           {
             id: 'solana:devnet',
             name: 'Devnet',
-            endpoint: clusterApiUrl('devnet'),
+            endpoint: process.env.EXPO_PUBLIC_RPC_URL!,
             network: ClusterNetwork.Devnet,
           },
         ];
