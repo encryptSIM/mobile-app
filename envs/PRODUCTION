@@ -1,5 +1,6 @@
 EXPO_PUBLIC_ENVIRONMENT=prod
-EXPO_PUBLIC_RPC_URL='https://api.mainnet-beta.solana.com'
+# EXPO_PUBLIC_RPC_URL='https://restless-wider-snowflake.solana-mainnet.quiknode.pro/22b9e3412a9c658952f3a84bfe2da35bacc2c3e4/'
+EXPO_PUBLIC_RPC_URL='https://solana-mainnet.api.syndica.io/api-key/2cUA7sGZonMygiBo6D5LcL25SH2eteEwSLWAD8uca9vwZPmxoeaYZZJxaWM2ydi5pt4hyGJCPYXyTo6UfX1qx5HcVeYzLj8Cm68'
 EXPO_PUBLIC_API_URL='https://backend-80282010584.asia-southeast1.run.app'
 EXPO_PUBLIC_MASTER_PUBLIC_KEY='3d7mPXxNSP9p7j2PJQT3dmGDXnNZ2UUEAMDPPdxJtTqH'
 EXPO_PUBLIC_APP_URL='https://encryptsim.web.app/'
