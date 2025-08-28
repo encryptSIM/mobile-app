@@ -17,27 +17,58 @@ import { PackageDetailsCardField } from "@/components/packageSelection/component
 import { IconType } from "@/components/Icon";
 
 export const SELECTED_SIM = {
-  key: 'SELECTED_SIM',
-  initialState: null
-}
+  key: "SELECTED_SIM",
+  initialState: null,
+};
 
 export function useEsimHomeScreen() {
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const { account } = useWalletUi()
+  const { account } = useWalletUi();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState)
-  const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key, SELECTED_SIM.initialState)
-  const usageQuery = useMultiUsage(sims.map(s => s.iccid))
-  const expiredSims = useMemo(() => sims.filter(s => s.expiration_ms < Date.now()), [sims])
+  const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState);
+  const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(
+    SELECTED_SIM.key,
+    SELECTED_SIM.initialState
+  );
+  const usageQuery = useMultiUsage(sims.map((s) => s.iccid));
+  const expiredSims = useMemo(
+    () => sims.filter((s) => s.expiration_ms < Date.now()),
+    [sims]
+  );
   const [progress, setProgress] = useState<number>(0.0);
-  const [showContent, setShowContent] = useSharedState('SHOW_CONTENT')
+  const [showContent, setShowContent] = useSharedState("SHOW_CONTENT");
   const intervalRef = useRef<number | null>(null);
 
+  const simsQuery = $api.useQuery(
+    "get",
+    "/fetch-sims/{id}",
+    {
+      params: {
+        path: {
+          id: account?.address ?? "",
+        },
+      },
+    },
+    {
+      enabled: !!account?.address,
+    }
+  );
+
+  // Debug logs
   useEffect(() => {
-    const simsSim = simsQuery.data?.data?.find(t => t.iccid === selectedSim?.iccid)
-    if (selectedSim?.installed === simsSim?.installed) return
-    simsQuery.refetch()
-  }, [selectedSim])
+    console.log("🔍 sims:", sims);
+    console.log("🔍 selectedSim:", selectedSim);
+    console.log("🔍 usageQuery.data:", usageQuery.data);
+    console.log("🔍 expiredSims:", expiredSims);
+  }, [sims, selectedSim, usageQuery.data, expiredSims]);
+
+  useEffect(() => {
+    const simsSim = simsQuery.data?.data?.find(
+      (t) => t.iccid === selectedSim?.iccid
+    );
+    if (selectedSim?.installed === simsSim?.installed) return;
+    simsQuery.refetch();
+  }, [selectedSim]);
 
   const simDetails = useMemo(() => {
     if (!expiredSims || expiredSims.length === 0) {
@@ -61,87 +92,94 @@ export function useEsimHomeScreen() {
 
     return expiredSims.map((sim) => {
       const packageDetails: PackageDetailsCardField[] = [];
+      const stats = usageQuery.data ?? {};
 
-      const total = getDaysBetweenInclusive(sim.created_at_ms, sim.expiration_ms)
-      const stats = usageQuery.data!
-      addDetail("Calls (min)", "phone", stats[sim.iccid]?.total_voice, packageDetails);
-      addDetail("SMS", "sms", stats[sim.iccid]?.total_text, packageDetails);
-      addDetail("Data", "wifi", stats[sim.iccid]?.total, packageDetails);
-      addDetail(
-        "Validity",
-        "calendar",
-        total,
-        packageDetails
+      const total = getDaysBetweenInclusive(
+        sim.created_at_ms,
+        sim.expiration_ms
       );
+
+      const simStats = stats[sim.iccid];
+      if (!simStats) {
+        console.warn(
+          `⚠️ No usage stats found for SIM ${sim.iccid}, skipping details.`
+        );
+      }
+
+      addDetail("Calls (min)", "phone", simStats?.total_voice, packageDetails);
+      addDetail("SMS", "sms", simStats?.total_text, packageDetails);
+      addDetail("Data", "wifi", simStats?.total, packageDetails);
+      addDetail("Validity", "calendar", total, packageDetails);
 
       return { sim, packageDetails };
     });
-  }, [expiredSims, usageQuery]);
+  }, [expiredSims, usageQuery.data]);
 
   const usageStats = useMemo(() => {
-    const statsMap: Record<string, UsageStat[]> = {}
-    if (!usageQuery.data) return {}
+    const statsMap: Record<string, UsageStat[]> = {};
+    if (!usageQuery.data) return {};
+
     for (const iccid of Object.keys(usageQuery.data)) {
-      const stats: UsageStat[] = []
-      const usage = usageQuery.data[iccid]
-      if (usage?.total_text) {
+      const usage = usageQuery.data?.[iccid];
+      if (!usage) {
+        console.warn(`⚠️ Missing usage data for SIM ${iccid}`);
+        continue;
+      }
+
+      const stats: UsageStat[] = [];
+
+      if (usage.total_text) {
         stats.push({
-          total: usage?.total_text ?? 0,
-          used: usage?.total_text - usage.remaining_text!,
+          total: usage.total_text,
+          used: usage.total_text - (usage.remaining_text ?? 0),
           label: "SMS",
           icon: "sms",
           unit: "messages",
-        })
+        });
       }
-      if (usage?.total) {
+
+      if (usage.total) {
         stats.push({
           total: usage.total,
-          used: usage.total - usage.remaining!,
+          used: usage.total - (usage.remaining ?? 0),
           label: "Data",
           icon: "wifi",
           unit: "MB",
-        })
+        });
       }
-      if (usage?.total_voice) {
+
+      if (usage.total_voice) {
         stats.push({
-          total: usage?.total_voice,
-          used: usage?.total_voice - usage.remaining_voice!,
+          total: usage.total_voice,
+          used: usage.total_voice - (usage.remaining_voice ?? 0),
           label: "Call",
           icon: "phone",
           unit: "mins",
-        })
+        });
       }
 
-      const sim = sims.find(s => s.iccid === iccid)
+      const sim = sims.find((s) => s.iccid === iccid);
       if (sim) {
-        const total = getDaysBetweenInclusive(sim.created_at_ms, sim.expiration_ms)
-        const remaining = getDaysRemaining(sim.expiration_ms)
+        const total = getDaysBetweenInclusive(
+          sim.created_at_ms,
+          sim.expiration_ms
+        );
+        const remaining = getDaysRemaining(sim.expiration_ms);
         stats.push({
-          total: total,
+          total,
           used: total - remaining,
           label: "Validity",
           icon: "calendar",
           unit: "days",
-          formatValue: () => "7 days left",
-        })
+          formatValue: () => `${remaining} days left`,
+        });
       }
-      statsMap[iccid] = stats
-    }
-    return statsMap
-  }, [usageQuery.data, sims])
 
-  const simsQuery = $api.useQuery('get', '/fetch-sims/{id}',
-    {
-      params: {
-        path: {
-          id: account?.address ?? ""
-        }
-      }
-    },
-    {
-      enabled: !!account?.address,
-    },
-  )
+      statsMap[iccid] = stats;
+    }
+
+    return statsMap;
+  }, [usageQuery.data, sims]);
 
   useEffect(() => {
     const data = simsQuery?.data?.data;
@@ -203,14 +241,17 @@ export function useEsimHomeScreen() {
 
   useEffect(() => {
     if (!selectedSim && sims.length > 0) {
-      setSelectedSim(sims[0])
+      setSelectedSim(sims[0]);
     }
-  }, [sims])
+  }, [sims]);
 
-  const handleSimHomeTabChange = useCallback((index: number) => {
-    if (expiredSims.length < 1) return
-    setTabIndex(index);
-  }, []);
+  const handleSimHomeTabChange = useCallback(
+    (index: number) => {
+      if (expiredSims.length < 1) return;
+      setTabIndex(index);
+    },
+    [expiredSims]
+  );
 
   const handleTabChange = useCallback((index: number) => {
     setTabIndex(index);
@@ -260,38 +301,33 @@ export function useEsimHomeScreen() {
 }
 
 function getDaysRemaining(targetTimestamp: number): number {
-  // Get current date at midnight (start of today)
   const now = new Date();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
 
-  // Calculate difference in milliseconds
   const diffMs = targetTimestamp - today.getTime();
-
-  // Convert to days and round up
   const daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-  // Ensure we don't return negative days
   return Math.max(0, daysRemaining);
 }
 
-function getDaysBetweenInclusive(startTimestamp: number, endTimestamp: number): number {
-  // Ensure start is before end (swap if needed)
-  const [start, end] = startTimestamp <= endTimestamp
-    ? [startTimestamp, endTimestamp]
-    : [endTimestamp, startTimestamp];
+function getDaysBetweenInclusive(
+  startTimestamp: number,
+  endTimestamp: number
+): number {
+  const [start, end] =
+    startTimestamp <= endTimestamp
+      ? [startTimestamp, endTimestamp]
+      : [endTimestamp, startTimestamp];
 
-  // Round start down to midnight (beginning of day)
   const startDate = new Date(start);
   startDate.setHours(0, 0, 0, 0);
   const roundedStart = startDate.getTime();
 
-  // Round end up to 23:59:59.999 (end of day)
   const endDate = new Date(end);
   endDate.setHours(23, 59, 59, 999);
   const roundedEnd = endDate.getTime();
 
-  // Calculate difference in days (inclusive)
   const diffMs = roundedEnd - roundedStart;
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
 
