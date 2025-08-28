@@ -16,6 +16,7 @@ import { InstallSimPanel } from "../installSimPanel";
 import { SimSelector } from "../simSelector/SimSelector";
 import { SimUsagePanel } from "../simUsagePanel/SimUsagePanel";
 import { $styles } from "./styles";
+import { sizing } from "@/constants/sizing";
 
 const tabs = ["Current", "Expired"];
 
@@ -49,29 +50,27 @@ export function SimsHome() {
         showsVerticalScrollIndicator={false}
       >
         {tabIndex === 1 ? (
-          <FlatList
-            data={simDetails}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.sim.iccid}
-            renderItem={({ item }) => (
-              <>
-                <PackageDetailsCard
-                  disabled
-                  title={item.sim.package_title}
-                  fields={item.packageDetails}
-                  onPress={() => { }}
-                  id={item.sim.iccid}
-                />
-                <View style={{ height: 16 }} />
-              </>
-            )}
-            ListFooterComponent={
-              <BuyEsim
-                onBuyPress={() => navigation.navigate("checkoutStack", { screen: "addSim" })}
-              />
-            }
-            contentContainerStyle={$styles.listContent}
-          />
+          <>
+            <View style={{ height: sizing.margin }}></View>
+            <FlatList
+              data={simDetails}
+              showsVerticalScrollIndicator={false}
+              keyExtractor={(item) => item.sim.iccid}
+              renderItem={({ item }) => (
+                <>
+                  <PackageDetailsCard
+                    disabled
+                    title={item.sim.package_title}
+                    fields={item.packageDetails}
+                    onPress={() => { }}
+                    id={item.sim.iccid}
+                  />
+                  <View style={{ height: 16 }} />
+                </>
+              )}
+              contentContainerStyle={$styles.listContent}
+            />
+          </>
         ) : (
           <>
             <SimSelector
@@ -88,9 +87,9 @@ export function SimsHome() {
         )}
         <BuyEsim
           onBuyPress={() => navigation.navigate("checkoutStack", { screen: "addSim" })}
-
         />
       </ScrollView>
+      <View style={{ height: sizing.margin }}></View>
     </SafeAreaView>
   );
 }

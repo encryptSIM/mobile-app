@@ -3,6 +3,7 @@ import createClient from "openapi-react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { paths } from "./schema";
 import { fetchClient } from "@/api/api";
+import { AppConfig } from "@/constants/app-config";
 
 export type GetPackagesResponse = paths["/v2/packages"]["get"]["responses"]["200"]["content"]["application/json"];
 export type Operator = NonNullable<NonNullable<GetPackagesResponse["data"]>[number]["operators"]>[number];
@@ -13,7 +14,7 @@ export type Prices = NonNullable<Package["prices"]>["recommended_retail_price"];
 export type Usage = NonNullable<NonNullable<paths['/v2/sims/{sim_iccid}/usage']['get']['responses']['200']['content']['application/json']>['data']>
 
 export const airaloFetchClient = createFetchClient<paths>({
-  baseUrl: "https://backend-134243472228.asia-east1.run.app",
+  baseUrl: AppConfig.apiUrl,
 });
 
 const TOKEN_STORAGE_KEY = "@api_token";
