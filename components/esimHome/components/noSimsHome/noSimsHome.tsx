@@ -79,6 +79,7 @@ export function NoSimsHome() {
           columnWrapperStyle={$styles.columnWrapper}
           ListHeaderComponent={<View style={$styles.searchSpacing} />}
           stickyHeaderIndices={[0]}
+          inverted={tabIndex >= 1}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={$styles.listContent}
         />
