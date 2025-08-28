@@ -231,6 +231,11 @@ export const countries = [
 
 export const regions: Region[] = [
   {
+    slug: 'world',
+    title: 'World',
+    image: 'https://cdn.airalo.com/images/5c6c78b0-1713-43f1-807e-7c62ab1904e9.png'
+  },
+  {
     slug: "europe",
     title: "Europe",
     image: "https://cdn.airalo.com/images/6ac17e60-8930-4042-89f0-4ac035d94295.png"
@@ -239,6 +244,11 @@ export const regions: Region[] = [
     slug: "africa",
     title: "Africa",
     image: "https://cdn.airalo.com/images/a10d3ea2-4f19-4ef0-b988-9f58120ca2b1.png"
+  },
+  {
+    slug: "asia",
+    title: "Asia",
+    image: "https://cdn.airalo.com/images/6dd3b91a-c76a-4ca6-8eb9-ccf989eccac3.png"
   },
   {
     slug: "caribbean-islands",
@@ -264,16 +274,6 @@ export const regions: Region[] = [
     slug: "oceania",
     title: "Oceania",
     image: "https://cdn.airalo.com/images/601554bc-d478-4afa-9d26-f3cb4ee50fc3.png"
-  },
-  {
-    slug: "asia",
-    title: "Asia",
-    image: "https://cdn.airalo.com/images/6dd3b91a-c76a-4ca6-8eb9-ccf989eccac3.png"
-  },
-  {
-    slug: 'world',
-    title: 'World',
-    image: 'https://cdn.airalo.com/images/5c6c78b0-1713-43f1-807e-7c62ab1904e9.png'
   },
 ]
 

@@ -68,8 +68,14 @@ export function AddSim() {
           }
         />
         <View style={$styles.body}>
+          {
+            tabIndex > 0 &&
+            <View style={{ paddingHorizontal: 8, paddingTop: 16, }}>
+              {renderCard({ item: filteredData[0] })}
+            </View>
+          }
           <FlatList
-            data={filteredData}
+            data={filteredData.slice(1)}
             keyExtractor={(item) => item.id}
             renderItem={renderCard}
             numColumns={Dimensions.get('window').width > 1000 ? 4 : Dimensions.get('window').width > 600 ? 3 : 2}
