@@ -231,6 +231,11 @@ export const countries = [
 
 export const regions: Region[] = [
   {
+    slug: 'world',
+    title: 'World',
+    image: 'https://cdn.airalo.com/images/5c6c78b0-1713-43f1-807e-7c62ab1904e9.png'
+  },
+  {
     slug: "europe",
     title: "Europe",
     image: "https://cdn.airalo.com/images/6ac17e60-8930-4042-89f0-4ac035d94295.png"
