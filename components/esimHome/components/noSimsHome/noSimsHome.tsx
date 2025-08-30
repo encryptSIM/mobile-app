@@ -78,7 +78,7 @@ export function NoSimsHome() {
           </View>
         }
         <FlatList
-          data={filteredData.slice(1)}
+          data={filteredData.slice(tabIndex)}
           keyExtractor={(item) => item.id}
           renderItem={renderCard}
           numColumns={2}

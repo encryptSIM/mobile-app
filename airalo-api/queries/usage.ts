@@ -20,7 +20,7 @@ export const useMultiUsage = (
   iccids: string[],
   options: UseMultiUsageOptions = {}
 ) => {
-  const { useFakeData = process.env.EXPO_PUBLIC_ENVIRONMENT === 'prod' } = options;
+  const { useFakeData = process.env.EXPO_PUBLIC_ENVIRONMENT !== 'prod' } = options;
 
   return useQuery({
     queryKey: ['multi-usage', ...iccids, useFakeData],
