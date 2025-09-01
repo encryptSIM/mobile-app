@@ -14,14 +14,14 @@ export const useUnifiedWallet = () => {
   const shouldUseMobile = shouldUseMobileWalletAdapter();
 
   const wallet = useMemo(() => {
-    if (shouldUseWeb) {
-      return simpleWebWallet;
-    } else if (shouldUseMobile) {
+    if (shouldUseMobile) {
       return mobileWallet;
+    } else if (shouldUseWeb) {
+      return simpleWebWallet;
     } else {
       return mobileWallet;
     }
   }, [shouldUseWeb, shouldUseMobile, simpleWebWallet, mobileWallet]);
 
   return wallet;
-}; 
+};

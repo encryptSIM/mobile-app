@@ -12,8 +12,9 @@
     "gen-airalo:schema": "openapi-typescript ./airalo-api/airalo-api.json -o ./airalo-api/schema.ts",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:prev": "infisical run --env staging --path='/mobile' -- eas build --platform android --profile preview --local --output './preview.apk'",
-    "build:dev": "infisical run --env dev --path='/mobile' -- eas build --platform android --profile development --local --output './development.apk'",
+    "build:dev:apk": "rimraf ./dist/ ./.firebase ./.expo ./.env && cp ./envs/DEVELOPMENT ./.env && eas build --platform android --profile development --local --output './development.apk'",
+    "build:staging:apk": "rimraf ./dist/ ./.firebase ./.expo ./.env && cp ./envs/STAGING ./.env && eas build --platform android --profile staging --local --output './staging.apk'",
+    "build:prod:apk": "rimraf ./dist/ ./.firebase ./.expo ./.env && cp ./envs/PRODUCTION ./.env && eas build --platform android --profile production --local --output './production.apk'",
     "test": "jest --watchAll"
   },
   "jest": {
