@@ -17,6 +17,7 @@ export interface AuthState {
   isLoading: boolean;
   deviceToken: string | null;
   deviceTokenLoading: boolean;
+  account: Account | null;
   setDeviceToken: (value: string) => Promise<void>;
   signIn: () => Promise<Account>;
   signOut: () => Promise<void>;
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     useUnifiedWallet();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [currentAccount, setCurrentAccount] = useState<Account | null>(null);
   const selectedAccountRef = useRef(selectedAccount);
 
   useEffect(() => {
@@ -70,6 +72,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     const authenticated = connected && selectedAccount !== null;
     setIsAuthenticated(authenticated);
+
+    if (authenticated && selectedAccount) {
+      const publicKey =
+        "publicKey" in selectedAccount && selectedAccount.publicKey
+          ? selectedAccount.publicKey
+          : new PublicKey(selectedAccount.address);
+
+      const account = {
+        address: selectedAccount.address,
+        displayAddress: selectedAccount.address,
+        publicKey,
+        label: selectedAccount.label,
+      } as Account;
+
+      setCurrentAccount(account);
+      console.log("🎯 Current account updated:", account);
+    } else {
+      setCurrentAccount(null);
+    }
+
     console.log("🔐 Auth state updated:", {
       connected,
       hasSelectedAccount: !!selectedAccount,
@@ -115,6 +137,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         } as Account;
 
         setIsAuthenticated(true);
+        setCurrentAccount(account);
         console.log("🔐 Sign-in completed, account:", account);
         return account;
       }
@@ -128,6 +151,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       } as Account;
 
       setIsAuthenticated(true);
+      setCurrentAccount(fallbackAccount);
       console.log("🔐 Sign-in completed, fallback account:", fallbackAccount);
       return fallbackAccount;
     } catch (error: any) {
@@ -142,12 +166,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
       signOut: async () => {
         await disconnect();
         setIsAuthenticated(false);
+        setCurrentAccount(null);
       },
       setDeviceToken,
       deviceTokenLoading,
       deviceToken,
       isAuthenticated,
       isLoading,
+      account: currentAccount,
     }),
     [
       isAuthenticated,
@@ -157,6 +183,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       deviceToken,
       setDeviceToken,
       connect,
+      currentAccount,
     ]
   );
 

@@ -18,32 +18,36 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const [showContent,] = useSharedState('SHOW_CONTENT', false)
+  const [showContent] = useSharedState('SHOW_CONTENT', false)
   const env = detectEnvironment();
 
   useEffect(() => {
+    console.log("tabs/layout rendered")
     SplashScreenAPI.hideAsync();
   }, [])
-  if (env.isWeb)
-    return (
-      <Stack
-        screenOptions={{
-          // Disable the static render of the header on web
-          // to prevent a hydration error in React Navigation v6.
-          headerShown: useClientOnlyValue(false, true),
+  // uncomment when dvpn is enabled
+  // if (env.isWeb)
+  return (
+    <Stack
+      screenOptions={{
+        // Disable the static render of the header on web
+        // to prevent a hydration error in React Navigation v6.
+        headerShown: useClientOnlyValue(false, true),
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          headerShown: false,
+          title: 'eSIM',
+          tabBarStyle: { opacity: 0 },
+          tabBarIcon: ({ color }) => <TabBarIcon name="eSIM" color={color} />,
         }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            headerShown: false,
-            title: 'eSIM',
-            tabBarStyle: { opacity: showContent ? 1 : 0 },
-            tabBarIcon: ({ color }) => <TabBarIcon name="eSIM" color={color} />,
-          }}
-        />
-      </Stack>
-    )
+      />
+    </Stack>
+  )
+
+  console.log("mobile rendering tabs now")
 
   return (
     <Tabs
