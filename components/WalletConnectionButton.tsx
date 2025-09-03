@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useWalletAuth } from './auth/wallet-auth-provider';
+import { brandGreen, card } from './app-providers';
 
 interface WalletButtonProps {
   style?: any;
@@ -37,7 +38,7 @@ export function WalletConnectionButton({ style }: WalletButtonProps) {
     <TouchableOpacity
       style={[
         styles.button,
-        { backgroundColor: isConnected ? '#374151' : '#00D4AA' },
+        { backgroundColor: isConnected ? card : card },
         style
       ]}
       onPress={handlePress}
