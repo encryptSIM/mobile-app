@@ -6,7 +6,7 @@ interface WalletButtonProps {
   style?: any;
 }
 
-export function WalletConnectButton({ style }: WalletButtonProps) {
+export function WalletConnectionButton({ style }: WalletButtonProps) {
   const { isConnected, isLoading, account, connect, disconnect } = useWalletAuth();
 
   const handlePress = async () => {
