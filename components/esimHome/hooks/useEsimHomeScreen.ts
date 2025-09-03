@@ -10,11 +10,11 @@ import {
 import { useSharedState } from "@/hooks/use-provider";
 import { $api, Sim } from "@/api/api";
 import { SIMS } from "@/components/checkout/hooks/useCheckout";
-import { useAuth } from "@/components/auth/auth-provider";
 import { useMultiUsage } from "@/airalo-api/queries/usage";
 import { UsageStat } from "../components/simUsagePanel";
 import { PackageDetailsCardField } from "@/components/packageSelection/components";
 import { IconType } from "@/components/Icon";
+import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
 
 export const SELECTED_SIM = {
   key: "SELECTED_SIM",
@@ -23,7 +23,7 @@ export const SELECTED_SIM = {
 
 export function useEsimHomeScreen() {
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const { isAuthenticated, account } = useAuth();
+  const { isConnected, account } = useWalletAuth();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState);
   const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(
@@ -50,20 +50,20 @@ export function useEsimHomeScreen() {
       },
     },
     {
-      enabled: !!account?.address && isAuthenticated,
+      enabled: !!account?.address && isConnected,
       queryHash: account?.address ?? "",
     }
   );
 
   useEffect(() => {
-    if (account?.address && isAuthenticated) {
+    if (account?.address && isConnected) {
       console.log("🔄 Account/auth changed, refetching simsQuery", {
         address: account.address,
-        isAuthenticated
+        isConnected
       });
       simsQuery.refetch();
     }
-  }, [account?.address, isAuthenticated]);
+  }, [account?.address, isConnected]);
 
   useEffect(() => {
     console.log("🔍 sims:", sims);
@@ -71,19 +71,19 @@ export function useEsimHomeScreen() {
     console.log("🔍 usageQuery.data:", usageQuery.data);
     console.log("🔍 expiredSims:", expiredSims);
     console.log("🔍 account from auth:", account);
-    console.log("🔍 isAuthenticated:", isAuthenticated);
-  }, [sims, selectedSim, usageQuery.data, expiredSims, account, isAuthenticated]);
+    console.log("🔍 isConnected:", isConnected);
+  }, [sims, selectedSim, usageQuery.data, expiredSims, account, isConnected]);
 
   useEffect(() => {
     console.log("🔍 simsQuery config:", {
-      enabled: !!account?.address && isAuthenticated,
+      enabled: !!account?.address && isConnected,
       accountAddress: account?.address,
       queryHash: account?.address ?? "",
       isFetched: simsQuery.isFetched,
       isLoading: simsQuery.isLoading,
       error: simsQuery.error,
     });
-  }, [account?.address, isAuthenticated, simsQuery.isFetched, simsQuery.isLoading, simsQuery.error]);
+  }, [account?.address, isConnected, simsQuery.isFetched, simsQuery.isLoading, simsQuery.error]);
 
   useEffect(() => {
     const simsSim = simsQuery.data?.data?.find(
@@ -236,7 +236,6 @@ export function useEsimHomeScreen() {
       intervalRef.current = window.setInterval(() => {
         setProgress((prev) => {
           const next = prev < 0.9 ? +(prev + 0.01).toFixed(2) : prev;
-          console.log("📈 Progress (loading):", next);
           return next;
         });
       }, 30);

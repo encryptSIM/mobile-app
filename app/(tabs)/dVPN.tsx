@@ -18,7 +18,6 @@ import { useWireGuardVpn } from "../../hooks/use-wireguard-vpn";
 import { createDevice } from "../../service/vpnService";
 import { ServerSelectionModal } from "../../components/ServerSelectionModal";
 import VPNServerTester from "../../components/VPNServerTester";
-import { useAuth } from "@/components/auth/auth-provider";
 // import { useV2RayVpn } from "../../hooks/use-v2ray-vpn";
 // import V2RayTestComponent from "../../components/V2RayTestComponent";
 
@@ -47,7 +46,7 @@ console.log("VpnPermission available:", VpnPermission);
 // const VMESS_LINK = VMESS_LINK_ORIGINAL;
 
 export default function DVpnScreen() {
-  const { deviceToken, setDeviceToken, deviceTokenLoading } = useAuth();
+  const { deviceToken, setDeviceToken, deviceTokenLoading } = {} as any
   const [useV2Ray, setUseV2Ray] = useState(false);
   const [showDebugModal, setShowDebugModal] = useState(false);
   const [showServerModal, setShowServerModal] = useState(false);

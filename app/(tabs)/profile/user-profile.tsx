@@ -12,17 +12,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth } from "@/components/auth/auth-provider";
 import { useGetBalance } from "@/components/solana/use-get-balance";
 import { ActivityIndicator } from "react-native-paper";
 import { lamportsToSol } from "@/utils/lamports-to-sol";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useUnifiedWallet } from "@/hooks/use-unified-wallet";
+import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
 
 export default function ProfileScreen() {
-  const wallet = useUnifiedWallet();
-  const balanceQuery = useGetBalance({ address: wallet?.publicKey! })
-  const { signOut } = useAuth()
+  const wallet = useWalletAuth();
+  const balanceQuery = useGetBalance({ address: wallet.account?.publicKey! })
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   return (
     <SafeAreaView style={styles.container}>
@@ -39,7 +37,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={async () => {
-              await Clipboard.setStringAsync(wallet.publicKey!.toString() || "");
+              await Clipboard.setStringAsync(wallet.account?.publicKey!.toString() || "");
               ToastAndroid.show("Address copied!", ToastAndroid.SHORT);
             }}
             style={styles.addressButton}
@@ -47,7 +45,7 @@ export default function ProfileScreen() {
             <View style={styles.addressRow}>
               <Feather name="copy" size={16} color="#4ade80" />
               <Text style={styles.addressText}>
-                {addressFormatter(wallet?.publicKey!.toString() || "")}
+                {addressFormatter(wallet.account?.publicKey!.toString() || "")}
               </Text>
             </View>
           </TouchableOpacity>
@@ -111,7 +109,7 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 onPress={async () => {
                   setShowLogoutConfirm(false);
-                  await signOut()
+                  await wallet.disconnect()
                   await AsyncStorage.clear()
                 }}
                 style={[styles.modalButton, { backgroundColor: "#EF4444" }]}

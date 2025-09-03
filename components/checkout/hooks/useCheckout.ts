@@ -5,7 +5,6 @@ import {
   SelectedPackageQtyMap
 } from '@/components/packageSelection/hooks';
 import { useTransferSol } from '@/components/solana/use-transfer-sol';
-import { useWalletUi } from '@/components/solana/use-wallet-ui';
 import { AppConfig } from '@/constants/app-config';
 import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
@@ -17,6 +16,7 @@ import { PublicKey } from '@solana/web3.js';
 import { PriceDetailField } from '../components';
 import { useSafeNavigation } from '@/hooks/use-safe-navigation';
 import { IconType } from '@/components/Icon';
+import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
 
@@ -56,7 +56,7 @@ export const useCheckout = () => {
   const [paymentState, setPaymentState] = useState<PaymentState>(initialState);
   const navigation = useSafeNavigation();
   const local = useLocalSearchParams();
-  const { account } = useWalletUi();
+  const { account } = useWalletAuth()
   const solanaPrice = useSolanaPrice();
   const paymentIdempotencyKey = useRef<string | null>(null);
 

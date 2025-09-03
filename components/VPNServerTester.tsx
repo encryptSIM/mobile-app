@@ -13,10 +13,9 @@ import {
   getServers,
   createCredentials,
 } from "@/service/vpnService";
-import { useAuth } from "./auth/auth-provider";
 
 export default function VPNServerTester() {
-  const { deviceToken } = useAuth();
+  const deviceToken = ""
   const [testing, setTesting] = useState(false);
   const [results, setResults] = useState<any[]>([]);
 
