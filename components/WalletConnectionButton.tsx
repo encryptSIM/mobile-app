@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   TouchableOpacity,
   Text,
@@ -32,53 +32,71 @@ const truncateAddress = (address: string, startChars = 6, endChars = 4) => {
   return `${address.substring(0, startChars)}...${address.substring(address.length - endChars)}`;
 };
 
+const designColors = {
+  primary: "#00D4AA",
+  secondary: "#6366F1",
+  bg: "rgba(17, 24, 39, 0.95)",
+  cardBg: "rgba(31, 41, 55, 0.8)",
+  border: "rgba(75, 85, 99, 0.3)",
+  text: "#FFFFFF",
+  textSecondary: "rgba(255, 255, 255, 0.7)",
+  textTertiary: "rgba(255, 255, 255, 0.5)",
+  buttonBg: "rgba(55, 65, 81, 0.8)",
+  buttonText: "#FFFFFF",
+  success: "#10B981",
+  danger: "#EF4444",
+};
+
 export function WalletConnectionButton({
   onConnected,
   onSwitchAccount,
   style,
 }: WalletConnectionButtonProps) {
   const wallet = useUnifiedWallet();
-  const { signOut } = useAuth()
+  const { signOut } = useAuth();
   const balance = useGetBalance({ address: wallet.publicKey! });
   const [connecting, setConnecting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
 
+  useEffect(() => {
+    console.log("🔍 WalletConnectionButton state:", {
+      connected: wallet.connected,
+      connecting: wallet.connecting,
+      hasSelectedAccount: !!wallet.selectedAccount,
+      selectedAccount: wallet.selectedAccount?.address,
+      hasPublicKey: !!wallet.publicKey,
+    });
+  }, [wallet.connected, wallet.connecting, wallet.selectedAccount, wallet.publicKey]);
+
   const handleConnect = async () => {
-    if (connecting) return;
+    if (connecting || wallet.connecting) return;
 
     try {
       setConnecting(true);
+      console.log("🔄 Starting wallet connection...");
+
       await wallet.connect();
+
+      // Add a small delay to ensure state updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      console.log("✅ Wallet connection completed");
       onConnected?.();
     } catch (error: any) {
-      console.error("Wallet connection error:", error);
+      console.error("❌ Wallet connection error:", error);
       Alert.alert("Connection Failed", error.message || "Unexpected error");
     } finally {
       setConnecting(false);
     }
-  }
-
-  const isLoading = connecting || wallet.connecting;
-
-  const designColors = {
-    primary: "#00D4AA",
-    secondary: "#6366F1",
-    bg: "rgba(17, 24, 39, 0.95)",
-    cardBg: "rgba(31, 41, 55, 0.8)",
-    border: "rgba(75, 85, 99, 0.3)",
-    text: "#FFFFFF",
-    textSecondary: "rgba(255, 255, 255, 0.7)",
-    textTertiary: "rgba(255, 255, 255, 0.5)",
-    buttonBg: "rgba(55, 65, 81, 0.8)",
-    buttonText: "#FFFFFF",
-    success: "#10B981",
-    danger: "#EF4444",
   };
 
+  const isLoading = connecting || wallet.connecting;
+  const isConnected = wallet.connected && wallet.selectedAccount;
+
   const handleDisconnect = () => {
-    console.log("handleDisconnect")
+    console.log("handleDisconnect");
     setMenuVisible(false);
-    signOut()
+    signOut();
   };
 
   const handleSwitchAccount = () => {
@@ -91,10 +109,10 @@ export function WalletConnectionButton({
   };
 
   const getIcon = (address: string) => {
-    return `https://api.dicebear.com/9.x/rings/svg?ringColor=${brandGreen}&seed=${address}`
-  }
+    return `https://api.dicebear.com/9.x/rings/svg?ringColor=${brandGreen}&seed=${address}`;
+  };
 
-  if (wallet.connected && wallet.selectedAccount) {
+  if (isConnected) {
     return (
       <>
         <TouchableOpacity
@@ -103,12 +121,12 @@ export function WalletConnectionButton({
           activeOpacity={0.7}
         >
           <Image
-            source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
-            style={{ width: 24, height: 24, borderRadius: 32 }}
+            source={{ uri: getIcon(String(wallet.selectedAccount!.address)) }}
+            style={styles.avatar}
           />
 
           <Text style={[styles.addressText, { color: designColors.buttonText }]}>
-            {addressFormatter(wallet.selectedAccount.address)}
+            {addressFormatter(wallet.selectedAccount!.address)}
           </Text>
 
           <Icon icon={'chevronDown'} size="small" colour={designColors.textTertiary} />
@@ -137,13 +155,13 @@ export function WalletConnectionButton({
 
                 <View style={styles.walletInfo}>
                   <Image
-                    source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
-                    style={{ width: 64, height: 64, borderRadius: 32 }}
+                    source={{ uri: getIcon(String(wallet.selectedAccount!.address)) }}
+                    style={styles.avatarLarge}
                   />
 
                   <View style={styles.addressSection}>
                     <Text style={[styles.fullAddress, { color: designColors.text }]}>
-                      {truncateAddress(wallet.selectedAccount.address, 8, 6)}
+                      {truncateAddress(wallet.selectedAccount!.address, 8, 6)}
                     </Text>
                     <TouchableOpacity
                       style={styles.copyButton}
@@ -164,20 +182,6 @@ export function WalletConnectionButton({
                 </View>
 
                 <View style={styles.actionsSection}>
-                  {/* disabled until implemented */}
-                  {/* <TouchableOpacity */}
-                  {/*   style={[styles.actionButton, { */}
-                  {/*     backgroundColor: designColors.cardBg, */}
-                  {/*     borderColor: designColors.border */}
-                  {/*   }]} */}
-                  {/*   onPress={handleSwitchAccount} */}
-                  {/* > */}
-                  {/*   <Icon icon={'swap'} size="normal" colour={designColors.primary} /> */}
-                  {/*   <Text style={[styles.actionText, { color: designColors.primary }]}> */}
-                  {/*     Switch Account */}
-                  {/*   </Text> */}
-                  {/* </TouchableOpacity> */}
-
                   <TouchableOpacity
                     style={[styles.actionButton, {
                       backgroundColor: designColors.cardBg,
@@ -204,21 +208,22 @@ export function WalletConnectionButton({
       style={[
         styles.connectButton,
         {
-          backgroundColor: designColors.primary,
+          backgroundColor: isLoading ? designColors.buttonBg : designColors.primary,
+          borderColor: designColors.border,
         },
         style,
       ]}
       onPress={handleConnect}
       disabled={isLoading}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
       {isLoading ? (
-        <ActivityIndicator size="small" color="#000" />
+        <ActivityIndicator size="small" color={designColors.buttonText} />
       ) : (
-        <Icon icon={'swap'} size="normal" colour={designColors.primary} />
+        <Icon icon={'swap'} size="normal" colour="#000" />
       )}
       {!isLoading && (
-        <Text style={styles.connectText}>Connect</Text>
+        <Text style={[styles.connectText, { color: "#000" }]}>Connect</Text>
       )}
     </TouchableOpacity>
   );
@@ -239,6 +244,29 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
+  connectButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    shadowColor: "#00D4AA",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  avatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 32,
+  },
+  avatarLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
   addressText: {
     fontSize: 13,
     fontWeight: "500",
@@ -247,22 +275,9 @@ const styles = StyleSheet.create({
     marginRight: 4,
     opacity: 0.9,
   },
-  connectButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    shadowColor: "#00D4AA",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   connectText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#000",
     marginLeft: 6,
   },
   blurOverlay: {
@@ -294,10 +309,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     paddingBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
   },
   closeButton: {
     padding: 4,

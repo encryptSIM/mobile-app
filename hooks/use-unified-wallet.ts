@@ -13,6 +13,8 @@ export const useUnifiedWallet = () => {
   const shouldUseWeb = shouldUseWebWalletAdapter();
   const shouldUseMobile = shouldUseMobileWalletAdapter();
 
+  console.log({ shouldUseMobile, shouldUseWeb })
+
   const wallet = useMemo(() => {
     if (shouldUseMobile) {
       return mobileWallet;
