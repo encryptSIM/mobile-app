@@ -15,7 +15,6 @@ import {
   getServers,
   createCredentials,
 } from "@/service/vpnService";
-import { useAuth } from "./auth/auth-provider";
 
 interface Country {
   id: string;
@@ -60,9 +59,9 @@ export const ServerSelectionModal: React.FC<ServerSelectionModalProps> = ({
   onClose,
   onServerSelect,
 }) => {
-  const { deviceToken } = useAuth();
   const [step, setStep] = useState<"country" | "city" | "server">("country");
   const [loading, setLoading] = useState(false);
+  const deviceToken = ""
 
   const [countries, setCountries] = useState<Country[]>([]);
   const [cities, setCities] = useState<City[]>([]);

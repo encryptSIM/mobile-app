@@ -2,7 +2,6 @@ import { $api, Sim } from "@/api/api";
 import { brandGreen } from "@/components/app-providers";
 import { SIMS } from "@/components/checkout/hooks/useCheckout";
 import { Icon, IconType } from "@/components/Icon";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { sizing } from "@/constants/sizing";
 import { useSharedState } from "@/hooks/use-provider";
 import React, { useState } from "react";
@@ -11,6 +10,7 @@ import { ActivityIndicator } from "react-native-paper";
 import Svg, { Circle } from "react-native-svg";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { $styles } from "./styles";
+import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
 
 const exampleStats: UsageStat[] = [
   {
@@ -105,7 +105,7 @@ export function SimUsagePanel({ stats = exampleStats }: SimUsagePanelProps) {
   const percentage = (remaining / (selectedStat.total ?? 1)) * 100;
   const [, setSims] = useSharedState<Sim[]>(SIMS.key)
   const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key)
-  const { account } = useWalletUi();
+  const { account } = useWalletAuth()
   const setSimInstalledMut = $api.useMutation('post', '/mark-sim-installed', {
     onSuccess: () => {
       setSims(prev => prev.map(sim => {

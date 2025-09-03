@@ -2,325 +2,241 @@ import React, { useState } from "react";
 import {
   TouchableOpacity,
   Text,
-  View,
   StyleSheet,
-  Alert,
   ActivityIndicator,
+  View,
+  Image,
   Modal,
   Pressable,
-  Image,
+  Platform,
+  Alert,
 } from "react-native";
-import { useUnifiedWallet } from "@/hooks/use-unified-wallet";
-import { addressFormatter } from "@/utils";
-import { BlurView } from "expo-blur";
-import { useGetBalance } from "./solana/use-get-balance";
-import { brandGreen } from "./app-providers";
-import { lamportsToSol } from "@/utils/lamports-to-sol";
-import { useAuth } from "./auth/auth-provider";
+import { useWalletAuth } from "./auth/wallet-auth-provider";
+import { brandGreen, card } from "./app-providers";
 import { Icon } from "./Icon";
+import { useGetBalance } from "./solana/use-get-balance";
+import { lamportsToSol } from "@/utils/lamports-to-sol";
+import * as Clipboard from "expo-clipboard";
+import { PublicKey } from "@solana/web3.js";
 
-interface WalletConnectionButtonProps {
-  onConnected?: () => void;
-  onDisconnected?: () => void;
-  onSwitchAccount?: () => void;
+interface WalletButtonProps {
   style?: any;
 }
 
-const truncateAddress = (address: string, startChars = 6, endChars = 4) => {
-  if (!address) return '';
-  if (address.length <= startChars + endChars) return address;
-  return `${address.substring(0, startChars)}...${address.substring(address.length - endChars)}`;
-};
-
-export function WalletConnectionButton({
-  onConnected,
-  onSwitchAccount,
-  style,
-}: WalletConnectionButtonProps) {
-  const wallet = useUnifiedWallet();
-  const { signOut } = useAuth()
-  const balance = useGetBalance({ address: wallet.publicKey! });
-  const [connecting, setConnecting] = useState(false);
+export function WalletConnectionButton({ style }: WalletButtonProps) {
+  const { isConnected, isLoading, account, connect, disconnect } =
+    useWalletAuth();
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const handleConnect = async () => {
-    if (connecting) return;
+  const publicKey = account?.address ? new PublicKey(account.address) : null;
+  const balance = useGetBalance({ address: publicKey! });
 
-    try {
-      setConnecting(true);
-      await wallet.connect();
-      onConnected?.();
-    } catch (error: any) {
-      console.error("Wallet connection error:", error);
-      Alert.alert("Connection Failed", error.message || "Unexpected error");
-    } finally {
-      setConnecting(false);
+  const handlePress = async () => {
+    if (isConnected) {
+      setMenuVisible(true);
+    } else {
+      try {
+        await connect();
+      } catch (error: any) {
+        if (Platform.OS === "web") {
+          window.alert("Connection Failed: " + error.message);
+        } else {
+          Alert.alert("Connection Failed", error.message);
+        }
+      }
     }
-  }
-
-  const isLoading = connecting || wallet.connecting;
-
-  const designColors = {
-    primary: "#00D4AA",
-    secondary: "#6366F1",
-    bg: "rgba(17, 24, 39, 0.95)",
-    cardBg: "rgba(31, 41, 55, 0.8)",
-    border: "rgba(75, 85, 99, 0.3)",
-    text: "#FFFFFF",
-    textSecondary: "rgba(255, 255, 255, 0.7)",
-    textTertiary: "rgba(255, 255, 255, 0.5)",
-    buttonBg: "rgba(55, 65, 81, 0.8)",
-    buttonText: "#FFFFFF",
-    success: "#10B981",
-    danger: "#EF4444",
   };
 
-  const handleDisconnect = () => {
-    console.log("handleDisconnect")
-    setMenuVisible(false);
-    signOut()
+  const truncateAddress = (address: string) =>
+    `${address.slice(0, 6)}...${address.slice(-4)}`;
+
+  const getIcon = (address: string) =>
+    `https://api.dicebear.com/9.x/rings/png?ringColor=${brandGreen}&seed=${address}`;
+
+  const handleCopyAddress = async () => {
+    if (account?.address) {
+      await Clipboard.setStringAsync(account.address);
+      if (Platform.OS === "web") {
+        window.alert("Address copied to clipboard");
+      } else {
+        Alert.alert("Copied!", "Address copied to clipboard");
+      }
+    }
   };
 
-  const handleSwitchAccount = () => {
-    setMenuVisible(false);
-    onSwitchAccount?.();
-  };
+  return (
+    <>
+      <TouchableOpacity
+        style={[
+          styles.button,
+          { backgroundColor: isConnected ? card : brandGreen },
+          style,
+        ]}
+        onPress={handlePress}
+        disabled={isLoading}
+        activeOpacity={0.8}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color={isConnected ? "#fff" : "#000"} />
+        ) : isConnected && account ? (
+          <View style={styles.connectedContent}>
+            <Image
+              source={{ uri: getIcon(account.address) }}
+              style={styles.avatar}
+            />
+            <Text style={[styles.text, { color: "#fff" }]}>
+              {truncateAddress(account.address)}
+            </Text>
+            <Icon icon="chevronDown" size="small" colour="rgba(255,255,255,0.6)" />
+          </View>
+        ) : (
+          <Text style={[styles.text, { color: "#000" }]}>Connect Wallet</Text>
+        )}
+      </TouchableOpacity>
 
-  const handleCopyAddress = () => {
-    Alert.alert("Copied!", "Address copied to clipboard");
-  };
-
-  const getIcon = (address: string) => {
-    return `https://api.dicebear.com/9.x/rings/svg?ringColor=${brandGreen}&seed=${address}`
-  }
-
-  if (wallet.connected && wallet.selectedAccount) {
-    return (
-      <>
-        <TouchableOpacity
-          style={[styles.connectedButton, { backgroundColor: designColors.buttonBg }, style]}
-          onPress={() => setMenuVisible(true)}
-          activeOpacity={0.7}
-        >
-          <Image
-            source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
-            style={{ width: 24, height: 24, borderRadius: 32 }}
-          />
-
-          <Text style={[styles.addressText, { color: designColors.buttonText }]}>
-            {addressFormatter(wallet.selectedAccount.address)}
-          </Text>
-
-          <Icon icon={'chevronDown'} size="small" colour={designColors.textTertiary} />
-        </TouchableOpacity>
-
+      {isConnected && account && (
         <Modal
           transparent
           visible={menuVisible}
           animationType="fade"
           onRequestClose={() => setMenuVisible(false)}
         >
-          <BlurView intensity={20} style={styles.blurOverlay}>
-            <Pressable
-              style={styles.modalOverlay}
-              onPress={() => setMenuVisible(false)}
-            >
-              <View style={[styles.walletModal, { backgroundColor: designColors.bg }]}>
-                <View style={styles.modalHeader}>
-                  <TouchableOpacity
-                    onPress={() => setMenuVisible(false)}
-                    style={styles.closeButton}
-                  >
-                    <Icon icon={'x'} size="normal" colour={designColors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setMenuVisible(false)}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <TouchableOpacity
+                  onPress={() => setMenuVisible(false)}
+                  style={styles.closeButton}
+                >
+                  <Icon icon="x" size="normal" colour="rgba(255,255,255,0.6)" />
+                </TouchableOpacity>
+              </View>
 
-                <View style={styles.walletInfo}>
-                  <Image
-                    source={{ uri: getIcon(String(wallet.selectedAccount.address)) }}
-                    style={{ width: 64, height: 64, borderRadius: 32 }}
-                  />
-
-                  <View style={styles.addressSection}>
-                    <Text style={[styles.fullAddress, { color: designColors.text }]}>
-                      {truncateAddress(wallet.selectedAccount.address, 8, 6)}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.copyButton}
-                      onPress={handleCopyAddress}
-                    >
-                      <Icon icon={'copy'} size="normal" colour={designColors.primary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={styles.balanceSection}>
-                  <Text style={[styles.balanceLabel, { color: designColors.textSecondary }]}>
-                    Balance
+              <View style={styles.walletInfo}>
+                <Image
+                  source={{ uri: getIcon(account.address) }}
+                  style={styles.modalAvatar}
+                />
+                <View style={styles.addressRow}>
+                  <Text style={styles.fullAddress}>
+                    {truncateAddress(account.address)}
                   </Text>
-                  <Text style={[styles.balanceValue, { color: designColors.text }]}>
-                    {balance?.data ? `${lamportsToSol(balance.data)} SOL` : 'Loading...'}
-                  </Text>
-                </View>
-
-                <View style={styles.actionsSection}>
-                  {/* disabled until implemented */}
-                  {/* <TouchableOpacity */}
-                  {/*   style={[styles.actionButton, { */}
-                  {/*     backgroundColor: designColors.cardBg, */}
-                  {/*     borderColor: designColors.border */}
-                  {/*   }]} */}
-                  {/*   onPress={handleSwitchAccount} */}
-                  {/* > */}
-                  {/*   <Icon icon={'swap'} size="normal" colour={designColors.primary} /> */}
-                  {/*   <Text style={[styles.actionText, { color: designColors.primary }]}> */}
-                  {/*     Switch Account */}
-                  {/*   </Text> */}
-                  {/* </TouchableOpacity> */}
-
                   <TouchableOpacity
-                    style={[styles.actionButton, {
-                      backgroundColor: designColors.cardBg,
-                      borderColor: designColors.border
-                    }]}
-                    onPress={handleDisconnect}
+                    style={styles.copyButton}
+                    onPress={handleCopyAddress}
                   >
-                    <Icon icon={'logout'} size="normal" colour={designColors.danger} />
-                    <Text style={[styles.actionText, { color: designColors.danger }]}>
-                      Disconnect
-                    </Text>
+                    <Icon icon="copy" size="normal" colour={brandGreen} />
                   </TouchableOpacity>
                 </View>
               </View>
-            </Pressable>
-          </BlurView>
-        </Modal>
-      </>
-    );
-  }
 
-  return (
-    <TouchableOpacity
-      style={[
-        styles.connectButton,
-        {
-          backgroundColor: designColors.primary,
-        },
-        style,
-      ]}
-      onPress={handleConnect}
-      disabled={isLoading}
-      activeOpacity={0.8}
-    >
-      {isLoading ? (
-        <ActivityIndicator size="small" color="#000" />
-      ) : (
-        <Icon icon={'swap'} size="normal" colour={designColors.primary} />
+              <View style={styles.balanceSection}>
+                <Text style={styles.balanceLabel}>Balance</Text>
+                <Text style={styles.balanceValue}>
+                  {balance?.data
+                    ? `${lamportsToSol(balance.data)} SOL`
+                    : "Loading..."}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.disconnectButton}
+                onPress={() => {
+                  setMenuVisible(false);
+                  disconnect();
+                }}
+              >
+                <Icon icon="logout" size="normal" colour="#EF4444" />
+                <Text style={styles.disconnectText}>Disconnect</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
       )}
-      {!isLoading && (
-        <Text style={styles.connectText}>Connect</Text>
-      )}
-    </TouchableOpacity>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  connectedButton: {
+  button: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(75, 85, 99, 0.3)",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  addressText: {
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: "monospace",
-    marginLeft: 8,
-    marginRight: 4,
-    opacity: 0.9,
-  },
-  connectButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    shadowColor: "#00D4AA",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    minWidth: 140,
+    justifyContent: "center",
   },
-  connectText: {
+  connectedContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 32,
+    marginRight: 8,
+  },
+  text: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#000",
-    marginLeft: 6,
-  },
-  blurOverlay: {
-    flex: 1,
+    marginRight: 6,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
-  walletModal: {
+  modalContent: {
     width: "100%",
     maxWidth: 340,
+    backgroundColor: "rgba(17, 24, 39, 0.95)",
     borderRadius: 20,
-    padding: 0,
+    padding: 20,
     borderWidth: 1,
     borderColor: "rgba(75, 85, 99, 0.3)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
   },
   modalHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    paddingBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    justifyContent: "flex-end",
   },
   closeButton: {
     padding: 4,
   },
   walletInfo: {
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    marginVertical: 16,
   },
-  addressSection: {
+  modalAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 12,
+  },
+  addressRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 12,
     backgroundColor: "rgba(31, 41, 55, 0.5)",
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: 12,
-    maxWidth: "100%",
   },
   fullAddress: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: "monospace",
-    flex: 1,
+    color: "#fff",
     marginRight: 8,
   },
   copyButton: {
@@ -328,33 +244,33 @@ const styles = StyleSheet.create({
   },
   balanceSection: {
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 24,
+    marginVertical: 16,
   },
   balanceLabel: {
     fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
     marginBottom: 4,
   },
   balanceValue: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "700",
+    color: "#fff",
   },
-  actionsSection: {
-    padding: 20,
-    paddingTop: 0,
-    gap: 12,
-  },
-  actionButton: {
+  disconnectButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
+    borderColor: "rgba(75, 85, 99, 0.3)",
+    backgroundColor: "rgba(31, 41, 55, 0.8)",
+    marginTop: 12,
   },
-  actionText: {
+  disconnectText: {
     fontSize: 16,
     fontWeight: "600",
+    color: "#EF4444",
     marginLeft: 8,
   },
 });

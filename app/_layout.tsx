@@ -10,9 +10,9 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { AppProviders } from "@/components/app-providers";
-import { useAuth } from "@/components/auth/auth-provider";
 import { DarkThemeCustom } from "@/constants/custom-theme";
 import "../global.css";
+import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
 
 if (process.env.EXPO_PUBLIC_ENVIRONMENT === "prod") {
   console.log = () => { };
@@ -44,21 +44,19 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { isAuthenticated } = useAuth()
+  const { isConnected } = useWalletAuth();
 
   return (
     <ThemeProvider
       value={DarkThemeCustom}
     >
       <Stack >
-        <Stack.Protected guard={!isAuthenticated}>
+        <Stack.Protected guard={!isConnected}>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="env" options={{ headerShown: false }} />
         </Stack.Protected>
-        <Stack.Protected guard={isAuthenticated}>
+        <Stack.Protected guard={isConnected}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="checkoutStack" options={{ headerShown: false }} />
-          <Stack.Screen name="env" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
     </ThemeProvider>

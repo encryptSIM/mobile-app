@@ -1,9 +1,9 @@
 import { PublicKey, TransactionSignature } from '@solana/web3.js'
 import { useConnection } from '@/components/solana/solana-provider'
 import { useMutation } from '@tanstack/react-query'
-import { useWalletUi } from '@/components/solana/use-wallet-ui'
 import { createTransaction } from '@/components/solana/create-transaction'
 import { useGetBalanceInvalidate } from './use-get-balance'
+import { useWalletAuth } from '../auth/wallet-auth-provider'
 
 export function useTransferSol({
   address,
@@ -15,7 +15,7 @@ export function useTransferSol({
   onError?: (error: Error) => void
 }) {
   const connection = useConnection()
-  const { signAndSendTransaction } = useWalletUi()
+  const wallet = useWalletAuth()
   const invalidateBalance = useGetBalanceInvalidate({ address })
 
   return useMutation({
@@ -34,7 +34,8 @@ export function useTransferSol({
       })
 
       // Sign and send transaction using the unified wallet interface
-      signature = await signAndSendTransaction(transaction, connection)
+      signature = await wallet.signAndSendTransaction(transaction, connection)
+
 
       console.log('Transaction signature:', signature)
       return signature

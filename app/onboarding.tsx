@@ -10,11 +10,11 @@ import {
   Platform,
 } from "react-native";
 import { card } from "@/components/app-providers";
-import { useAuth } from "@/components/auth/auth-provider";
 import { getDimensions } from "@/utils/dimensions";
 import { detectEnvironment, isSolanaWalletExtensionAvailable } from "@/utils/environment";
 import { OpenInWalletPrompt } from "@/components/openInWalletPrompt";
 import { sizing } from "@/constants/sizing";
+import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
 
 const slides = [
   {
@@ -51,7 +51,8 @@ const verticalScale = (size: number) => (baseHeight / guidelineBaseHeight) * siz
 export default function Onboarding() {
   const { width } = useWindowDimensions();
   const isMobile = width <= 480; // ✅ switch point (largest phone size)
-  const { signIn, isLoading } = useAuth();
+
+  const { isLoading, connect } = useWalletAuth();
 
   const [index, setIndex] = useState(0);
 
@@ -60,7 +61,7 @@ export default function Onboarding() {
       setIndex((prev) => prev + 1);
     } else {
       try {
-        await signIn();
+        await connect();
       } catch (error) {
         console.error("❌ Sign-in failed:", error);
       }
@@ -74,7 +75,7 @@ export default function Onboarding() {
   }
   const handleGetStarted = async () => {
     try {
-      await signIn();
+      await connect();
     } catch (error) {
       console.error("❌ Sign-in failed:", error);
     }

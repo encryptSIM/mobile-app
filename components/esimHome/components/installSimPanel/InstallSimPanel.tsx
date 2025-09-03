@@ -1,7 +1,6 @@
 import { $api, Sim } from "@/api/api";
 import { brandGreen } from "@/components/app-providers";
 import { SIMS } from "@/components/checkout/hooks/useCheckout";
-import { useWalletUi } from "@/components/solana/use-wallet-ui";
 import { sizing } from "@/constants/sizing";
 import { useSharedState } from "@/hooks/use-provider";
 import * as Clipboard from "expo-clipboard";
@@ -15,6 +14,7 @@ import { captureRef } from "react-native-view-shot";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
 import { $styles } from "./styles";
+import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
 
 export interface InstallSimPanelProps {
   sim: Sim;
@@ -28,7 +28,7 @@ export function InstallSimPanel(props: InstallSimPanelProps) {
   const [, setSims] = useSharedState<Sim[]>(SIMS.key);
   const [, setSelectedSim] = useSharedState<Sim | null>(SELECTED_SIM.key);
   const [copied, setCopied] = useState<boolean>(false)
-  const { account } = useWalletUi();
+  const { account } = useWalletAuth()
 
   const setSimInstalledMut = $api.useMutation("post", "/mark-sim-installed", {
     onSuccess: () => {
