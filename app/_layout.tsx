@@ -1,6 +1,3 @@
-import 'react-native-get-random-values';
-import 'react-native-reanimated';
-
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -28,7 +25,7 @@ SplashScreenAPI.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ ...FontAwesome.font });
-  const ready = fontsLoaded
+  const ready = fontsLoaded;
 
   useEffect(() => {
     if (ready) {
@@ -44,13 +41,15 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { isConnected } = useWalletAuth();
+  const { isConnected, isLoading } = useWalletAuth();
+
+  if (isLoading) {
+    return null; // keep splash screen visible until wallet state is resolved
+  }
 
   return (
-    <ThemeProvider
-      value={DarkThemeCustom}
-    >
-      <Stack >
+    <ThemeProvider value={DarkThemeCustom}>
+      <Stack>
         <Stack.Protected guard={!isConnected}>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         </Stack.Protected>
