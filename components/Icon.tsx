@@ -137,7 +137,8 @@ export const Icon: React.FC<IconProps> = React.memo(
         );
       }
 
-      if (typeof IconComponent === "number") {
+      // Handle images (png, jpg)
+      if (typeof IconComponent === "number" || typeof IconComponent === "string") {
         return (
           <Image
             source={IconComponent as ImageSourcePropType}
@@ -147,8 +148,14 @@ export const Icon: React.FC<IconProps> = React.memo(
         );
       }
 
-      const SvgIcon = IconComponent as React.FC<SvgProps>;
-      return <SvgIcon width={dimension} height={dimension} fill={colour} />;
+      // Handle SVGs
+      if (typeof IconComponent === "function") {
+        const SvgIcon = IconComponent as React.FC<SvgProps>;
+        return <SvgIcon width={dimension} height={dimension} fill={colour} />;
+      }
+
+      console.warn("Invalid icon type:", icon, IconComponent);
+      return null;
     };
 
     if (isPressable) {
