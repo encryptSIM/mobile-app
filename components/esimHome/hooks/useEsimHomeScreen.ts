@@ -250,7 +250,6 @@ export function useEsimHomeScreen() {
       const finishInterval = window.setInterval(() => {
         setProgress((prev) => {
           const next = prev < 1.0 ? +(prev + 0.05).toFixed(2) : 1.0;
-          console.log("📈 Progress (finishing):", next);
           if (next >= 1.0) {
             clearInterval(finishInterval);
           }
@@ -318,7 +317,9 @@ export function useEsimHomeScreen() {
     if (!searchQuery) {
       return rawData;
     }
-    return fuse.search(searchQuery).map((result) => result.item);
+    const result = fuse.search(searchQuery).map((result) => result.item)
+    if (result.length === 0) return rawData
+    return result
   }, [searchQuery, rawData, fuse]);
 
   return {
