@@ -174,7 +174,7 @@ export function InstallModal(props: InstallModalProps) {
             }
           </View>
 
-          {props.showInstructions || detectEnvironment().isWeb && (
+          {(props.showInstructions || detectEnvironment().isWeb) && (
             <View style={$styles.instructionsContainer}>
               <Text style={$styles.instructionsTitle}>
                 {Platform.OS === "web"
