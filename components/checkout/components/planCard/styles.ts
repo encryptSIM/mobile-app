@@ -5,7 +5,6 @@ export const $styles = StyleSheet.create({
   icon: {
     justifyContent: 'center',
     alignItems: 'center',
-    height: '100%',
     display: 'flex'
   },
   qtyContainer: {
