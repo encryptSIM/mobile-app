@@ -18,6 +18,7 @@ import {
   transact,
   Web3MobileWallet,
 } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js'
+import { toByteArray } from 'react-native-quick-base64'
 
 interface WalletAccount {
   address: string
@@ -40,8 +41,9 @@ interface WalletAuthState {
 const WalletAuthContext = createContext<WalletAuthState | null>(null)
 
 const STORAGE_KEYS = {
-  WALLET_CONNECTED: 'wallet_connected',
-  WALLET_ADDRESS: 'wallet_address',
+  AUTH_TOKEN: 'mwa_auth_token',
+  BASE64_ADDRESS: 'mwa_base64_address',
+  ACCOUNT_LABEL: 'mwa_account_label',
 } as const
 
 const APP_IDENTITY = {
@@ -60,16 +62,13 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const initializeWalletConnection = async () => {
+    setIsLoading(true)
+
     try {
-      setIsLoading(true)
-      const wasConnected = await AsyncStorage.getItem(
-        STORAGE_KEYS.WALLET_CONNECTED
-      )
-      const savedAddress = await AsyncStorage.getItem(
-        STORAGE_KEYS.WALLET_ADDRESS
-      )
-      if (wasConnected === 'true' && savedAddress) {
-        await attemptReconnection(savedAddress)
+      if (Platform.OS === 'web') {
+        await initializeWebWallet()
+      } else {
+        await initializeMobileWallet()
       }
     } catch (error) {
       console.error('Failed to initialize wallet connection:', error)
@@ -78,33 +77,71 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const attemptReconnection = async (savedAddress: string) => {
+  const initializeWebWallet = async () => {
+    const wallet = getWebWallet()
+    if (wallet?.publicKey) {
+      const publicKey = new PublicKey(wallet.publicKey)
+      setAccount({
+        address: publicKey.toString(),
+        publicKey,
+        label: wallet.name || 'Web Wallet',
+      })
+      setIsConnected(true)
+    }
+  }
+
+  const initializeMobileWallet = async () => {
     try {
-      if (Platform.OS === 'web') {
-        const wallet = getWebWallet()
-        if (wallet && wallet.isConnected && wallet.publicKey) {
-          const publicKey = new PublicKey(wallet.publicKey)
-          if (publicKey.toString() === savedAddress) {
-            setAccount({
-              address: savedAddress,
-              publicKey,
-              label: wallet.name || 'Web Wallet',
+      const [cachedAuthToken, cachedBase64Address, cachedLabel] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN),
+        AsyncStorage.getItem(STORAGE_KEYS.BASE64_ADDRESS),
+        AsyncStorage.getItem(STORAGE_KEYS.ACCOUNT_LABEL),
+      ])
+
+      if (cachedBase64Address && cachedAuthToken) {
+        await transact(async (wallet: Web3MobileWallet) => {
+          try {
+            const authResult = await wallet.authorize({
+              identity: APP_IDENTITY,
+              chain: 'solana:devnet',
+              auth_token: cachedAuthToken,
             })
-            setIsConnected(true)
-            return
+
+            if (authResult.accounts && authResult.accounts.length > 0) {
+              const account = authResult.accounts[0]
+              const pubkeyBytes = toByteArray(account.address)
+              const publicKey = new PublicKey(pubkeyBytes)
+
+              setAccount({
+                address: publicKey.toString(),
+                publicKey,
+                label: account.label || cachedLabel || 'Mobile Wallet',
+              })
+              setIsConnected(true)
+
+              // Update cache
+              await Promise.all([
+                AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, authResult.auth_token),
+                AsyncStorage.setItem(STORAGE_KEYS.BASE64_ADDRESS, account.address),
+                AsyncStorage.setItem(STORAGE_KEYS.ACCOUNT_LABEL, account.label || 'Mobile Wallet'),
+              ])
+            }
+          } catch (error) {
+            console.log('Cached auth token expired, clearing cache')
+            await clearCache()
           }
-        }
+        })
       }
-      await clearSavedConnection()
     } catch (error) {
-      console.error('Reconnection failed:', error)
-      await clearSavedConnection()
+      console.error('Failed to initialize mobile wallet:', error)
+      await clearCache()
     }
   }
 
   const connect = async () => {
     if (isLoading) return
     setIsLoading(true)
+
     try {
       if (Platform.OS === 'web') {
         await connectWebWallet()
@@ -122,27 +159,18 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
   const connectWebWallet = async () => {
     const wallet = getWebWallet()
     if (!wallet) {
-      throw new Error(
-        'No Solana wallet found. Please install Phantom, Solflare, or Backpack.'
-      )
+      throw new Error('No Solana wallet found. Please install a wallet.')
     }
+
     const response = await wallet.connect()
-    let publicKey: PublicKey
-    if (response?.publicKey) {
-      publicKey = new PublicKey(response.publicKey)
-    } else if (wallet.publicKey) {
-      publicKey = new PublicKey(wallet.publicKey)
-    } else {
-      throw new Error('Failed to get public key from wallet')
-    }
-    const newAccount: WalletAccount = {
+    const publicKey = new PublicKey(response.publicKey || wallet.publicKey)
+
+    setAccount({
       address: publicKey.toString(),
       publicKey,
       label: wallet.name || 'Web Wallet',
-    }
-    setAccount(newAccount)
+    })
     setIsConnected(true)
-    await saveConnection(newAccount.address)
   }
 
   const connectMobileWallet = async () => {
@@ -151,34 +179,28 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
         identity: APP_IDENTITY,
         chain: 'solana:devnet',
       })
+
       if (!authResult.accounts || authResult.accounts.length === 0) {
         throw new Error('No accounts found in wallet')
       }
-      const rawAddress: any = authResult.accounts[0].address
-      let address: string
-      if (typeof rawAddress === 'string') {
-        try {
-          address = new PublicKey(rawAddress).toString()
-        } catch {
-          const bytes = Uint8Array.from(atob(rawAddress), (c) =>
-            c.charCodeAt(0)
-          )
-          address = new PublicKey(bytes).toString()
-        }
-      } else if (rawAddress instanceof Uint8Array) {
-        address = new PublicKey(rawAddress).toString()
-      } else {
-        throw new Error('Invalid address format from wallet')
-      }
-      const publicKey = new PublicKey(address)
-      const newAccount: WalletAccount = {
-        address,
+
+      const account = authResult.accounts[0]
+      const pubkeyBytes = toByteArray(account.address)
+      const publicKey = new PublicKey(pubkeyBytes)
+
+      setAccount({
+        address: publicKey.toString(),
         publicKey,
-        label: authResult.accounts[0].label || 'Mobile Wallet',
-      }
-      setAccount(newAccount)
+        label: account.label || 'Mobile Wallet',
+      })
       setIsConnected(true)
-      await saveConnection(newAccount.address)
+
+      // Cache authorization details
+      await Promise.all([
+        AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, authResult.auth_token),
+        AsyncStorage.setItem(STORAGE_KEYS.BASE64_ADDRESS, account.address),
+        AsyncStorage.setItem(STORAGE_KEYS.ACCOUNT_LABEL, account.label || 'Mobile Wallet'),
+      ])
     })
   }
 
@@ -189,10 +211,22 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
         if (wallet?.disconnect) {
           await wallet.disconnect()
         }
+      } else {
+        const cachedAuthToken = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+        if (cachedAuthToken) {
+          await transact(async (wallet: Web3MobileWallet) => {
+            try {
+              await wallet.deauthorize({ auth_token: cachedAuthToken })
+            } catch (error) {
+              console.log('Deauthorize failed:', error)
+            }
+          })
+        }
       }
+
       setAccount(null)
       setIsConnected(false)
-      await clearSavedConnection()
+      await clearCache()
     } catch (error) {
       console.error('Disconnect failed:', error)
     }
@@ -205,77 +239,65 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
     if (!account) {
       throw new Error('No wallet connected')
     }
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash()
-    if (transaction instanceof Transaction) {
-      transaction.recentBlockhash = blockhash
-      transaction.feePayer = account.publicKey
-    }
+
     if (Platform.OS === 'web') {
-      const wallet = getWebWallet()
-      if (!wallet) throw new Error('No web wallet found')
-      let signedTx: Transaction | VersionedTransaction
-      if (wallet.signTransaction) {
-        if (transaction instanceof Transaction) {
-          signedTx = await wallet.signTransaction(transaction)
-        } else {
-          throw new Error(
-            'This wallet does not support VersionedTransaction signing'
-          )
-        }
-      } else if (wallet.signAndSendTransaction) {
-        signedTx = await wallet.signAndSendTransaction(transaction)
-      } else {
-        throw new Error('Wallet does not support transaction signing')
-      }
-      const rawTx = signedTx.serialize()
-      const signature = await connection.sendRawTransaction(rawTx)
-      await connection.confirmTransaction(
-        {
-          blockhash,
-          lastValidBlockHeight,
-          signature,
-        },
-        'confirmed'
-      )
-      return signature
+      return await signAndSendWebTransaction(transaction, connection)
     } else {
-      return await transact(async (mobileWallet: Web3MobileWallet) => {
-        const signatures = await mobileWallet.signAndSendTransactions({
-          transactions: [transaction],
-        })
-        if (!signatures || signatures.length === 0) {
-          throw new Error('No signature returned from mobile wallet')
-        }
-        const signature = signatures[0]
-        await connection.confirmTransaction(
-          {
-            blockhash,
-            lastValidBlockHeight,
-            signature,
-          },
-          'confirmed'
-        )
-        return signature
+      return await signAndSendMobileTransaction(transaction, connection)
+    }
+  }
+
+  const signAndSendWebTransaction = async (
+    transaction: Transaction | VersionedTransaction,
+    connection: Connection
+  ): Promise<TransactionSignature> => {
+    const wallet = getWebWallet()
+    if (!wallet) throw new Error('No web wallet found')
+
+    if (wallet.signAndSendTransaction) {
+      return await wallet.signAndSendTransaction(transaction)
+    } else if (wallet.signTransaction) {
+      const signedTx = await wallet.signTransaction(transaction)
+      return await connection.sendRawTransaction(signedTx.serialize())
+    } else {
+      throw new Error('Wallet does not support transaction signing')
+    }
+  }
+
+  const signAndSendMobileTransaction = async (
+    transaction: Transaction | VersionedTransaction,
+    connection: Connection
+  ): Promise<TransactionSignature> => {
+    return await transact(async (wallet: Web3MobileWallet) => {
+      const cachedAuthToken = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+
+      await wallet.authorize({
+        identity: APP_IDENTITY,
+        chain: 'solana:devnet',
+        auth_token: cachedAuthToken || undefined,
       })
-    }
+
+      const signatures = await wallet.signAndSendTransactions({
+        transactions: [transaction],
+      })
+
+      if (!signatures || signatures.length === 0) {
+        throw new Error('No signature returned from wallet')
+      }
+
+      return signatures[0]
+    })
   }
 
-  const saveConnection = async (address: string) => {
+  const clearCache = async () => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.WALLET_CONNECTED, 'true')
-      await AsyncStorage.setItem(STORAGE_KEYS.WALLET_ADDRESS, address)
+      await Promise.all([
+        AsyncStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN),
+        AsyncStorage.removeItem(STORAGE_KEYS.BASE64_ADDRESS),
+        AsyncStorage.removeItem(STORAGE_KEYS.ACCOUNT_LABEL),
+      ])
     } catch (error) {
-      console.error('Failed to save connection:', error)
-    }
-  }
-
-  const clearSavedConnection = async () => {
-    try {
-      await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_CONNECTED)
-      await AsyncStorage.removeItem(STORAGE_KEYS.WALLET_ADDRESS)
-    } catch (error) {
-      console.error('Failed to clear saved connection:', error)
+      console.error('Failed to clear cache:', error)
     }
   }
 
