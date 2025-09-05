@@ -17,9 +17,15 @@ export async function createTransaction({
   destination: PublicKey
   amount: number // in SOL
   connection: Connection
-}): Promise<{ transaction: VersionedTransaction }> {
-  const { blockhash, lastValidBlockHeight } =
-    await connection.getLatestBlockhash('finalized')
+}): Promise<{
+  transaction: VersionedTransaction
+  latestBlockhash: { blockhash: string; lastValidBlockHeight: number }
+  minContextSlot: number
+}> {
+  const {
+    context: { slot: minContextSlot },
+    value: latestBlockhash,
+  } = await connection.getLatestBlockhashAndContext()
 
   const instructions = [
     SystemProgram.transfer({
@@ -30,12 +36,16 @@ export async function createTransaction({
   ]
 
   const message = new TransactionMessage({
-    payerKey: publicKey, // 👈 must be wallet.account.publicKey
-    recentBlockhash: blockhash,
+    payerKey: publicKey,
+    recentBlockhash: latestBlockhash.blockhash,
     instructions,
-  }).compileToV0Message()
+  }).compileToLegacyMessage()
 
   const transaction = new VersionedTransaction(message)
 
-  return { transaction }
+  return {
+    transaction,
+    latestBlockhash,
+    minContextSlot,
+  }
 }

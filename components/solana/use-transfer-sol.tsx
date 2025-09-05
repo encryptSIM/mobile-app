@@ -1,9 +1,6 @@
 import { createTransaction } from '@/components/solana/create-transaction'
 import { useConnection } from '@/components/solana/solana-provider'
-import {
-  PublicKey,
-  TransactionSignature
-} from '@solana/web3.js'
+import { PublicKey, TransactionSignature } from '@solana/web3.js'
 import { useMutation } from '@tanstack/react-query'
 import { useWalletAuth } from '../auth/wallet-auth-provider'
 import { useGetBalanceInvalidate } from './use-get-balance'
@@ -31,32 +28,17 @@ export function useTransferSol({
         throw new Error('Wallet not connected')
       }
 
-      const { transaction } = await createTransaction({
+      const { transaction, minContextSlot } = await createTransaction({
         publicKey: wallet.account.publicKey,
         destination: input.destination,
         amount: input.amount,
         connection,
       })
 
-      const signature: TransactionSignature =
-        await wallet.signAndSendTransaction(transaction, connection)
-
-      // ✅ Wait for confirmation before returning
-      const latestBlockhash = await connection.getLatestBlockhash()
-      const confirmation = await connection.confirmTransaction(
-        {
-          signature,
-          blockhash: latestBlockhash.blockhash,
-          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-        },
-        'confirmed'
+      const signature: TransactionSignature = await wallet.signAndSendTransaction(
+        transaction,
+        minContextSlot
       )
-
-      if (confirmation.value.err) {
-        throw new Error(
-          `Transaction failed: ${JSON.stringify(confirmation.value.err)}`
-        )
-      }
 
       return signature
     },
