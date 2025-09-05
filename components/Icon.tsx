@@ -38,7 +38,7 @@ import Solana from "@/assets/solana.png";
 import Solflare from "@/assets/solflare.png";
 import Speed from "@/assets/speed.svg";
 import Stripe from "@/assets/stripe.png";
-import Swap from "@/assets/swap.svg";
+import Swap from "@/assets/swap.png";
 import Trust from "@/assets/trust.png";
 import Visa from "@/assets/visa.png";
 import Wallet from "@/assets/wallet.svg";

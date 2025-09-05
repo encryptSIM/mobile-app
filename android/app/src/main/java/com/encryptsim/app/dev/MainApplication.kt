@@ -1,4 +1,4 @@
-package com.giachan2002.encryptsim
+package com.encryptsim.app.dev
 
 import android.app.Application
 import android.content.res.Configuration
@@ -16,9 +16,9 @@ import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
-import com.giachan2002.encryptsim.WireGuardVpnPackage
-import com.giachan2002.encryptsim.VpnPermissionPackage
-import com.giachan2002.encryptsim.V2RayPackage
+import com.encryptsim.app.dev.WireGuardVpnPackage
+import com.encryptsim.app.dev.VpnPermissionPackage
+import com.encryptsim.app.dev.V2RayPackage
 
 
 class MainApplication : Application(), ReactApplication {

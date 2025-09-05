@@ -37,14 +37,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     slug: "encryptsim",
     ios: {
       ...config.ios,
-      bundleIdentifier: `com.esim${ext}`,
+      bundleIdentifier: `com.encryptsim.app${ext}`,
       entitlements: config.ios ? {
         ...config.ios.entitlements,
       } : {}
     },
     android: {
       ...config.android,
-      package: `com.esim${ext}`,
+      package: `com.encryptsim.app${ext}`,
     },
   }
 };

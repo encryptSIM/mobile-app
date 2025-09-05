@@ -1,4 +1,4 @@
-package com.giachan2002.encryptsim
+package com.encryptsim.app.dev
 
 import android.app.Notification
 import android.app.NotificationChannel

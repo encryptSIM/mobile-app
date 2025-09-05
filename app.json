@@ -4,7 +4,7 @@
     "slug": "encryptsim",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/app-logo.png",
+    "icon": "./assets/icon.png",
     "scheme": "encryptsim",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -21,7 +21,7 @@
         "resizeMode": "contain",
         "backgroundColor": "#0A0F1C"
       },
-      "bundleIdentifier": "com.giachan2002.encryptsim",
+      "bundleIdentifier": "com.encryptsim.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "LSApplicationQueriesSchemes": [
@@ -43,7 +43,7 @@
         "resizeMode": "contain",
         "backgroundColor": "#0A0F1C"
       },
-      "package": "com.giachan2002.encryptsim",
+      "package": "com.encryptsim.app",
       "compileSdkVersion": 34,
       "targetSdkVersion": 34,
       "minSdkVersion": 23,
@@ -72,7 +72,7 @@
       ],
       "adaptiveIcon": {
         "backgroundColor": "#32D583",
-        "foregroundImage": "./assets/app-logo-light.png"
+        "foregroundImage": "./assets/android-forground-icon.png"
       }
     },
     "web": {

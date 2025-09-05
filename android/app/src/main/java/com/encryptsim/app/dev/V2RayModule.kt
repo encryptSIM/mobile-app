@@ -1,4 +1,4 @@
-package com.giachan2002.encryptsim
+package com.encryptsim.app.dev
 
 import android.util.Log
 import com.facebook.react.bridge.*
