@@ -87,15 +87,15 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.giachan2002.encryptsim'
+    namespace 'com.encryptsim.app.dev'
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 34
-        applicationId 'com.giachan2002.encryptsim'
+        applicationId 'com.encryptsim.app.dev'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0.0"
+        versionName "1"
         
         // 16KB page size support
         ndk {

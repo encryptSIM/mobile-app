@@ -204,10 +204,18 @@ export const useCheckout = () => {
     onError: (error) => {
       console.error(error)
       logPaymentEvent('sol_transfer_failed', { error }, 'error');
+
+      let errorMessage = 'Payment failed. Please try again.';
+      if (error.name === 'SolanaMobileWalletAdapterError') {
+        if (error.message?.includes('CancellationException') || ('code' in error && error.code === 'EUNSPECIFIED')) {
+          errorMessage = 'Transaction was cancelled. Please try again and complete the transaction in your wallet.';
+        }
+      }
+
       updatePaymentState({
         stage: 'idle',
         isProcessing: false,
-        error: 'Payment failed. Please check your wallet and try again.',
+        error: errorMessage,
       });
     },
     onSuccess: (signature) => {
@@ -334,7 +342,6 @@ export const useCheckout = () => {
     });
 
     const adjustments: PriceDetailField[] = [];
-
 
     const discount = validCoupon
       ? -1 * ((subtotalUSD) * (checkCouponQuery.data!.data!.discount / 100))
@@ -567,10 +574,7 @@ function getEndOfFutureDayTimestamp(days: number): number {
 function parseToGigabytes(data?: string): number {
   if (!data) return 0
   if (data === "Unlimited") return 999999999999999
-  // Normalize input (trim spaces, uppercase for consistency)
   const normalized = data.trim().toUpperCase();
-
-  // Regex to capture number and unit
   const match = normalized.match(/^([\d.]+)\s*(GB|MB|KB|TB)$/);
 
   if (!match) {

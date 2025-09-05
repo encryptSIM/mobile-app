@@ -74,7 +74,7 @@ function generateSizes(level: number) {
     buttonHeight: 20,
   };
 
-  const scale = 1 + level * 0.15; // 15% growth per level
+  const scale = 1 + level * 0.14;
 
   return {
     padding: Math.round(base.padding * scale),

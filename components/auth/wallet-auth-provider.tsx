@@ -19,6 +19,7 @@ import {
   Web3MobileWallet,
 } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js'
 import { toByteArray } from 'react-native-quick-base64'
+import { AppConfig } from '@/constants/app-config'
 
 interface WalletAccount {
   address: string
@@ -34,7 +35,7 @@ interface WalletAuthState {
   disconnect: () => Promise<void>
   signAndSendTransaction: (
     transaction: Transaction | VersionedTransaction,
-    connection: Connection
+    minContextSlot?: number
   ) => Promise<TransactionSignature>
 }
 
@@ -63,7 +64,6 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
 
   const initializeWalletConnection = async () => {
     setIsLoading(true)
-
     try {
       if (Platform.OS === 'web') {
         await initializeWebWallet()
@@ -92,19 +92,28 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
 
   const initializeMobileWallet = async () => {
     try {
-      const [cachedAuthToken, cachedBase64Address, cachedLabel] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN),
-        AsyncStorage.getItem(STORAGE_KEYS.BASE64_ADDRESS),
-        AsyncStorage.getItem(STORAGE_KEYS.ACCOUNT_LABEL),
-      ])
+      const [cachedAuthToken, cachedBase64Address, cachedLabel] =
+        await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN),
+          AsyncStorage.getItem(STORAGE_KEYS.BASE64_ADDRESS),
+          AsyncStorage.getItem(STORAGE_KEYS.ACCOUNT_LABEL),
+        ])
 
       if (cachedBase64Address && cachedAuthToken) {
         await transact(async (wallet: Web3MobileWallet) => {
           try {
             const authResult = await wallet.authorize({
               identity: APP_IDENTITY,
-              chain: 'solana:devnet',
-              auth_token: cachedAuthToken,
+              chain: AppConfig.clusters[0].id,
+              auth_token: cachedAuthToken || undefined,
+              sign_in_payload: {
+                domain: (process.env.EXPO_PUBLIC_APP_URL ||
+                  'https://encryptsim.web.app'
+                ).split('https://')[1],
+                statement: 'Sign into encryptSIM',
+                uri:
+                  process.env.EXPO_PUBLIC_APP_URL || 'https://encryptsim.com',
+              },
             })
 
             if (authResult.accounts && authResult.accounts.length > 0) {
@@ -119,15 +128,22 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
               })
               setIsConnected(true)
 
-              // Update cache
               await Promise.all([
-                AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, authResult.auth_token),
-                AsyncStorage.setItem(STORAGE_KEYS.BASE64_ADDRESS, account.address),
-                AsyncStorage.setItem(STORAGE_KEYS.ACCOUNT_LABEL, account.label || 'Mobile Wallet'),
+                AsyncStorage.setItem(
+                  STORAGE_KEYS.AUTH_TOKEN,
+                  authResult.auth_token
+                ),
+                AsyncStorage.setItem(
+                  STORAGE_KEYS.BASE64_ADDRESS,
+                  account.address
+                ),
+                AsyncStorage.setItem(
+                  STORAGE_KEYS.ACCOUNT_LABEL,
+                  account.label || 'Mobile Wallet'
+                ),
               ])
             }
-          } catch (error) {
-            console.log('Cached auth token expired, clearing cache')
+          } catch {
             await clearCache()
           }
         })
@@ -141,7 +157,6 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
   const connect = async () => {
     if (isLoading) return
     setIsLoading(true)
-
     try {
       if (Platform.OS === 'web') {
         await connectWebWallet()
@@ -161,10 +176,8 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
     if (!wallet) {
       throw new Error('No Solana wallet found. Please install a wallet.')
     }
-
     const response = await wallet.connect()
     const publicKey = new PublicKey(response.publicKey || wallet.publicKey)
-
     setAccount({
       address: publicKey.toString(),
       publicKey,
@@ -174,32 +187,44 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
   }
 
   const connectMobileWallet = async () => {
+    const [cachedAuthToken, cachedBase64Address, cachedLabel] =
+      await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN),
+        AsyncStorage.getItem(STORAGE_KEYS.BASE64_ADDRESS),
+        AsyncStorage.getItem(STORAGE_KEYS.ACCOUNT_LABEL),
+      ])
     await transact(async (wallet: Web3MobileWallet) => {
       const authResult = await wallet.authorize({
         identity: APP_IDENTITY,
-        chain: 'solana:devnet',
+        chain: AppConfig.clusters[0].id,
+        auth_token: cachedAuthToken || undefined,
+        sign_in_payload: {
+          domain: (process.env.EXPO_PUBLIC_APP_URL ||
+            'https://encryptsim.web.app'
+          ).split('https://')[1],
+          statement: 'Sign into encryptSIM',
+          uri: process.env.EXPO_PUBLIC_APP_URL || 'https://encryptsim.com',
+        },
       })
-
       if (!authResult.accounts || authResult.accounts.length === 0) {
         throw new Error('No accounts found in wallet')
       }
-
       const account = authResult.accounts[0]
       const pubkeyBytes = toByteArray(account.address)
       const publicKey = new PublicKey(pubkeyBytes)
-
       setAccount({
         address: publicKey.toString(),
         publicKey,
         label: account.label || 'Mobile Wallet',
       })
       setIsConnected(true)
-
-      // Cache authorization details
       await Promise.all([
         AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, authResult.auth_token),
         AsyncStorage.setItem(STORAGE_KEYS.BASE64_ADDRESS, account.address),
-        AsyncStorage.setItem(STORAGE_KEYS.ACCOUNT_LABEL, account.label || 'Mobile Wallet'),
+        AsyncStorage.setItem(
+          STORAGE_KEYS.ACCOUNT_LABEL,
+          account.label || 'Mobile Wallet'
+        ),
       ])
     })
   }
@@ -212,18 +237,17 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
           await wallet.disconnect()
         }
       } else {
-        const cachedAuthToken = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+        const cachedAuthToken = await AsyncStorage.getItem(
+          STORAGE_KEYS.AUTH_TOKEN
+        )
         if (cachedAuthToken) {
           await transact(async (wallet: Web3MobileWallet) => {
             try {
               await wallet.deauthorize({ auth_token: cachedAuthToken })
-            } catch (error) {
-              console.log('Deauthorize failed:', error)
-            }
+            } catch { }
           })
         }
       }
-
       setAccount(null)
       setIsConnected(false)
       await clearCache()
@@ -234,31 +258,28 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
 
   const signAndSendTransaction = async (
     transaction: Transaction | VersionedTransaction,
-    connection: Connection
+    minContextSlot?: number
   ): Promise<TransactionSignature> => {
     if (!account) {
       throw new Error('No wallet connected')
     }
-
     if (Platform.OS === 'web') {
-      return await signAndSendWebTransaction(transaction, connection)
+      return await signAndSendWebTransaction(transaction)
     } else {
-      return await signAndSendMobileTransaction(transaction, connection)
+      return await signAndSendMobileTransaction(transaction, minContextSlot)
     }
   }
 
   const signAndSendWebTransaction = async (
-    transaction: Transaction | VersionedTransaction,
-    connection: Connection
+    transaction: Transaction | VersionedTransaction
   ): Promise<TransactionSignature> => {
     const wallet = getWebWallet()
     if (!wallet) throw new Error('No web wallet found')
-
     if (wallet.signAndSendTransaction) {
       return await wallet.signAndSendTransaction(transaction)
     } else if (wallet.signTransaction) {
       const signedTx = await wallet.signTransaction(transaction)
-      return await connection.sendRawTransaction(signedTx.serialize())
+      return await (window as any).solana.connection.sendRawTransaction(signedTx.serialize())
     } else {
       throw new Error('Wallet does not support transaction signing')
     }
@@ -266,23 +287,35 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
 
   const signAndSendMobileTransaction = async (
     transaction: Transaction | VersionedTransaction,
-    connection: Connection
+    minContextSlot?: number
   ): Promise<TransactionSignature> => {
     return await transact(async (wallet: Web3MobileWallet) => {
       const cachedAuthToken = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
 
-      await wallet.authorize({
+      const authResult = await wallet.authorize({
         identity: APP_IDENTITY,
-        chain: 'solana:devnet',
+        chain: AppConfig.clusters[0].id,
         auth_token: cachedAuthToken || undefined,
+        sign_in_payload: {
+          domain: (process.env.EXPO_PUBLIC_APP_URL ||
+            'https://encryptsim.web.app'
+          ).split('https://')[1],
+          statement: 'Sign into encryptSIM',
+          uri: process.env.EXPO_PUBLIC_APP_URL || 'https://encryptsim.com',
+        },
       })
+
+      if (!authResult.accounts?.length) {
+        throw new Error('No accounts available')
+      }
 
       const signatures = await wallet.signAndSendTransactions({
-        transactions: [transaction],
+        transactions: [transaction as VersionedTransaction],
+        ...(minContextSlot && { minContextSlot }),
       })
 
-      if (!signatures || signatures.length === 0) {
-        throw new Error('No signature returned from wallet')
+      if (!signatures?.length) {
+        throw new Error('No transaction signature returned')
       }
 
       return signatures[0]

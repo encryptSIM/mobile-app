@@ -71,20 +71,24 @@ export function NoSimsHome() {
           activeTab={tabIndex}
           onTabChange={handleTabChange}
         />
-        {
-          tabIndex > 0 &&
-          <View style={{ paddingHorizontal: 8, paddingTop: 16, }}>
-            {renderCard({ item: filteredData[0] })}
-          </View>
-        }
         <FlatList
-          data={filteredData.slice(tabIndex)}
+          data={tabIndex > 0 ? filteredData.slice(1) : filteredData}
           keyExtractor={(item) => item.id}
           renderItem={renderCard}
           numColumns={2}
           columnWrapperStyle={$styles.columnWrapper}
-          ListHeaderComponent={<View style={$styles.searchSpacing} />}
-          stickyHeaderIndices={[0]}
+          ListHeaderComponent={
+            <View>
+              <View style={$styles.searchSpacing} />
+              {tabIndex > 0 && (
+                <View style={{ paddingHorizontal: 8, paddingTop: 16 }}>
+                  {renderCard({ item: filteredData[0] })}
+                </View>
+              )}
+              <View style={$styles.searchSpacing} />
+            </View>
+          }
+          stickyHeaderIndices={[0]} // keep only if you want the search spacing sticky
           showsVerticalScrollIndicator={false}
           contentContainerStyle={$styles.listContent}
         />
