@@ -25,10 +25,9 @@ const SlidingTabs: React.FC<SlidingTabsProps> = ({
 }) => {
   const translateX = useRef(new Animated.Value(0)).current;
   const screenWidth = Dimensions.get("window").width;
-  const containerPadding = 32; // Total horizontal padding/margin
-  const tabWrapperPadding = sizing.padding; // Internal padding of tabWrapper (4 * 2)
-  const availableWidth = Math.min(screenWidth - containerPadding, 320); // Max width constraint
-  const tabWidth = (availableWidth - tabWrapperPadding) / tabs.length;
+  const containerPadding = 32;
+  const availableWidth = Math.min(screenWidth - containerPadding, 320);
+  const tabWidth = availableWidth / tabs.length;
 
   useEffect(() => {
     Animated.spring(translateX, {
@@ -59,12 +58,11 @@ const SlidingTabs: React.FC<SlidingTabsProps> = ({
         {tabs.map((tab, index) => (
           <TouchableOpacity
             key={index}
-            style={[styles.tabButton, { width: tabWidth }]}
+            style={styles.tabButton}
             onPress={() => handleTabChange(index)}
             activeOpacity={0.7}
           >
             <Text
-              disabled={true}
               numberOfLines={1}
               ellipsizeMode="tail"
               style={[
@@ -93,19 +91,20 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 4,
     alignSelf: "center",
+    overflow: "hidden",
   },
   tabIndicator: {
     position: "absolute",
     top: 4,
     left: 4,
-    height: '80%',
+    bottom: 4,
     backgroundColor: "#373E4C",
     borderRadius: 20,
     zIndex: 0,
   },
   tabButton: {
+    flex: 1,
     paddingVertical: sizing.padding,
-    paddingHorizontal: 24,
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -114,7 +113,6 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: sizing.fontLarge,
     fontWeight: "500",
-    flexShrink: 0,
     textAlign: "center",
   },
   activeText: {
