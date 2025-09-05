@@ -43,7 +43,7 @@ import Trust from "@/assets/trust.png";
 import Visa from "@/assets/visa.png";
 import Wallet from "@/assets/wallet.svg";
 import Wifi from "@/assets/wifi.png";
-import X from "@/assets/x.svg";
+import X from "@/assets/x.png";
 import React from "react";
 import { ActivityIndicator, Image, ImageSourcePropType, TouchableOpacity, TouchableOpacityProps, View } from "react-native";
 import { SvgProps } from "react-native-svg";
