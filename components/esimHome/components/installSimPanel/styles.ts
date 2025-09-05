@@ -54,12 +54,6 @@ export const $styles = StyleSheet.create({
     backgroundColor: "transparent",
     marginTop: sizing.margin,
     minWidth: sizing.qr,
-    height: sizing.buttonHeight,
-    shadowColor: brandGreen,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
   },
   installButtonText: {
     color: brandGreen,
