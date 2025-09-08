@@ -117,13 +117,13 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f311d411-62b2-4dec-b531-1fd384fd0a64"
+        "projectId": "390debb1-f0a1-447b-b8e5-b78acb7da275"
       }
     },
     "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/504c0721-f7ed-48de-8f62-79c5efaf7a4c"
     },
-    "owner": "jack.kitto"
+    "owner": "encryptsim"
   }
 }
