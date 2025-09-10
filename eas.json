@@ -5,14 +5,32 @@
   },
   "build": {
     "development": {
-      "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://backend-134243472228.asia-east1.run.app",
+        "EXPO_PUBLIC_ENVIRONMENT": "development",
+        "EXPO_PUBLIC_RPC_URL": "https://api.devnet.solana.com",
+        "EXPO_PUBLIC_MASTER_PUBLIC_KEY": "DyVd5DpMfq8UG8WQDaYiCaALpXDrVGzj3CHB5cZ7Vor1",
+        "EXPO_PUBLIC_APP_URL": "https://encrypsim-dev.web.app/",
+        "EXPO_PUBLIC_APP_DOMAIN": "encrypsim-dev.web.app"
+      }
     },
     "staging": {
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://backend-104055433227.asia-southeast1.run.app",
+        "EXPO_PUBLIC_ENVIRONMENT": "staging",
+        "EXPO_PUBLIC_RPC_URL": "https://api.testnet.solana.com",
+        "EXPO_PUBLIC_MASTER_PUBLIC_KEY": "3d7mPXxNSP9p7j2PJQT3dmGDXnNZ2UUEAMDPPdxJtTqH",
+        "EXPO_PUBLIC_APP_URL": "https://encryptsim.web.app/",
+        "EXPO_PUBLIC_APP_DOMAIN": "encryptsim.web.app"
+      }
     },
     "production": {
       "autoIncrement": true,
@@ -20,16 +38,15 @@
         "ndk": "26.2.11394342",
         "image": "latest",
         "buildType": "app-bundle"
-      }
-    },
-    "dapp-store": {
-      "channel": "development",
-      "android": {
-        "buildType": "apk",
-        "ndk": "26.2.11394342",
-        "image": "latest"
       },
-      "config": "dapp-store.yml"
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://backend-80282010584.asia-southeast1.run.app",
+        "EXPO_PUBLIC_ENVIRONMENT": "prod",
+        "EXPO_PUBLIC_RPC_URL": "https://solana-mainnet.api.syndica.io/api-key/2cUA7sGZonMygiBo6D5LcL25SH2eteEwSLWAD8uca9vwZPmxoeaYZZJxaWM2ydi5pt4hyGJCPYXyTo6UfX1qx5HcVeYzLj8Cm68",
+        "EXPO_PUBLIC_MASTER_PUBLIC_KEY": "3d7mPXxNSP9p7j2PJQT3dmGDXnNZ2UUEAMDPPdxJtTqH",
+        "EXPO_PUBLIC_APP_URL": "https://encryptsim.web.app/",
+        "EXPO_PUBLIC_APP_DOMAIN": "encryptsim.web.app"
+      }
     }
   },
   "submit": {
