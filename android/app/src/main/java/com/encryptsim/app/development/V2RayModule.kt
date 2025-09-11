@@ -1,4 +1,4 @@
-package com.encryptsim.app.staging
+package com.encryptsim.app.development
 
 import android.util.Log
 import com.facebook.react.bridge.*

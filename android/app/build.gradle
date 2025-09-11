@@ -87,11 +87,11 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.encryptsim.app.staging'
+    namespace 'com.encryptsim.app.development'
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 34
-        applicationId 'com.encryptsim.app.staging'
+        applicationId 'com.encryptsim.app.development'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
