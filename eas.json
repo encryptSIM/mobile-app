@@ -7,7 +7,6 @@
     "development": {
       "distribution": "internal",
       "developmentClient": true,
-      "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://backend-134243472228.asia-east1.run.app",
         "EXPO_PUBLIC_ENVIRONMENT": "development",
