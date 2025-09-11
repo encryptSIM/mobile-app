@@ -20,6 +20,15 @@ export class AppConfig {
             network: ClusterNetwork.Mainnet,
           },
         ];
+      case 'staging':
+        return [
+          {
+            id: 'solana:testnet',
+            name: 'Testnet',
+            endpoint: process.env.EXPO_PUBLIC_RPC_URL!,
+            network: ClusterNetwork.Testnet,
+          },
+        ];
 
       case 'development':
         return [
