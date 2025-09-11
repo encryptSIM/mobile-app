@@ -6,7 +6,6 @@ import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import Colors from "@/constants/Colors";
 import { Icon } from "react-native-paper";
 import { useSharedState } from "@/hooks/use-provider";
-import { detectEnvironment } from "@/utils/environment";
 
 function TabBarIcon(props: {
   name: 'dVPN' | 'eSIM' | 'Profile'
@@ -19,7 +18,6 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const [showContent] = useSharedState('SHOW_CONTENT', false)
-  const env = detectEnvironment();
 
   useEffect(() => {
     console.log("tabs/layout rendered")
