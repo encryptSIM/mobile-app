@@ -31,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'encryptSIM (DEVELOPMENT)'
+rootProject.name = 'encryptSIM (STAGING)'
 
 expoAutolinking.useExpoVersionCatalog()
 

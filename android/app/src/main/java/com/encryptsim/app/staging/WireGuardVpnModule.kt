@@ -1,4 +1,4 @@
-package com.encryptsim.app.development
+package com.encryptsim.app.staging
 
 import android.net.VpnService
 import com.facebook.react.bridge.*

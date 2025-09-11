@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>encryptSIM (DEVELOPMENT)</string>
+    <string>encryptSIM (STAGING)</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>encryptsim</string>
-          <string>com.encryptsim.app.development</string>
+          <string>com.encryptsim.app.staging</string>
         </array>
       </dict>
       <dict>
