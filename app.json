@@ -72,7 +72,8 @@
       ],
       "adaptiveIcon": {
         "backgroundColor": "#32D583",
-        "foregroundImage": "./assets/android-forground-icon.png"
+        "monochromeImage": "./assets/android-monochromatic.png",
+        "foregroundImage": "./assets/android-monochromatic.png"
       }
     },
     "web": {
