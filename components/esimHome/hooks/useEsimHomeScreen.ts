@@ -56,6 +56,27 @@ export function useEsimHomeScreen() {
   );
 
   useEffect(() => {
+    console.log("--------------------------------------------------")
+    console.log("simsQuery config and options", {
+      method: "get",
+      path: "/fetch-sims/{id}",
+      options: {
+        params: {
+          path: {
+            id: account?.address ?? "",
+          },
+        },
+      },
+      other: {
+        enabled: !!account?.address && isConnected,
+        queryHash: account?.address ?? "",
+      }
+    })
+    console.log("--------------------------------------------------")
+  }, [account, isConnected])
+
+
+  useEffect(() => {
     if (account?.address && isConnected) {
       console.log("🔄 Account/auth changed, refetching simsQuery", {
         address: account.address,
