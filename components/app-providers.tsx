@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Provider } from '@/hooks/use-provider'
 import { WebWalletProvider } from '@/components/web-wallet-provider'
 import { WalletAuthProvider } from './auth/wallet-auth-provider'
+import { DebugWrapper } from './DebugWrapper'
 
 const queryClient = new QueryClient()
 
@@ -60,24 +61,26 @@ const theme: ThemeProp = {
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
-    <AppTheme>
-      <QueryClientProvider client={queryClient}>
-        <ClusterProvider>
-          <SolanaProvider>
-            <GestureHandlerRootView>
-              <PaperProvider theme={theme}>
-                <WebWalletProvider>
-                  <WalletAuthProvider>
-                    <Provider>
-                      {children}
-                    </Provider>
-                  </WalletAuthProvider>
-                </WebWalletProvider>
-              </PaperProvider>
-            </GestureHandlerRootView>
-          </SolanaProvider>
-        </ClusterProvider>
-      </QueryClientProvider>
-    </AppTheme>
+    <DebugWrapper enabled={!__DEV__}>
+      <AppTheme>
+        <QueryClientProvider client={queryClient}>
+          <ClusterProvider>
+            <SolanaProvider>
+              <GestureHandlerRootView>
+                <PaperProvider theme={theme}>
+                  <WebWalletProvider>
+                    <WalletAuthProvider>
+                      <Provider>
+                        {children}
+                      </Provider>
+                    </WalletAuthProvider>
+                  </WebWalletProvider>
+                </PaperProvider>
+              </GestureHandlerRootView>
+            </SolanaProvider>
+          </ClusterProvider>
+        </QueryClientProvider>
+      </AppTheme>
+    </DebugWrapper>
   )
 }

@@ -44,6 +44,11 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="eSIM" color={color} />,
         }}
       />
+      {
+        process.env.EXPO_PUBLIC_ENVIRONMENT !== 'prod'
+        &&
+        <Stack.Screen name="LogViewer" options={{ headerShown: false }} />
+      }
     </Stack>
   )
 
