@@ -19,7 +19,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const DEV = 'dev'
   const env = process.env.ENVIRONMENT ?? DEV
   const ext = env === PROD ? '' : `.${env}`
-  let name = `eSIM (${ext.slice(1, 4).toUpperCase()})`
+  let name = `encryptSIM (${ext.slice(1).toUpperCase()})`
   if (env === PROD) name = "encryptSIM"
   console.log("ext", ext)
   console.log("name", name)
