@@ -1,4 +1,4 @@
-package com.encryptsim.app.dev
+package com.encryptsim.app.staging
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.ReactApplicationContext
