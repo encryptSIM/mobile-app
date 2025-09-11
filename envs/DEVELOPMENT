@@ -1,5 +1,6 @@
 EXPO_PUBLIC_API_URL='https://backend-134243472228.asia-east1.run.app'
 EXPO_PUBLIC_ENVIRONMENT='development'
+ENVIRONMENT='development'
 EXPO_PUBLIC_RPC_URL='https://api.devnet.solana.com'
 EXPO_PUBLIC_MASTER_PUBLIC_KEY='DyVd5DpMfq8UG8WQDaYiCaALpXDrVGzj3CHB5cZ7Vor1'
 EXPO_PUBLIC_APP_URL='https://encrypsim-dev.web.app/'
