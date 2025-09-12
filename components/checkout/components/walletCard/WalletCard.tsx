@@ -114,8 +114,8 @@ export const WalletCard: React.FC<WalletCardProps> = ({
         </View>
 
         <Text style={$styles.description}>
-          After payment, you’ll still have {estimatedBalance.toFixed(4)} SOL
-          remaining.
+          After payment, you’ll still have approximately {estimatedBalance.toFixed(6)} SOL
+          remaining in your wallet (excluding network fees).
         </Text>
       </Card.Content>
     </Card>
