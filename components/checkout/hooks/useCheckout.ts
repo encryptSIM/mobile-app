@@ -16,7 +16,10 @@ import { PublicKey } from '@solana/web3.js';
 import { PriceDetailField } from '../components';
 import { useSafeNavigation } from '@/hooks/use-safe-navigation';
 import { IconType } from '@/components/Icon';
-import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
+// import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
+import { useAuthorization } from '@/components/auth/useAuthorization';
+import { useTransferSol } from '@/components/auth/account-data-access';
+import { solToLamports } from '@/utils/lamports-to-sol';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
 
@@ -383,7 +386,7 @@ export const useCheckout = () => {
   ]);
 
   const solAmount = useMemo(() => {
-    return parseFloat(priceData.priceInSol.toFixed(6));
+    return priceData.priceInSol
   }, [priceData]);
 
   const handleDiscountApply = useCallback((code: string) => {
@@ -448,7 +451,7 @@ export const useCheckout = () => {
           idempotencyKey: generateIdempotencyKey(),
         });
         transferSol.mutate({
-          amount: solAmount,
+          amount: solToLamports(solAmount),
           destination: AppConfig.masterSolAccount
         });
       } else {
