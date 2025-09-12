@@ -14,7 +14,7 @@ import { getDimensions } from "@/utils/dimensions";
 import { detectEnvironment, isSolanaWalletExtensionAvailable } from "@/utils/environment";
 import { OpenInWalletPrompt } from "@/components/openInWalletPrompt";
 import { sizing } from "@/constants/sizing";
-import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
+import { useWalletAuth } from "@/components/auth/wallet-auth-wrapper";
 
 const slides = [
   {

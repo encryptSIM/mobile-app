@@ -12,11 +12,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useGetBalance } from "@/components/solana/use-get-balance";
 import { ActivityIndicator } from "react-native-paper";
 import { lamportsToSol } from "@/utils/lamports-to-sol";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
+import { useWalletAuth } from "@/components/auth/wallet-auth-wrapper";
+import { useGetBalance } from "@/components/auth/account-data-access";
 
 export default function ProfileScreen() {
   const wallet = useWalletAuth();

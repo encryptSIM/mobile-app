@@ -38,7 +38,7 @@ export function SimsHome() {
           source={require("@/assets/app-logo-light.png")}
           style={$styles.logo}
         />
-        {/* <WalletConnectionButton /> */}
+        <WalletConnectionButton />
       </View>
       <SlidingTabs
         tabs={tabs}

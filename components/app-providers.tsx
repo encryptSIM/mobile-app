@@ -10,6 +10,7 @@ import { WebWalletProvider } from '@/components/web-wallet-provider'
 import { DebugWrapper } from './DebugWrapper'
 import { ConnectionProvider } from './auth/ConnectionProvider'
 import { ClusterProvider } from './auth/cluster-data-access'
+import { WalletAuthProvider } from './auth/wallet-auth-provider-enhanced'
 // import { WalletAuthProvider } from './auth/wallet-auth-provider'
 
 const queryClient = new QueryClient()
@@ -65,23 +66,23 @@ export function AppProviders({ children }: PropsWithChildren) {
     <DebugWrapper enabled={!__DEV__}>
       <AppTheme>
         <QueryClientProvider client={queryClient}>
-          <ClusterProvider>
-            {/* <SolanaProvider> */}
-            <ConnectionProvider config={{ commitment: "processed" }}>
-              <GestureHandlerRootView>
-                <PaperProvider theme={theme}>
-                  <WebWalletProvider>
-                    {/* <WalletAuthProvider> */}
-                    <Provider>
-                      {children}
-                    </Provider>
-                    {/* </WalletAuthProvider> */}
-                  </WebWalletProvider>
-                </PaperProvider>
-              </GestureHandlerRootView>
-            </ConnectionProvider>
-            {/* </SolanaProvider> */}
-          </ClusterProvider>
+          <WalletAuthProvider>
+            <ClusterProvider>
+              {/* <SolanaProvider> */}
+              <ConnectionProvider config={{ commitment: "processed" }}>
+                <GestureHandlerRootView>
+                  <PaperProvider theme={theme}>
+                    <WebWalletProvider>
+                      <Provider>
+                        {children}
+                      </Provider>
+                    </WebWalletProvider>
+                  </PaperProvider>
+                </GestureHandlerRootView>
+              </ConnectionProvider>
+              {/* </SolanaProvider> */}
+            </ClusterProvider>
+          </WalletAuthProvider>
         </QueryClientProvider>
       </AppTheme>
     </DebugWrapper>

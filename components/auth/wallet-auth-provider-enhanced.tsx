@@ -40,12 +40,6 @@ interface SIWSSession {
   expiresAt?: string
 }
 
-// Storage keys for SIWS session persistence
-const SIWS_STORAGE_KEYS = {
-  WEB_SESSION: 'siws_web_session',
-  MOBILE_SESSION: 'siws_mobile_session',
-} as const
-
 // Enhanced context that includes SIWS state but maintains backward compatibility
 interface WalletAuthContextState {
   isConnected: boolean
@@ -68,6 +62,12 @@ interface WalletAuthContextState {
 }
 
 const WalletAuthContext = createContext<WalletAuthContextState | null>(null)
+
+// Storage keys for SIWS session persistence
+const SIWS_STORAGE_KEYS = {
+  WEB_SESSION: 'siws_web_session',
+  MOBILE_SESSION: 'siws_mobile_session',
+} as const
 
 export function WalletAuthProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false)
@@ -235,7 +235,6 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const output: SolanaSignInOutput = await wallet.signIn(signInData)
-
       // Verify the sign-in output
       const backendOutput: SolanaSignInOutput = {
         account: {
@@ -571,3 +570,4 @@ function getWebWallet() {
   if (w.solana) return w.solana
   return null
 }
+

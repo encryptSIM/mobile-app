@@ -11,24 +11,22 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { useWalletAuth } from "./auth/wallet-auth-provider";
 import { brandGreen, card } from "./app-providers";
 import { Icon } from "./Icon";
-import { useGetBalance } from "./solana/use-get-balance";
 import { lamportsToSol } from "@/utils/lamports-to-sol";
 import * as Clipboard from "expo-clipboard";
-import { PublicKey } from "@solana/web3.js";
+import { useWalletAuth } from "./auth/wallet-auth-wrapper";
+import { useGetBalance } from "./auth/account-data-access";
 
 interface WalletButtonProps {
   style?: any;
 }
 
 export function WalletConnectionButton({ style }: WalletButtonProps) {
-  const { isConnected, isLoading, account, connect, disconnect } =
-    useWalletAuth();
+  const { isConnected, isLoading, account, connect, disconnect } = useWalletAuth();
   const [menuVisible, setMenuVisible] = useState(false);
 
-  const publicKey = account?.address ? new PublicKey(account.address) : null;
+  const publicKey = account?.address ? account.publicKey : null;
   const balance = useGetBalance({ address: publicKey! });
 
   const handlePress = async () => {

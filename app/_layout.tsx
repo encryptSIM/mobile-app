@@ -10,8 +10,8 @@ import "react-native-reanimated";
 import { AppProviders } from "@/components/app-providers";
 import { DarkThemeCustom } from "@/constants/custom-theme";
 import "../global.css";
-import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
 import { useAuthorization } from '@/components/auth/useAuthorization';
+import { useWalletAuth } from '@/components/auth/wallet-auth-wrapper';
 
 if (process.env.EXPO_PUBLIC_ENVIRONMENT === "prod") {
   console.log = () => { };
@@ -43,20 +43,20 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  // const { isConnected, isLoading } = useWalletAuth();
-  const auth = useAuthorization()
+  const { isConnected, isLoading } = useWalletAuth();
+  // const auth = useAuthorization()
 
-  if (auth.isLoading) {
+  if (isLoading) {
     return null; // keep splash screen visible until wallet state is resolved
   }
 
   return (
     <ThemeProvider value={DarkThemeCustom}>
       <Stack>
-        <Stack.Protected guard={!auth.accounts}>
+        <Stack.Protected guard={!isConnected}>
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         </Stack.Protected>
-        <Stack.Protected guard={!!auth?.accounts}>
+        <Stack.Protected guard={isConnected}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="checkoutStack" options={{ headerShown: false }} />
         </Stack.Protected>

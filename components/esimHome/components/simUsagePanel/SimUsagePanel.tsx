@@ -10,7 +10,7 @@ import { ActivityIndicator } from "react-native-paper";
 import Svg, { Circle } from "react-native-svg";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { $styles } from "./styles";
-import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
+import { useWalletAuth } from "@/components/auth/wallet-auth-wrapper";
 
 const exampleStats: UsageStat[] = [
   {

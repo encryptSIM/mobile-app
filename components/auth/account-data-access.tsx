@@ -12,7 +12,7 @@ import {
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useConnection } from "./ConnectionProvider";
-import { useWalletAuth } from "./wallet-auth-provider";
+import { useWalletAuth } from "./wallet-auth-wrapper";
 
 export function useGetBalance({ address }: { address: PublicKey }) {
   const { connection } = useConnection();
