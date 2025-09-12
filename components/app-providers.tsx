@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PropsWithChildren } from 'react'
-// import { SolanaProvider } from '@/components/solana/solana-provider'
 import { AppTheme } from '@/components/app-theme'
 import { PaperProvider } from 'react-native-paper'
 import { ThemeProp } from 'react-native-paper/lib/typescript/types'
@@ -11,7 +10,6 @@ import { DebugWrapper } from './DebugWrapper'
 import { ConnectionProvider } from './auth/ConnectionProvider'
 import { ClusterProvider } from './auth/cluster-data-access'
 import { WalletAuthProvider } from './auth/wallet-auth-provider-enhanced'
-// import { WalletAuthProvider } from './auth/wallet-auth-provider'
 
 const queryClient = new QueryClient()
 
