@@ -66,7 +66,6 @@ export function AppProviders({ children }: PropsWithChildren) {
         <QueryClientProvider client={queryClient}>
           <WalletAuthProvider>
             <ClusterProvider>
-              {/* <SolanaProvider> */}
               <ConnectionProvider config={{ commitment: "processed" }}>
                 <GestureHandlerRootView>
                   <PaperProvider theme={theme}>
@@ -78,7 +77,6 @@ export function AppProviders({ children }: PropsWithChildren) {
                   </PaperProvider>
                 </GestureHandlerRootView>
               </ConnectionProvider>
-              {/* </SolanaProvider> */}
             </ClusterProvider>
           </WalletAuthProvider>
         </QueryClientProvider>
