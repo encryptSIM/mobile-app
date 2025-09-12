@@ -24,30 +24,72 @@ export function useTransferSol({
       { endpoint: connection.rpcEndpoint, address: address?.toString() },
     ],
     mutationFn: async (input: { destination: PublicKey; amount: number }) => {
+      console.log('DEBUG: Starting SOL transfer mutation...')
+      console.log('DEBUG: Transfer input:', {
+        destination: input.destination.toString(),
+        amount: input.amount,
+        fromAddress: wallet.account?.address
+      })
+
       if (!wallet.account?.publicKey) {
+        console.error('DEBUG: No wallet connected')
         throw new Error('Wallet not connected')
       }
 
-      const { transaction, minContextSlot } = await createTransaction({
-        publicKey: wallet.account.publicKey,
-        destination: input.destination,
-        amount: input.amount,
-        connection,
-      })
+      if (!wallet.isConnected) {
+        console.error('DEBUG: Wallet not in connected state')
+        throw new Error('Wallet not connected')
+      }
 
-      const signature: TransactionSignature = await wallet.signAndSendTransaction(
-        transaction,
-        minContextSlot
-      )
+      try {
+        console.log('DEBUG: Creating transaction...')
+        const { transaction, minContextSlot, latestBlockhash } = await createTransaction({
+          publicKey: wallet.account.publicKey,
+          destination: input.destination,
+          amount: input.amount,
+          connection,
+        })
 
-      return signature
+        console.log('DEBUG: Transaction created:', {
+          minContextSlot,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+        })
+
+        console.log('DEBUG: Signing and sending transaction...')
+        const signature: TransactionSignature = await wallet.signAndSendTransaction(
+          transaction,
+          minContextSlot
+        )
+
+        console.log('DEBUG: Transaction signature received:', signature)
+
+        console.log('DEBUG: Waiting for confirmation...')
+        await connection.confirmTransaction(
+          { signature, ...latestBlockhash },
+          'confirmed'
+        )
+
+        console.log('DEBUG: Transaction confirmed successfully')
+        return signature
+      } catch (error) {
+        console.error('DEBUG: Transaction failed:', error)
+        throw error
+      }
     },
     onSuccess: async (signature) => {
+      console.log('DEBUG: Transfer mutation succeeded:', signature)
       if (onSuccess) onSuccess(signature)
-      await invalidateBalance()
+      try {
+        await invalidateBalance()
+        console.log('DEBUG: Balance cache invalidated')
+      } catch (error) {
+        console.error('DEBUG: Failed to invalidate balance cache:', error)
+      }
     },
     onError: (error) => {
-      if (onError) onError(error)
+      console.error('DEBUG: Transfer mutation failed:', error)
+      if (onError) onError(error as Error)
     },
   })
 }
