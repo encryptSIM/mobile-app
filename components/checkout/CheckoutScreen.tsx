@@ -3,6 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import {
   ContinueButton,
+  WalletCard,
   DiscountCode,
   PlanCard,
   PriceDetail
@@ -52,13 +53,11 @@ export function CheckoutScreen() {
           subtotal={priceData.subtotal}
         />
 
-
-        {/* disabled until more payment methods are implemented */}
-        {/* <PaymentMethod */}
-        {/*   selectedMethodId={selectedMethodId} */}
-        {/*   onMethodChange={(methodId) => setSelectedMethodId(methodId)} */}
-        {/*   disabled={paymentState.isProcessing} */}
-        {/* /> */}
+        <WalletCard
+          paymentAmount={priceData.priceInSol}
+          estimatedBalance={priceData.estimatedBalance}
+          disabled={paymentState.isProcessing}
+        />
 
         <DiscountCode
           onFocus={() => setTimeout(() => ref.current?.scrollToEnd(), 500)}

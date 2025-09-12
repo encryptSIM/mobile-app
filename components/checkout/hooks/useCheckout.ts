@@ -14,8 +14,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { PriceDetailField } from '../components';
 import { useSafeNavigation } from '@/hooks/use-safe-navigation';
 import { IconType } from '@/components/Icon';
-import { useTransferSol } from '@/components/auth/account-data-access';
-import { solToLamports } from '@/utils/lamports-to-sol';
+import { useTransferSol, useGetBalance } from '@/components/auth/account-data-access';
+import { solToLamports, lamportsToSol } from '@/utils/lamports-to-sol';
 import { useWalletAuth } from '@/components/auth/wallet-auth-wrapper';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
@@ -59,6 +59,10 @@ export const useCheckout = () => {
   const { account } = useWalletAuth()
   const solanaPrice = useSolanaPrice();
   const paymentIdempotencyKey = useRef<string | null>(null);
+
+  const balanceQuery = useGetBalance({
+    address: account?.publicKey!
+  });
 
   const checkCouponQuery = $api.useQuery('get', '/coupon/{code}', {
     params: {
@@ -350,6 +354,9 @@ export const useCheckout = () => {
       ? (1 / solanaPrice.data) * grandTotalUSD
       : 0;
 
+    const currentBalance = balanceQuery.data ? lamportsToSol(balanceQuery.data) : 0;
+    const estimatedBalance = currentBalance - priceInSol;
+
     const totals: PriceDetailField[] = [
       {
         label: 'Total',
@@ -373,8 +380,11 @@ export const useCheckout = () => {
       totals,
       subtotal: subtotalUSD,
       priceInSol,
+      currentBalance,
+      estimatedBalance,
     };
   }, [
+    balanceQuery.data,
     solanaPrice.data,
     solanaPrice.isPending,
     selectedPackages,
