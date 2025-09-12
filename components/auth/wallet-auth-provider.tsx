@@ -351,19 +351,85 @@ export function WalletAuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useWalletAuth() {
-  const context = useContext(WalletAuthContext)
-  if (!context) {
-    throw new Error('useWalletAuth must be used within WalletAuthProvider')
-  }
-  return context
-}
+  const { authorizeSessionWithSignIn, authorizeSession, deauthorizeSession } =
+    useAuthorization();
 
-function getWebWallet() {
-  if (typeof window === 'undefined') return null
-  const w = window as any
-  if (w.backpack?.isBackpack) return w.backpack
-  if (w.solflare?.isSolflare) return w.solflare
-  if (w.solana?.isPhantom) return w.solana
-  if (w.solana) return w.solana
-  return null
+  const connect = useCallback(async (): Promise<Account> => {
+    return await transact(async (wallet) => {
+      return await authorizeSession(wallet);
+    });
+  }, [authorizeSession]);
+
+  const signIn = useCallback(
+    async (signInPayload: SignInPayload): Promise<Account> => {
+      return await transact(async (wallet) => {
+        return await authorizeSessionWithSignIn(wallet, signInPayload);
+      });
+    },
+    [authorizeSession]
+  );
+
+  const disconnect = useCallback(async (): Promise<void> => {
+    await transact(async (wallet) => {
+      await deauthorizeSession(wallet);
+    });
+  }, [deauthorizeSession]);
+
+  const signAndSendTransaction = useCallback(
+    async (
+      transaction: Transaction | VersionedTransaction,
+      minContextSlot: number,
+    ): Promise<TransactionSignature> => {
+      return await transact(async (wallet) => {
+        await authorizeSession(wallet);
+        const signatures = await wallet.signAndSendTransactions({
+          transactions: [transaction],
+          minContextSlot,
+        });
+        return signatures[0];
+      });
+    },
+    [authorizeSession]
+  );
+
+  const signTransaction = useCallback(
+    async (
+      transaction: Transaction | VersionedTransaction
+    ): Promise<Transaction | VersionedTransaction> => {
+      return await transact(async (wallet) => {
+        await authorizeSession(wallet);
+        const signedTransactions = await wallet.signTransactions({
+          transactions: [transaction],
+        });
+        return signedTransactions[0];
+      });
+    },
+    [authorizeSession]
+  );
+
+  const signMessage = useCallback(
+    async (message: Uint8Array): Promise<Uint8Array> => {
+      return await transact(async (wallet) => {
+        const authResult = await authorizeSession(wallet);
+        const signedMessages = await wallet.signMessages({
+          addresses: [authResult.address],
+          payloads: [message],
+        });
+        return signedMessages[0];
+      });
+    },
+    [authorizeSession]
+  );
+
+  return useMemo(
+    () => ({
+      connect,
+      signIn,
+      disconnect,
+      signAndSendTransaction,
+      signTransaction,
+      signMessage,
+    }),
+    [signAndSendTransaction, signTransaction, signMessage]
+  );
 }
