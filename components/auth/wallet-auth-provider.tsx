@@ -9,9 +9,7 @@ import { useCallback, useMemo } from "react";
 import { SignInPayload } from "@solana-mobile/mobile-wallet-adapter-protocol";
 
 export function useWalletAuth() {
-  const { authorizeSessionWithSignIn, authorizeSession, deauthorizeSession } =
-    useAuthorization();
-
+  const { authorizeSessionWithSignIn, authorizeSession, deauthorizeSession } = useAuthorization();
   const connect = useCallback(async (): Promise<Account> => {
     return await transact(async (wallet) => {
       return await authorizeSession(wallet);
