@@ -8,11 +8,8 @@ import {
 } from "@solana/web3.js"
 import { SignInPayload } from "@solana-mobile/mobile-wallet-adapter-protocol"
 import { Platform } from 'react-native'
-
-// Import the enhanced wallet provider
 import { useWalletAuth as useEnhancedWalletAuth } from './wallet-auth-provider-enhanced'
 
-// Backward compatible interface that matches your existing API
 interface BackwardCompatibleWalletAuth {
   connect: () => Promise<Account>
   signIn: (signInPayload: SignInPayload) => Promise<Account>
@@ -25,7 +22,6 @@ interface BackwardCompatibleWalletAuth {
     transaction: Transaction | VersionedTransaction
   ) => Promise<Transaction | VersionedTransaction>
   signMessage: (message: Uint8Array) => Promise<Uint8Array>
-  // Enhanced properties for better state detection
   isConnected: boolean
   isLoading: boolean
   account: any
@@ -43,7 +39,6 @@ export function useWalletAuth(): BackwardCompatibleWalletAuth {
   const connect = useCallback(async (): Promise<Account> => {
     if (Platform.OS === 'web') {
       await enhancedAuth.connect()
-      // For web, we need to convert the account format
       if (enhancedAuth.account) {
         return {
           address: enhancedAuth.account.address,
