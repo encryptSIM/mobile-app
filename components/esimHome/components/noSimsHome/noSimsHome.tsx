@@ -53,7 +53,7 @@ export function NoSimsHome() {
             source={require("@/assets/app-logo-light.png")}
             style={$styles.logo}
           />
-          {/* <WalletConnectionButton /> */}
+          <WalletConnectionButton />
         </View>
         <TextInput
           placeholder="Search your destination"
