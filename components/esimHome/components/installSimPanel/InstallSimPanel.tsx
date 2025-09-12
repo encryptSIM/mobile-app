@@ -14,7 +14,7 @@ import { captureRef } from "react-native-view-shot";
 import { SELECTED_SIM } from "../../hooks/useEsimHomeScreen";
 import { InstallModal } from "../installEsimModal/InstallEsimModal";
 import { $styles } from "./styles";
-import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
+import { useWalletAuth } from "@/components/auth/wallet-auth-wrapper";
 
 export interface InstallSimPanelProps {
   sim: Sim;

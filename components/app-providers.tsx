@@ -1,14 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PropsWithChildren } from 'react'
-import { ClusterProvider } from './cluster/cluster-provider'
-import { SolanaProvider } from '@/components/solana/solana-provider'
 import { AppTheme } from '@/components/app-theme'
 import { PaperProvider } from 'react-native-paper'
 import { ThemeProp } from 'react-native-paper/lib/typescript/types'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Provider } from '@/hooks/use-provider'
 import { WebWalletProvider } from '@/components/web-wallet-provider'
-import { WalletAuthProvider } from './auth/wallet-auth-provider'
+import { DebugWrapper } from './DebugWrapper'
+import { ConnectionProvider } from './auth/ConnectionProvider'
+import { ClusterProvider } from './auth/cluster-data-access'
+import { WalletAuthProvider } from './auth/wallet-auth-provider-enhanced'
 
 const queryClient = new QueryClient()
 
@@ -60,24 +61,26 @@ const theme: ThemeProp = {
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
-    <AppTheme>
-      <QueryClientProvider client={queryClient}>
-        <ClusterProvider>
-          <SolanaProvider>
-            <GestureHandlerRootView>
-              <PaperProvider theme={theme}>
-                <WebWalletProvider>
-                  <WalletAuthProvider>
-                    <Provider>
-                      {children}
-                    </Provider>
-                  </WalletAuthProvider>
-                </WebWalletProvider>
-              </PaperProvider>
-            </GestureHandlerRootView>
-          </SolanaProvider>
-        </ClusterProvider>
-      </QueryClientProvider>
-    </AppTheme>
+    <DebugWrapper enabled={!__DEV__}>
+      <AppTheme>
+        <QueryClientProvider client={queryClient}>
+          <WalletAuthProvider>
+            <ClusterProvider>
+              <ConnectionProvider config={{ commitment: "processed" }}>
+                <GestureHandlerRootView>
+                  <PaperProvider theme={theme}>
+                    <WebWalletProvider>
+                      <Provider>
+                        {children}
+                      </Provider>
+                    </WebWalletProvider>
+                  </PaperProvider>
+                </GestureHandlerRootView>
+              </ConnectionProvider>
+            </ClusterProvider>
+          </WalletAuthProvider>
+        </QueryClientProvider>
+      </AppTheme>
+    </DebugWrapper>
   )
 }

@@ -14,7 +14,7 @@ import { useMultiUsage } from "@/airalo-api/queries/usage";
 import { UsageStat } from "../components/simUsagePanel";
 import { PackageDetailsCardField } from "@/components/packageSelection/components";
 import { IconType } from "@/components/Icon";
-import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
+import { useWalletAuth } from "@/components/auth/wallet-auth-wrapper";
 
 export const SELECTED_SIM = {
   key: "SELECTED_SIM",
@@ -54,6 +54,27 @@ export function useEsimHomeScreen() {
       queryHash: account?.address ?? "",
     }
   );
+
+  useEffect(() => {
+    console.log("--------------------------------------------------")
+    console.log("simsQuery config and options", {
+      method: "get",
+      path: "/fetch-sims/{id}",
+      options: {
+        params: {
+          path: {
+            id: account?.address ?? "",
+          },
+        },
+      },
+      other: {
+        enabled: !!account?.address && isConnected,
+        queryHash: account?.address ?? "",
+      }
+    })
+    console.log("--------------------------------------------------")
+  }, [account, isConnected])
+
 
   useEffect(() => {
     if (account?.address && isConnected) {

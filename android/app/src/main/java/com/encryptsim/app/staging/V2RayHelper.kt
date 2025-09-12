@@ -1,4 +1,4 @@
-package com.encryptsim.app.dev
+package com.encryptsim.app.staging
 
 import android.content.Context
 import android.util.Base64

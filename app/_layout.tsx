@@ -10,7 +10,7 @@ import "react-native-reanimated";
 import { AppProviders } from "@/components/app-providers";
 import { DarkThemeCustom } from "@/constants/custom-theme";
 import "../global.css";
-import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
+import { useWalletAuth } from '@/components/auth/wallet-auth-wrapper';
 
 if (process.env.EXPO_PUBLIC_ENVIRONMENT === "prod") {
   console.log = () => { };

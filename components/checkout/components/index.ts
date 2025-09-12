@@ -1,5 +1,5 @@
 export * from './planCard'
 export * from './priceDetail'
 export * from './discountCode'
-export * from './paymentMethod'
+export * from './walletCard/'
 export * from './continueButton'

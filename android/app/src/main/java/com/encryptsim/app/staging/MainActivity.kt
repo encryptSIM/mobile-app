@@ -1,4 +1,4 @@
-package com.encryptsim.app.dev
+package com.encryptsim.app.staging
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

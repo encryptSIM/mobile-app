@@ -1,3 +1,4 @@
+import './utils/logger';
 import { getRandomValues as expoCryptoGetRandomValues } from "expo-crypto";
 import { Buffer } from "buffer";
 

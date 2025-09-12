@@ -6,7 +6,7 @@ export class AppConfig {
   static name = 'encryptSIM'
   static apiUrl = process.env.EXPO_PUBLIC_API_URL
   static masterSolAccount = new PublicKey(process.env.EXPO_PUBLIC_MASTER_PUBLIC_KEY ?? "3d7mPXxNSP9p7j2PJQT3dmGDXnNZ2UUEAMDPPdxJtTqH")
-  static uri = process.env.EXPO_PUBLIC_APP_URL!
+  static uri = 'https://encryptsim.com'
   static domain = process.env.EXPO_PUBLIC_APP_DOMAIN!
   static feePercentage = 1.66
   static clusters: Cluster[] = (() => {
@@ -18,6 +18,15 @@ export class AppConfig {
             name: 'Mainnet',
             endpoint: process.env.EXPO_PUBLIC_RPC_URL!,
             network: ClusterNetwork.Mainnet,
+          },
+        ];
+      case 'staging':
+        return [
+          {
+            id: 'solana:testnet',
+            name: 'Testnet',
+            endpoint: process.env.EXPO_PUBLIC_RPC_URL!,
+            network: ClusterNetwork.Testnet,
           },
         ];
 

@@ -4,7 +4,6 @@ import {
   SELECTED_PACKAGES,
   SelectedPackageQtyMap
 } from '@/components/packageSelection/hooks';
-import { useTransferSol } from '@/components/solana/use-transfer-sol';
 import { AppConfig } from '@/constants/app-config';
 import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
@@ -12,11 +11,12 @@ import { useSolanaPrice } from '@/hooks/useSolanaPrice';
 import { useLocalSearchParams } from 'expo-router';
 import { err, ok, Result } from 'neverthrow';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { PublicKey } from '@solana/web3.js';
 import { PriceDetailField } from '../components';
 import { useSafeNavigation } from '@/hooks/use-safe-navigation';
 import { IconType } from '@/components/Icon';
-import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
+import { useTransferSol, useGetBalance } from '@/components/auth/account-data-access';
+import { solToLamports, lamportsToSol } from '@/utils/lamports-to-sol';
+import { useWalletAuth } from '@/components/auth/wallet-auth-wrapper';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
 
@@ -59,6 +59,10 @@ export const useCheckout = () => {
   const { account } = useWalletAuth()
   const solanaPrice = useSolanaPrice();
   const paymentIdempotencyKey = useRef<string | null>(null);
+
+  const balanceQuery = useGetBalance({
+    address: account?.publicKey!
+  });
 
   const checkCouponQuery = $api.useQuery('get', '/coupon/{code}', {
     params: {
@@ -189,18 +193,8 @@ export const useCheckout = () => {
     }
   });
 
-  const accountPublicKey = useMemo(() => {
-    if (!account?.address) return null;
-    try {
-      return new PublicKey(account.address);
-    } catch (error) {
-      console.error('Failed to create PublicKey from address:', error);
-      return null;
-    }
-  }, [account?.address]);
-
   const transferSol = useTransferSol({
-    address: accountPublicKey!,
+    address: account?.publicKey!,
     onError: (error) => {
       console.error(error)
       logPaymentEvent('sol_transfer_failed', { error }, 'error');
@@ -360,6 +354,9 @@ export const useCheckout = () => {
       ? (1 / solanaPrice.data) * grandTotalUSD
       : 0;
 
+    const currentBalance = balanceQuery.data ? lamportsToSol(balanceQuery.data) : 0;
+    const estimatedBalance = currentBalance - priceInSol;
+
     const totals: PriceDetailField[] = [
       {
         label: 'Total',
@@ -383,8 +380,11 @@ export const useCheckout = () => {
       totals,
       subtotal: subtotalUSD,
       priceInSol,
+      currentBalance,
+      estimatedBalance,
     };
   }, [
+    balanceQuery.data,
     solanaPrice.data,
     solanaPrice.isPending,
     selectedPackages,
@@ -393,7 +393,7 @@ export const useCheckout = () => {
   ]);
 
   const solAmount = useMemo(() => {
-    return parseFloat(priceData.priceInSol.toFixed(6));
+    return priceData.priceInSol
   }, [priceData]);
 
   const handleDiscountApply = useCallback((code: string) => {
@@ -458,7 +458,7 @@ export const useCheckout = () => {
           idempotencyKey: generateIdempotencyKey(),
         });
         transferSol.mutate({
-          amount: solAmount,
+          amount: solToLamports(solAmount),
           destination: AppConfig.masterSolAccount
         });
       } else {
