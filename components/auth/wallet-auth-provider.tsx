@@ -90,7 +90,7 @@ export function useWalletAuth() {
       signIn,
       disconnect,
       signAndSendTransaction,
-      signTransaction, // ✅ added manual signing
+      signTransaction,
       signMessage,
     }),
     [signAndSendTransaction, signTransaction, signMessage]
