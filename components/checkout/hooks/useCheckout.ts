@@ -189,16 +189,6 @@ export const useCheckout = () => {
     }
   });
 
-  const accountPublicKey = useMemo(() => {
-    if (!account?.address) return null;
-    try {
-      return new PublicKey(account.address);
-    } catch (error) {
-      console.error('Failed to create PublicKey from address:', error);
-      return null;
-    }
-  }, [account?.address]);
-
   const transferSol = useTransferSol({
     address: accountPublicKey!,
     onError: (error) => {
