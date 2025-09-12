@@ -22,7 +22,12 @@ export const $styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   title: { color: '#ffffff', fontSize: 18, fontWeight: 'bold' },
-  description: { color: '#cccccc', fontSize: 14, lineHeight: 20 },
+  description: {
+    color: '#cccccc',
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
   networkChip: {
     backgroundColor: 'rgba(50, 213, 131, 0.1)',
     borderColor: '#32D583',
