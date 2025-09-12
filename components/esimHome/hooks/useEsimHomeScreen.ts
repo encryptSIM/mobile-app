@@ -15,6 +15,7 @@ import { UsageStat } from "../components/simUsagePanel";
 import { PackageDetailsCardField } from "@/components/packageSelection/components";
 import { IconType } from "@/components/Icon";
 import { useWalletAuth } from "@/components/auth/wallet-auth-provider";
+import { useAuthorization } from "@/components/auth/useAuthorization";
 
 export const SELECTED_SIM = {
   key: "SELECTED_SIM",
@@ -23,7 +24,10 @@ export const SELECTED_SIM = {
 
 export function useEsimHomeScreen() {
   const [tabIndex, setTabIndex] = useState<number>(0);
-  const { isConnected, account } = useWalletAuth();
+  // const { isConnected, account } = useWalletAuth();
+  const auth = useAuthorization()
+  const account = auth?.accounts ? auth?.accounts[0] : undefined
+  const isConnected = !!account
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sims, setSims] = useSharedState<Sim[]>(SIMS.key, SIMS.initialState);
   const [selectedSim, setSelectedSim] = useSharedState<Sim | null>(

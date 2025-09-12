@@ -1,15 +1,16 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PropsWithChildren } from 'react'
-import { ClusterProvider } from './cluster/cluster-provider'
-import { SolanaProvider } from '@/components/solana/solana-provider'
+// import { SolanaProvider } from '@/components/solana/solana-provider'
 import { AppTheme } from '@/components/app-theme'
 import { PaperProvider } from 'react-native-paper'
 import { ThemeProp } from 'react-native-paper/lib/typescript/types'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Provider } from '@/hooks/use-provider'
 import { WebWalletProvider } from '@/components/web-wallet-provider'
-import { WalletAuthProvider } from './auth/wallet-auth-provider'
 import { DebugWrapper } from './DebugWrapper'
+import { ConnectionProvider } from './auth/ConnectionProvider'
+import { ClusterProvider } from './auth/cluster-data-access'
+// import { WalletAuthProvider } from './auth/wallet-auth-provider'
 
 const queryClient = new QueryClient()
 
@@ -65,19 +66,21 @@ export function AppProviders({ children }: PropsWithChildren) {
       <AppTheme>
         <QueryClientProvider client={queryClient}>
           <ClusterProvider>
-            <SolanaProvider>
+            {/* <SolanaProvider> */}
+            <ConnectionProvider config={{ commitment: "processed" }}>
               <GestureHandlerRootView>
                 <PaperProvider theme={theme}>
                   <WebWalletProvider>
-                    <WalletAuthProvider>
-                      <Provider>
-                        {children}
-                      </Provider>
-                    </WalletAuthProvider>
+                    {/* <WalletAuthProvider> */}
+                    <Provider>
+                      {children}
+                    </Provider>
+                    {/* </WalletAuthProvider> */}
                   </WebWalletProvider>
                 </PaperProvider>
               </GestureHandlerRootView>
-            </SolanaProvider>
+            </ConnectionProvider>
+            {/* </SolanaProvider> */}
           </ClusterProvider>
         </QueryClientProvider>
       </AppTheme>

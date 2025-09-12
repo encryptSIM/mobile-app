@@ -4,7 +4,7 @@ import {
   SELECTED_PACKAGES,
   SelectedPackageQtyMap
 } from '@/components/packageSelection/hooks';
-import { useTransferSol } from '@/components/solana/use-transfer-sol';
+// import { useTransferSol } from '@/components/solana/use-transfer-sol';
 import { AppConfig } from '@/constants/app-config';
 import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
@@ -59,7 +59,9 @@ export const useCheckout = () => {
   const [paymentState, setPaymentState] = useState<PaymentState>(initialState);
   const navigation = useSafeNavigation();
   const local = useLocalSearchParams();
-  const { account } = useWalletAuth()
+  // const { account } = useWalletAuth()
+  const auth = useAuthorization()
+  const account = auth?.accounts ? auth?.accounts[0] : undefined
   const solanaPrice = useSolanaPrice();
   const paymentIdempotencyKey = useRef<string | null>(null);
 
@@ -193,7 +195,7 @@ export const useCheckout = () => {
   });
 
   const transferSol = useTransferSol({
-    address: accountPublicKey!,
+    address: account?.publicKey!,
     onError: (error) => {
       console.error(error)
       logPaymentEvent('sol_transfer_failed', { error }, 'error');
