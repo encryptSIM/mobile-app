@@ -4,7 +4,6 @@ import {
   SELECTED_PACKAGES,
   SelectedPackageQtyMap
 } from '@/components/packageSelection/hooks';
-// import { useTransferSol } from '@/components/solana/use-transfer-sol';
 import { AppConfig } from '@/constants/app-config';
 import { regions } from '@/constants/countries';
 import { useSharedState } from '@/hooks/use-provider';
@@ -12,14 +11,12 @@ import { useSolanaPrice } from '@/hooks/useSolanaPrice';
 import { useLocalSearchParams } from 'expo-router';
 import { err, ok, Result } from 'neverthrow';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { PublicKey } from '@solana/web3.js';
 import { PriceDetailField } from '../components';
 import { useSafeNavigation } from '@/hooks/use-safe-navigation';
 import { IconType } from '@/components/Icon';
-// import { useWalletAuth } from '@/components/auth/wallet-auth-provider';
-import { useAuthorization } from '@/components/auth/useAuthorization';
 import { useTransferSol } from '@/components/auth/account-data-access';
 import { solToLamports } from '@/utils/lamports-to-sol';
+import { useWalletAuth } from '@/components/auth/wallet-auth-wrapper';
 
 export const SIMS = { key: 'SIMS', initialState: [] };
 
@@ -59,9 +56,7 @@ export const useCheckout = () => {
   const [paymentState, setPaymentState] = useState<PaymentState>(initialState);
   const navigation = useSafeNavigation();
   const local = useLocalSearchParams();
-  // const { account } = useWalletAuth()
-  const auth = useAuthorization()
-  const account = auth?.accounts ? auth?.accounts[0] : undefined
+  const { account } = useWalletAuth()
   const solanaPrice = useSolanaPrice();
   const paymentIdempotencyKey = useRef<string | null>(null);
 
